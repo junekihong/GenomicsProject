@@ -32,10 +32,10 @@ Genome list request:
 Genome list Response:
 
     Genome List Response ID
-    Number of Genomes
-    Name 1, Genome 1
-    Name 2, Genome 2
-    ...
+    List of Tuples:
+        Name 1, Genome 1
+        Name 2, Genome 2
+        ...
 
 Local Alignment request:
 
@@ -70,18 +70,18 @@ Problem list request:
 Problem list response:
 
     Problem List Response ID
-    Number of problems
-    Problem 1
-    Problem 2
-    ...
+    List of problem descriptions:
+        Problem 1
+        Problem 2
+        ...
 
 Claim request:
 
     Claim Request Message ID
-    Number of claimed problems
-    Problem ID 1
-    Problem ID 2
-    ...
+    List of claimed problems:
+        Problem ID 1
+        Problem ID 2
+        ...
 
 Problem claim response:
 
