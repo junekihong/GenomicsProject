@@ -63,6 +63,8 @@ Once a problem has been allocate to a worker, it may not be allocated to another
 The worker may not attempt to claim more problems until it has completed the problems already allocated to it.
 We assume that the worker will complete every problem it is allocated without failure.
 
+Once a worker node has either solved its subproblem and stored it in the database, it informs the Coordinator by returning the problem ID and the solution ID.
+
 Problem list request:
 
     Problem List Request ID
@@ -91,8 +93,11 @@ Problem claim response:
 Solution (only from worker -> coordinator):
 
     Solution Message ID
+    Solution ID
     Problem ID
-    The chunk of the matrix for this problem in row-major order
+    
+The solution ID is the problem ID of the first instance of this subproblem.
+
 
 Storage
 -------
@@ -104,6 +109,22 @@ If this is the case, it will be the problem most similar to the one requested.
 The requestor may also query whether or not a problem is present; the storage system responds with the problem description of the most similar problem, but  not with the solution.
 
 These do not have to go over the wire; the storage system may be in the same process as another actor, in which case these may be function or method calls.
+
+
+Insert a new solution certificate:
+
+    Solution insertion ID
+    Problem ID
+    Initial conditions
+    Contents of the matrix (in row-major order)
+
+Insert genome data:
+
+    Genome insertion ID
+    Genome name
+    Start index of chunk
+    Length of chunk
+    Data
 
 Query for genome information:
 
