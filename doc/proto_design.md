@@ -115,7 +115,8 @@ Insert a new solution certificate:
 
     Solution insertion ID
     Problem ID
-    Initial conditions
+    Problem Description
+    Maximum value and location in matrix
     Contents of the matrix (in row-major order)
 
 Insert genome data:
@@ -156,13 +157,13 @@ Query by problem ID:
 
     ID Query Request ID
     Problem ID
+    Boolean - Whethter to return the entire solution, or just the maximum value
 
-Query by inital conditions:
+Query by initial conditions:
 
-    ?Cond? Query Request ID
+    Conditions Query Request ID
     Problem Description
     Boolean - Whether to return the solution to partial matches
-**TODO** This needs a name
 
 Query Response:
 
@@ -170,4 +171,5 @@ Query Response:
     Boolean -> Was a potential match found?
     Boolean -> Is this an exact match
     Problem Description
+    Maximum value and location in the matrix
     Solution - the matrix for this problem in row-major order.  This may be omitted if it was not requested.

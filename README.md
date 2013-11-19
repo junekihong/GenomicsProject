@@ -49,3 +49,5 @@ Internals
 You can generate documentation by running ``doxygen`` in the top-level directory.  You may need to create the ``build`` directory yourself in order to appease doxygen.
 
 [Protocol Description](md_doc_proto_design.html)
+
+[Coordinator Description](md_doc_coord_design.html)
