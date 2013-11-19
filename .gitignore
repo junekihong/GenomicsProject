@@ -15,3 +15,5 @@
 build
 *~
 .*.swp
+
+mdp{c,l,s,w}
