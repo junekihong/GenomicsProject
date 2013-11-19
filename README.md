@@ -42,7 +42,25 @@ A worker is run with
 
     mdpw [--server <server>:[<port>]] [--port <port>]
 
-**TODO** Is storage a separate process, or is it part of the coordinator (and each worker)?
+A storage node is run with:
+
+    mdps [--port <port>]
+
+Building
+========
+To build from git:
+
+    git submodule init
+    git submodule update
+    
+    cd lib/msgpack
+    ./bootstrap
+    ./configure --enable-shared=no
+    make
+    
+    cd ../..
+    make
+
 
 Internals
 =========
