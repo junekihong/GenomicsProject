@@ -17,3 +17,6 @@ build
 .*.swp
 
 mdp{c,l,s,w}
+
+*.pyc
+.ycm_extra_conf.*
