@@ -36,11 +36,11 @@ The client outputs the optimal alignment.
 
 The coordinator (leader) is run with
 
-    mdpl [--port <port>]
+    mdpl [--port <port>] [--storage <server>[:<port>]]
 
 A worker is run with
 
-    mdpw [--server <server>:[<port>]] [--port <port>]
+    mdpw [--port <port>] [--server <server>[:<port>]] [--storage <server>[:<port>]]
 
 A storage node is run with:
 
