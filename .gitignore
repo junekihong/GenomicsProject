@@ -14,7 +14,7 @@
 
 build
 *~
-.*.swp
+.*.sw[po]
 
 mdp{c,l,s,w}
 
