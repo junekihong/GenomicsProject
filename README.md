@@ -40,7 +40,7 @@ The coordinator (leader) is run with
 
 A worker is run with
 
-    mdpw [--port <port>] [--server <server>[:<port>]] [--storage <server>[:<port>]]
+    mdpw [--server <server>[:<port>]] [--storage <server>[:<port>]]
 
 A storage node is run with:
 

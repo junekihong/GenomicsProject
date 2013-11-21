@@ -35,11 +35,9 @@ WorkerConfiguration parse_options(int argc, const char* argv[])
     po::options_description desc("MDP Worker Options");
     desc.add_options()
         ("help", "print this help message")
-        /*("port", po::value<std::string>(&config.my_port)->default_value(DEFAULT_PORT),
-            "the port number this worker should listen on") */
         ("server", po::value<std::string>(&leader_address)->default_value(DEFAULT_SERVER ":" DEFAULT_PORT),
             "the hostname and, optionally, the port number of the coordinator")
-        ("storage", po::value<std::string>(&storage_address)->default_value(DEFAULT_SERVER ":" DEFAULT_PORT),
+        ("storage", po::value<std::string>(&storage_address)->default_value(DEFAULT_SERVER ":" DEFAULT_STORAGE_PORT),
             "the hostname and, optionally, the port number of a storage server")
         ;
 
