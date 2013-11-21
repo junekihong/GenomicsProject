@@ -1,8 +1,9 @@
-CXXFLAGS=-g -pedantic -Wall -Wextra -std=c++98
+CXX=clang++
+CXXFLAGS=-g -pedantic -Wall -Wextra -std=c++98 -DBOOST_ASIO_DISABLE_THREADS
 
 TARGET=mdpw
 OBJECTS=$(patsubst %.cpp,%.o,$(wildcard *.cpp))
-LDFLAGS+=-lboost_program_options
+LDFLAGS+=-lboost_program_options -lboost_system
 
 all: $(TARGET)
 
