@@ -17,19 +17,29 @@ boost::asio::io_service io_service;
 
 using boost::asio::ip::tcp;
 
-static void connect_server(tcp::socket& socket, const ServerEndpoint& server, tcp::resolver& resolver)
+static void connect_server(tcp::socket& socket, const ServerEndpoint& server, tcp::resolver& resolver, const std::string& name)
 {
-    tcp::resolver::query query(server.host, server.port);
-    tcp::resolver::iterator iter = resolver.resolve(query);
+    try {
+        tcp::resolver::query query(server.host, server.port);
+        tcp::resolver::iterator iter = resolver.resolve(query);
 
-    boost::asio::connect(socket, iter);
+        std::cout << "Attempting to connect to " << name << " at " << server.host << ":" << server.port << "...\n";
+        boost::asio::connect(socket, iter);
+        std::cout << "Connection succeeded.\n";
+    }
+    catch( const std::exception& err )
+    {
+        std::cerr << "Connecting to " << name << " at " << server.host << ":" << server.port << " failed: " << err.what() << "\n";
+        std::cerr << "Aborting!\n";
+        exit(-1);
+    }
 }
 
 void connect_to_servers(const WorkerConfiguration& config, Connections& conns)
 {
     tcp::resolver resolver(io_service);
-    connect_server(conns.leader, config.leader, resolver);
-    connect_server(conns.storage, config.storage, resolver);
+    connect_server(conns.leader, config.leader, resolver, "leader");
+    connect_server(conns.storage, config.storage, resolver, "storage");
 }
 
 int main(int argc, const char* argv[])
@@ -46,6 +56,6 @@ int main(int argc, const char* argv[])
         std::cerr << err.what() << "\n";
         return -1;
     }
-
+    
     return 0;
 }
