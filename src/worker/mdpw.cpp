@@ -3,6 +3,9 @@
 #include <boost/asio/ip/tcp.hpp>
 #include "cmd_options.h"
 
+#include "protocol.h"
+#include "protocol_impl.h"
+
 struct Connections
 {
     boost::asio::ip::tcp::socket leader;

@@ -16,7 +16,10 @@ build
 *~
 .*.sw[po]
 
-mdp{c,l,s,w}
+mdpc
+mdpl
+mdps
+mdpw
 
 *.pyc
 .ycm_extra_conf.*
