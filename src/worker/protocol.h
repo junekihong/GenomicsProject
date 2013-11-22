@@ -21,4 +21,8 @@ class WorkerLeaderProtocol
     virtual void sendSolution(const Solution& solution) = 0;
 };
 
+class StorageProtocol
+{
+};
+
 #endif // __WORKER_PROTOCOL_H__

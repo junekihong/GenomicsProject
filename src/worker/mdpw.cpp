@@ -5,6 +5,7 @@
 
 #include "protocol.h"
 #include "protocol_impl.h"
+#include "worker.h"
 
 struct Connections
 {
@@ -59,6 +60,10 @@ int main(int argc, const char* argv[])
         std::cerr << err.what() << "\n";
         return -1;
     }
+
+    WorkerProtocolImpl leader(conns.leader);
+    StorageProtocolImpl storage(conns.storage);
+    runWorker(leader, storage);
     
     return 0;
 }
