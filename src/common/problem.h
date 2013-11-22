@@ -7,7 +7,7 @@ class ProblemID
 {
     unsigned long idnum;
 
-    static unsigned long long next_id;
+    static unsigned long next_id;
 
     public:
     ProblemID()
