@@ -27,6 +27,9 @@ class StorageProtocolImpl : public StorageProtocol
     StorageProtocolImpl(boost::asio::ip::tcp::socket& s)
         : socket(s)
     { }
+    
+    virtual bool insertSolution(const Solution& solution);
+    virtual bool queryProblemID(const ProblemID& problemID);
 };
 
 #endif // __WORKER_PROTOCOL_IMPL_H__

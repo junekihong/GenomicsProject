@@ -5,16 +5,16 @@
 
 class ProblemID
 {
-    unsigned long idnum;
-
-    static unsigned long next_id;
-
-    public:
-    ProblemID()
-        : idnum(next_id)
-    {
-        next_id += 1;
-    }
+  unsigned long idnum;
+  
+  static unsigned long next_problem_id;
+  
+ public:
+  ProblemID()
+  : idnum(next_problem_id)
+  {
+    next_problem_id += 1;
+  }
 };
 
 class ProblemDescription
@@ -25,10 +25,6 @@ class ProblemDescription
     std::vector<int> left_numbers;
     std::vector<char> top_genome;
     std::vector<char> left_genome;
-};
-
-class Solution
-{
 };
 
 #endif // __PROBLEM_H__

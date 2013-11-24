@@ -4,9 +4,12 @@
 #include <vector>
 
 #include "common/problem.h"
+#include "common/solution.h"
+
 
 class WorkerLeaderProtocol
 {
+    public:
     /**
      * \param[out] problemList the list of available problems from the leader
      */
@@ -23,6 +26,10 @@ class WorkerLeaderProtocol
 
 class StorageProtocol
 {
+    public:
+    virtual bool insertSolution(const Solution& solution) = 0;
+    virtual bool queryProblemID(const ProblemID& problemID) = 0;
+    
 };
 
 #endif // __WORKER_PROTOCOL_H__
