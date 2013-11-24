@@ -7,7 +7,7 @@ LDFLAGS+=-lboost_program_options -lboost_system
 
 all: $(TARGET)
 
-protocol.h: ../common/problem.h
+protocol.h: ../common/problem.h ../common/solution.h ../common/matrix.h
 	touch protocol.h # hack to get this depndency to matter
 ../common/problem.o: ../common/problem.h ../common/problem.cpp
 	$(CXX) $(CXXFLAGS) -c $*.cpp -o ../common/problem.o
