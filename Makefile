@@ -6,8 +6,15 @@ all: $(TARGETS)
 	cp src/worker/mdpw .
 	cp src/storage/mdps .
 
-%:
-	cd src; make $*
+.PHONY: $(TARGETS)
+mdpc:
+	cd src; make mdpc
+mdpl:
+	cd src; make mdpl
+mdpw:
+	cd src; make mdpw
+mdps:
+	cd src; make mdps
 
 .PHONY: clean
 clean:

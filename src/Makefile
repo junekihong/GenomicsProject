@@ -1,3 +1,6 @@
+TARGETS=mdpc mdpl mdpw mdps
+
+.PHONY: $(TARGETS)
 mdpc:
 	cd client; make $*
 mdpl:
@@ -9,6 +12,7 @@ mdps:
 
 .PHONY: clean
 clean:
+	cd common; make clean
 	cd client; make clean
 	cd coord; make clean
 	cd worker; make clean
