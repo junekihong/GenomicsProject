@@ -3,20 +3,17 @@
 
 class Location
 {
-  int X;
-  int Y;
-  
- public:
-  Location(){
-    X = 0;
-    Y = 0;
-  }
-  
-  Location(int x, int y){
-    X = x;
-    Y = y;
-  }
-  
+    int x;
+    int y;
+    
+    public:
+    Location()
+        : x(0), y(0)
+    { }
+    
+    Location(int _x, int _y)
+        : x(_x), y(_y)
+    { }
 };
 
 
