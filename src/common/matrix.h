@@ -3,14 +3,14 @@
 
 class Matrix
 {
-    public:
-    int** matrix;
+ public:
+  int** matrix;
+  
+  Matrix(){
     
-    Matrix(){
-        
-    }
-    Matrix(int length, int width);
-
+  }
+  Matrix(int length, int width);
+  
 };
 
 

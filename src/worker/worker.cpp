@@ -6,7 +6,7 @@
 void runWorker(WorkerLeaderProtocol& leader, StorageProtocol& storage){
   std::vector<ProblemDescription> problemList;
   std::vector<ProblemID> problems;
-
+  
   while(true)
     {
       problemList.clear();
