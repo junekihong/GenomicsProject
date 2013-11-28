@@ -18,5 +18,5 @@ mdps:
 
 .PHONY: clean
 clean:
-	rm $(TARGETS)
+	rm -f $(TARGETS)
 	cd src; make clean
