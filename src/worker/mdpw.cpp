@@ -9,11 +9,11 @@
 
 struct Connections
 {
-    boost::asio::ip::tcp::socket leader;
-    boost::asio::ip::tcp::socket storage;
+    boost::asio::ip::tcp::iostream leader;
+    boost::asio::ip::tcp::iostream storage;
 
     Connections(boost::asio::io_service& io_service)
-        : leader(io_service), storage(io_service)
+        : leader(), storage()
     { }
 };
 
@@ -21,15 +21,22 @@ boost::asio::io_service io_service;
 
 using boost::asio::ip::tcp;
 
-static void connect_server(tcp::socket& socket, const ServerEndpoint& server, tcp::resolver& resolver, const std::string& name)
+static void connect_server(tcp::iostream& socket, const ServerEndpoint& server, tcp::resolver& resolver, const std::string& name)
 {
     try {
         tcp::resolver::query query(server.host, server.port);
         tcp::resolver::iterator iter = resolver.resolve(query);
 
         std::cout << "Attempting to connect to " << name << " at " << server.host << ":" << server.port << "...\n";
-        boost::asio::connect(socket, iter);
-        std::cout << "Connection succeeded.\n";
+        socket.connect(server.host, server.port);
+        if( !socket ) {
+            std::cerr << "Connecting to " << name << " at " << server.host << ":" << server.port << " failed: " << socket.error().message() << "\n";
+            std::cerr << "Aborting!\n";
+            exit(-1);
+        }
+        else {
+            std::cout << "Connection succeeded.\n";
+        }
     }
     catch( const std::exception& err )
     {

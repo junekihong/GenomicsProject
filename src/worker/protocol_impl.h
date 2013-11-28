@@ -7,24 +7,24 @@
 
 class WorkerProtocolImpl : public WorkerLeaderProtocol
 {
-  boost::asio::ip::tcp::socket& socket;
-  
- public:
- WorkerProtocolImpl(boost::asio::ip::tcp::socket& s)
-   : socket(s)
-  { }
-  
-  virtual void requestProblemList(std::vector<ProblemDescription>& problemList);
-  virtual bool claimProblems(const std::vector<ProblemID>& problems);
-  virtual void sendSolution(const Solution& solution);
+    boost::asio::ip::tcp::iostream& socket;
+
+    public:
+    WorkerProtocolImpl(boost::asio::ip::tcp::iostream& s)
+        : socket(s)
+    { }
+
+    virtual void requestProblemList(std::vector<ProblemDescription>& problemList);
+    virtual bool claimProblems(const std::vector<ProblemID>& problems);
+    virtual void sendSolution(const Solution& solution);
 };
 
 class StorageProtocolImpl : public StorageProtocol
 {
-  boost::asio::ip::tcp::socket& socket;
+  boost::asio::ip::tcp::iostream& socket;
   
  public:
- StorageProtocolImpl(boost::asio::ip::tcp::socket& s)
+ StorageProtocolImpl(boost::asio::ip::tcp::iostream& s)
    : socket(s)
   { }
   
