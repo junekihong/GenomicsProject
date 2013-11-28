@@ -5,6 +5,11 @@
 #define PROBLEM_LIST_REQUEST_ID		3
 #define PROBLEM_LIST_RESPONSE_ID	3
 
+#define PROBLEM_CLAIM_REQUEST_ID    4
+#define PROBLEM_CLAIM_RESPONSE_ID   4
+
+#define SOLUTION_REPORT_ID          5
+
 typedef int message_id_t;
 
 void WorkerProtocolImpl::requestProblemList(std::vector<ProblemDescription>& problemList)
@@ -50,11 +55,32 @@ void WorkerProtocolImpl::requestProblemList(std::vector<ProblemDescription>& pro
 
 bool WorkerProtocolImpl::claimProblems(const std::vector<ProblemID>& problems)
 {
-	return false;
+    std::cout << "Requesting " << problems.size() << " problems\n";
+    socket << static_cast<message_id_t>(PROBLEM_CLAIM_REQUEST_ID);
+    socket << static_cast<unsigned>(problems.size());
+    socket.write(reinterpret_cast<const char*>(problems.data()), problems.size() * sizeof(ProblemID));
+    socket.flush();
+    
+    message_id_t msg_id = PROBLEM_CLAIM_RESPONSE_ID;
+    socket >> msg_id;
+	if( msg_id != PROBLEM_CLAIM_RESPONSE_ID )
+	{
+		std::cout << "Attempted to claim problems, but got back message type " << msg_id << " instead.";
+		throw std::runtime_error("Error in protocol talking to leader.  See logs");
+	}
+	
+    bool result;
+    socket >> result;
+    
+	return result;
 }
 
-void WorkerProtocolImpl::sendSolution(const Solution& solution)
+void WorkerProtocolImpl::sendSolution(const SolutionCertificate& solution)
 {
+    socket << static_cast<message_id_t>(SOLUTION_REPORT_ID);
+    socket << solution.problemID.idnum;
+    socket << solution.solutionID.idnum;
+    socket.flush();
 }
 
 bool StorageProtocolImpl::insertSolution(const Solution& solution)

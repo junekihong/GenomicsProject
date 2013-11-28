@@ -26,8 +26,7 @@ class SolutionCertificate
 {
     public:
 	ProblemID problemID;
-	
-	SolutionCertificate();
+    ProblemID solutionID;
 };
 
 

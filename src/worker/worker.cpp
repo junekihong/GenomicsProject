@@ -32,7 +32,7 @@ void runWorker(WorkerLeaderProtocol& leader, StorageProtocol& storage){
       }
 
       //TODO take problem. produce solution.
-      Solution solution;
+      SolutionCertificate solution;
 
       // Send solution back.
       leader.sendSolution(solution);

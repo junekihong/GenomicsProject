@@ -21,7 +21,7 @@ class WorkerLeaderProtocol
      */
     virtual bool claimProblems(const std::vector<ProblemID>& problems) = 0;
 
-    virtual void sendSolution(const Solution& solution) = 0;
+    virtual void sendSolution(const SolutionCertificate& solution) = 0;
 };
 
 class StorageProtocol

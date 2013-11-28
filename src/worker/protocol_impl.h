@@ -16,7 +16,7 @@ class WorkerProtocolImpl : public WorkerLeaderProtocol
 
     virtual void requestProblemList(std::vector<ProblemDescription>& problemList);
     virtual bool claimProblems(const std::vector<ProblemID>& problems);
-    virtual void sendSolution(const Solution& solution);
+    virtual void sendSolution(const SolutionCertificate& solution);
 };
 
 class StorageProtocolImpl : public StorageProtocol
