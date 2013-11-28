@@ -25,8 +25,7 @@ class SolutionID
 class SolutionCertificate
 {
  public:
-  unsigned long id;
-  //ProblemID problemID;
+  ProblemID problemID;
 
   SolutionCertificate();
 };
@@ -37,7 +36,7 @@ class Solution
 {
  public:
   unsigned long id;
-  //ProblemID problemID;
+  ProblemID problemID;
 
   int maxValue;
   Location maxValueLocation;
