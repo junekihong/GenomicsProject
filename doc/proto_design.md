@@ -157,7 +157,7 @@ Query by problem ID:
 
     ID Query Request ID
     Problem ID
-    Boolean - Whethter to return the entire solution, or just the maximum value
+    Boolean - Whether to return the entire solution, or just the maximum value
 
 Query by initial conditions:
 
