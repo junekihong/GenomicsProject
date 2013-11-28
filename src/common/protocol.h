@@ -13,6 +13,8 @@
 
 class ProblemDescription;
 
+
+
 typedef int message_id_t;
 
 void readProblemDescription(std::istream& socket, ProblemDescription& cur_prob);

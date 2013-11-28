@@ -4,6 +4,7 @@
 #include <boost/asio/ip/tcp.hpp>
 
 #include "protocol.h"
+#include "common/query_response.h"
 
 class WorkerProtocolImpl : public WorkerLeaderProtocol
 {
@@ -29,7 +30,9 @@ class StorageProtocolImpl : public StorageProtocol
   { }
   
   virtual bool insertSolution(const Solution& solution);
-  virtual bool queryProblemID(const ProblemID& problemID);
+  virtual QueryResponse queryByProblemID(const ProblemID& problemID);
+  virtual QueryResponse queryByInitialConditions(const int requestID, const ProblemDescription& problemDescription, const bool queryFlag);
+
 };
 
 #endif // __WORKER_PROTOCOL_IMPL_H__

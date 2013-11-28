@@ -65,7 +65,19 @@ bool StorageProtocolImpl::insertSolution(const Solution& solution)
 	return false;
 }
 
-bool StorageProtocolImpl::queryProblemID(const ProblemID& problemID)
+QueryResponse StorageProtocolImpl::queryByProblemID(const ProblemID& problemID)
 {
-	return false;
+    QueryResponse response;
+	return response;
 }
+
+QueryResponse StorageProtocolImpl::queryByInitialConditions(const int requestID, const ProblemDescription& problemDescription, const bool queryFlag)
+{
+    QueryResponse response;
+    return response;
+
+}
+
+
+
+
