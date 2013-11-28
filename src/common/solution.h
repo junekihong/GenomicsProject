@@ -9,38 +9,38 @@
 /*
 class SolutionID
 {
-  unsigned long idnum;
-  static unsigned long next_solution_id;
-  
- public:
-  SolutionID();
-  //: idnum(next_solution_id)
-  //{
-  //  next_solution_id += 1;
-  //  }
+    unsigned long idnum;
+    static unsigned long next_solution_id;
+ 
+    public:
+    SolutionID();
+        : idnum(next_solution_id)
+    {
+        next_solution_id += 1;
+    }
 };
-*/
+ */
 
 
 class SolutionCertificate
 {
- public:
-  ProblemID problemID;
-
-  SolutionCertificate();
+    public:
+	ProblemID problemID;
+	
+	SolutionCertificate();
 };
 
 
 
 class Solution
 {
- public:
-  unsigned long id;
-  ProblemID problemID;
-
-  int maxValue;
-  Location maxValueLocation;
-  Matrix matrix;
+    public:
+	unsigned long id;
+	ProblemID problemID;
+	
+	int maxValue;
+	Location maxValueLocation;
+	Matrix matrix;
 };
 
 

@@ -17,4 +17,3 @@ clean:
 	cd coord; make clean
 	cd worker; make clean
 	cd storage; make clean
-

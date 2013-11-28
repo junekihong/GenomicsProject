@@ -18,4 +18,3 @@ class Location
 
 
 #endif //__LOCATION_H__
-
