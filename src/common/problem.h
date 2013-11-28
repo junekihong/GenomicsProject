@@ -5,16 +5,16 @@
 
 class ProblemID
 {
+    public:
 	unsigned long idnum;
 	
-	static unsigned long next_problem_id;
+    private:
+	static unsigned long next_problem_id; // This should only be on the leader
 	
 	public:
-	ProblemID()
-	: idnum(next_problem_id)
-	{
-		next_problem_id += 1;
-	}
+	ProblemID(unsigned long _id = 0)
+        : idnum(_id)
+	{ }
 };
 
 class ProblemDescription
