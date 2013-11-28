@@ -5,6 +5,7 @@ OBJECTS=$(patsubst %.cpp,%.o,$(wildcard *.cpp))
 all: $(OBJECTS)
 
 problem.o: problem.h problem.cpp
+protocol.o: protocol.cpp protocol.h problem.h
 
 %.o: %.cpp
 	$(CXX) $(CXXFLAGS) -c $*.cpp
