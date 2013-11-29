@@ -16,8 +16,8 @@ class SolutionCertificate
 class Solution
 {
     public:
-    ProblemID solutionID;
 	ProblemID problemID;
+    ProblemID solutionID;
 	
 	int maxValue;
 	Location maxValueLocation;

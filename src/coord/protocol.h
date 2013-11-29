@@ -30,7 +30,9 @@ WorkerActions * workerActionFactory(LeaderWorkerProtocol * w);
 
 class NetworkHandler
 {
+    protected:
     int socket;
+    
     public:
     NetworkHandler(int _socket)
         : socket(_socket)
@@ -56,6 +58,11 @@ class WorkerHandler : public NetworkHandler
     WorkerHandler(int socket);
     
     virtual bool handleNetwork();
+    
+    private:
+    void handleListRequest();
+    void handleClaimRequest();
+    void handleSolutionReport();
 };
 
 #endif /* __LEADER_PROTOCOL_H__ */
