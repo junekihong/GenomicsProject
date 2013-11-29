@@ -2,8 +2,8 @@
 #define __SOLUTION_H__
 
 #include <vector>
-#include "common/location.h"
 #include "common/matrix.h"
+#include "common/location.h"
 #include "common/problem.h"
 
 class SolutionCertificate
@@ -21,7 +21,7 @@ class Solution
 	
 	int maxValue;
 	Location maxValueLocation;
-//	Matrix matrix;
+	Matrix matrix;
 };
 
 
