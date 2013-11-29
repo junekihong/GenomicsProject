@@ -1,13 +1,8 @@
-#include <string>
-
 #ifndef __WORKER_CMD_OPTIONS_H__
 #define __WORKER_CMD_OPTIONS_H__
 
-struct ServerEndpoint
-{
-    std::string host;
-    std::string port;
-};
+#include <string>
+#include "common/cmd_options.h"
 
 struct WorkerConfiguration
 {

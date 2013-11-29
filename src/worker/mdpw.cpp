@@ -12,7 +12,7 @@ struct Connections
     boost::asio::ip::tcp::iostream leader;
     boost::asio::ip::tcp::iostream storage;
 
-    Connections(boost::asio::io_service& io_service)
+    Connections(boost::asio::io_service&)
         : leader(), storage()
     { }
 };

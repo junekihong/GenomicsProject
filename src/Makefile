@@ -1,13 +1,21 @@
 TARGETS=mdpc mdpl mdpw mdps
 
-.PHONY: $(TARGETS)
-mdpc:
+all: $(TARGETS)
+
+.PHONY: $(TARGETS) common
+common:
+	cd common; make
+
+mdpc: common
 	cd client; make $*
-mdpl:
+
+mdpl: common
 	cd coord; make $*
-mdpw:
+
+mdpw: common
 	cd worker; make $*
-mdps:
+
+mdps: common
 	cd storage; make $*
 
 .PHONY: clean

@@ -9,7 +9,7 @@ all: $(TARGET)
 	$(CXX) $(CXXFLAGS) -c $*.cpp
 
 $(TARGET) : $(OBJECTS)
-	../../lib/msgpack/libtool --mode=link --tag=CXX $(CXX) $(LDFLAGS) $< ../../lib/msgpack/src/libmsgpack.la -o $(TARGET)
+	../../lib/msgpack/libtool --mode=link --tag=CXX $(CXX) $(LDFLAGS) $^ -o $(TARGET)
 
 .PHONY: clean
 clean:
