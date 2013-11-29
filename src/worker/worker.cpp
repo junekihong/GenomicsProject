@@ -65,17 +65,17 @@ void runWorker(WorkerLeaderProtocol& leader, StorageProtocol& storage){
 
 
 
-
+// Function called by the worker to solve a problem given its description and return the solution.
 Solution solveProblem(ProblemDescription problemDescription){
     Solution solution;
     solution.problemID = problemDescription.problemID;
     solution.solutionID = solution.problemID;
     solution.matrix = Matrix(problemDescription.top_numbers, problemDescription.left_numbers);
-    Location location;
-    int maxValue = solution.matrix.localAlignment(problemDescription.top_genome, problemDescription.left_genome, location);
+
+    LocationValuePair maxValuePair = solution.matrix.localAlignment(problemDescription.top_genome, problemDescription.left_genome);
     
-    solution.maxValue = maxValue;
-    solution.maxValueLocation = location;
+    solution.maxValue = maxValuePair.value;
+    solution.maxValueLocation = maxValuePair.location;
 
     return solution;
 }

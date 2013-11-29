@@ -54,8 +54,12 @@ int main()
     
     std::cout <<m2 << "\n";
     
-    Location location;
-    int maxValue = m2.localAlignment(topGenome,leftGenome, location);
+
+    
+    LocationValuePair pair = m2.localAlignment(topGenome,leftGenome);
+    int maxValue = pair.value;
+    Location location = pair.location;
+
     std::cout <<m2 << "\n";
 
     std::cout << "max value: "<< maxValue << "\n";

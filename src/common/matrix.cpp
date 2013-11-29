@@ -69,8 +69,10 @@ std::ostream& operator<<(std::ostream& os, const Matrix& matrix)
 }
 
 
-int Matrix::localAlignment(std::vector<char>& topGenome, std::vector<char>& leftGenome, Location& location)
+LocationValuePair Matrix::localAlignment(std::vector<char>& topGenome, std::vector<char>& leftGenome)
 {
+    LocationValuePair pair;
+    Location location;
     int max = 0;
     for(int i = 1; i <= width; i++)
     {
@@ -105,5 +107,8 @@ int Matrix::localAlignment(std::vector<char>& topGenome, std::vector<char>& left
             }
         }
     }
-    return max;
+    pair.value = max;
+    pair.location = location;
+
+    return pair;
 }

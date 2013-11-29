@@ -1,6 +1,7 @@
 #ifndef __LOCATION_H__
 #define __LOCATION_H__
 
+// Location class. Contains a row and column index.
 class Location
 {
 public:
