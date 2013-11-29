@@ -3,16 +3,16 @@
 
 class Location
 {
-    int x;
-    int y;
+public:
+    int row;
+    int column;
     
-    public:
     Location()
-        : x(0), y(0)
+        : row(0), column(0)
     { }
     
-    Location(int _x, int _y)
-        : x(_x), y(_y)
+    Location(int r, int c)
+        : row(r), column(c)
     { }
 };
 

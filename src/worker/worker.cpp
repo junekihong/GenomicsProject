@@ -69,7 +69,13 @@ void runWorker(WorkerLeaderProtocol& leader, StorageProtocol& storage){
 Solution solveProblem(ProblemDescription problemDescription){
     Solution solution;
     solution.problemID = problemDescription.problemID;
-    //solution.matrix = Matrix();
+    solution.solutionID = solution.problemID;
+    solution.matrix = Matrix(problemDescription.top_numbers, problemDescription.left_numbers);
+    Location location;
+    int maxValue = solution.matrix.localAlignment(problemDescription.top_genome, problemDescription.left_genome, location);
+    
+    solution.maxValue = maxValue;
+    solution.maxValueLocation = location;
 
     return solution;
 }
