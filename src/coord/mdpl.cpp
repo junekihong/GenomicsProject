@@ -24,6 +24,7 @@ int toInt(const std::string& str)
 int start_listening(const std::string& myport_str)
 {
     int server_socket;
+    long on = 1;
     int myport = toInt(myport_str);
     
     struct sockaddr_in from_addr;
@@ -35,6 +36,12 @@ int start_listening(const std::string& myport_str)
     if( server_socket < 0 )
     {
         std::cerr << "Error creating socket\nAborting\n";
+        exit(-1);
+    }
+    
+    if( setsockopt(server_socket, SOL_SOCKET, SO_REUSEADDR, (char *)&on, sizeof(on)) < 0 )
+    {
+        std::cerr << "Error setting socket to SO_REUSEADDR\n";
         exit(-1);
     }
     
@@ -74,6 +81,7 @@ int main(int argc, const char* argv[])
     {
         temp_mask = mask;
         int num = select(FD_SETSIZE, &temp_mask, &dummy_mask, &dummy_mask, NULL);
+        std::cout << "awoke from select! num = " << num << "\n";
         if( num > 0 )
         {
             if( FD_ISSET(listen_socket, &temp_mask) )
