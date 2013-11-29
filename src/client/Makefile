@@ -1,7 +1,7 @@
 CXXFLAGS=-g -pedantic -Wall -Wextra -std=c++98 -I..
 
 TARGET=mdpc
-OBJECTS=$(patsubst %.cpp,%.o,$(wildcard *.cpp)) ../common/cmd_options.o
+OBJECTS=$(patsubst %.cpp,%.o,$(wildcard *.cpp)) ../common/cmd_options.o ../common/connect.o
 LDFLAGS=-lboost_system
 
 all: $(TARGET)
