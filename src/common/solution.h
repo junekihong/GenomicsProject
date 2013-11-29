@@ -16,12 +16,12 @@ class SolutionCertificate
 class Solution
 {
     public:
-	unsigned long id;
+    ProblemID solutionID;
 	ProblemID problemID;
 	
 	int maxValue;
 	Location maxValueLocation;
-	Matrix matrix;
+//	Matrix matrix;
 };
 
 

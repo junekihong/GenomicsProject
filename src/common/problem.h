@@ -20,7 +20,7 @@ class ProblemID
 class ProblemDescription
 {
 	public:
-	ProblemID id;
+	ProblemID problemID;
 	std::vector<int> top_numbers;
 	std::vector<int> left_numbers;
 	std::vector<char> top_genome;

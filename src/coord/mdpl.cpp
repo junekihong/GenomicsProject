@@ -7,6 +7,8 @@
 
 #include "cmd_options.h"
 
+#include <stdlib.h>
+
 int toInt(const std::string& str)
 {
     std::stringstream strm(str);
@@ -24,8 +26,9 @@ int start_listening(const std::string& myport_str)
     struct sockaddr_in from_addr;
     from_addr.sin_family = AF_INET;
     from_addr.sin_addr.s_addr = INADDR_ANY;
-    from_addr.sin_port = HTONS(myport);
-    
+    //from_addr.sin_port = HTONS(myport);
+    from_addr.sin_port = htons(myport);    
+
     server_socket = socket(AF_INET, SOCK_STREAM, 0);
     if( server_socket < 0 )
     {

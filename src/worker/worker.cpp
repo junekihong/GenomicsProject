@@ -23,7 +23,7 @@ void runWorker(WorkerLeaderProtocol& leader, StorageProtocol& storage){
         
         // Select a problem
         ProblemDescription problemDescription = problemList.at(0);
-        ProblemID problemID = problemDescription.id;
+        ProblemID problemID = problemDescription.problemID;
         problems.push_back(problemID);
         
         // Claim a problem
@@ -68,5 +68,8 @@ void runWorker(WorkerLeaderProtocol& leader, StorageProtocol& storage){
 
 Solution solveProblem(ProblemDescription problemDescription){
     Solution solution;
+    solution.problemID = problemDescription.problemID;
+    //solution.matrix = Matrix();
+
     return solution;
 }

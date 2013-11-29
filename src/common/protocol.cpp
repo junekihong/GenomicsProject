@@ -3,7 +3,7 @@
 
 void readProblemDescription(std::istream& socket, ProblemDescription& cur_prob)
 {
-    socket >> cur_prob.id.idnum;
+    socket >> cur_prob.problemID.idnum;
     
     unsigned vec_length;
     socket >> vec_length;
