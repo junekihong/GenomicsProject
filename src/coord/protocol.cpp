@@ -1,12 +1,11 @@
 #include <stdexcept>
 #include <sstream>
 
+#include <sys/types.h>
 #include <sys/socket.h>
 
 #include "common/protocol.h"
 #include "protocol.h"
-
-#include <stdlib.h>
 
 class WorkerProtocolImpl : public LeaderWorkerProtocol
 {
@@ -98,10 +97,16 @@ void WorkerHandler::handleSolutionReport()
 
 void WorkerProtocolImpl::sendProblemList(const std::vector<ProblemDescription> &problemList)
 {
-    
+    message_id_t msg_id = PROBLEM_LIST_RESPONSE_ID;
+    send(socket, &msg_id, sizeof(msg_id), 0);
+    unsigned problem_count = static_cast<unsigned>(problemList.size());
+    send(socket, &problem_count, sizeof(problem_count), 0);
+    send(socket, problemList.data(), problemList.size() * sizeof(ProblemID), 0);
 }
 
 void WorkerProtocolImpl::respondToProblemClaim(bool answer)
 {
-    
+    message_id_t msg_id = PROBLEM_CLAIM_RESPONSE_ID;
+    send(socket, &msg_id, sizeof(msg_id), 0);
+    send(socket, &answer, sizeof(answer), 0);
 }
