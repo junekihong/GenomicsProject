@@ -120,6 +120,7 @@ int main(int argc, const char* argv[])
                         switch(announce_type)
                         {
                             case ANNOUNCE_CLIENT:
+                                handlers.insert(new ClientHandler(cur_sock));
                                 break;
                             case ANNOUNCE_LEADER:
                                 // Ignore this for now

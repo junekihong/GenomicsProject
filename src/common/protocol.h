@@ -16,6 +16,14 @@
 
 #define SOLUTION_REPORT_ID          7
 
+#define GENOME_UPLOAD_START_ID      8
+
+#define GENOME_LIST_REQUEST_ID      9
+#define GENOME_LIST_RESPONSE_ID     9
+
+#define LOCAL_ALIGN_START_ID        10
+#define LOCAL_ALIGN_FINISH_ID       11
+
 class ProblemDescription;
 
 typedef int message_id_t;

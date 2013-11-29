@@ -10,7 +10,7 @@
 class WorkerProtocolImpl : public LeaderWorkerProtocol
 {
     int socket;
-public:
+    public:
     WorkerProtocolImpl(int s)
         : socket(s)
     { }
@@ -39,6 +39,16 @@ static inline void readItem(int socket, T& item, const std::string& err_message)
 {
     ssize_t bytes_read = recvfrom(socket, &item, sizeof(item), MSG_WAITALL, NULL, NULL);
     if( bytes_read != sizeof(item) )
+    {
+        throw std::runtime_error(err_message);
+    }
+}
+
+template<typename T>
+static inline void sendItem(int socket, T& item, const std::string& err_message)
+{
+    ssize_t bytes_sent = send(socket, &item, sizeof(item), 0);
+    if( bytes_sent != sizeof(item) )
     {
         throw std::runtime_error(err_message);
     }
@@ -98,6 +108,7 @@ void WorkerHandler::handleSolutionReport()
 void WorkerProtocolImpl::sendProblemList(const std::vector<ProblemDescription> &problemList)
 {
     message_id_t msg_id = PROBLEM_LIST_RESPONSE_ID;
+    // TOOD error checks
     send(socket, &msg_id, sizeof(msg_id), 0);
     unsigned problem_count = static_cast<unsigned>(problemList.size());
     send(socket, &problem_count, sizeof(problem_count), 0);
@@ -109,4 +120,148 @@ void WorkerProtocolImpl::respondToProblemClaim(bool answer)
     message_id_t msg_id = PROBLEM_CLAIM_RESPONSE_ID;
     send(socket, &msg_id, sizeof(msg_id), 0);
     send(socket, &answer, sizeof(answer), 0);
+}
+
+/* Client classes */
+class ClientProtocolImpl : public LeaderClientProtocol
+{
+    int socket;
+    
+    public:
+    ClientProtocolImpl(int s)
+        : socket(s)
+    { }
+    
+    virtual void sendGenomeList(const std::vector<std::string>& nameList);
+    virtual void sendLocalAlignResponse();
+};
+
+ClientHandler::ClientHandler(int socket)
+    : NetworkHandler(socket), uploadInProgress(false), uploadProgress(0), uploadLength(0)
+{
+    LeaderClientProtocol * c = new ClientProtocolImpl(socket);
+    actions = clientActionFactory(c);
+}
+
+bool ClientHandler::handleNetwork()
+{
+    if( uploadInProgress )
+    {
+        handleGenomeContinuation();
+        return true;
+    }
+    
+    message_id_t msg_id;
+    readItem(socket, msg_id, "Error reading message id from client");
+    
+    switch( msg_id )
+    {
+        case GENOME_UPLOAD_START_ID:
+            handleGenomeStart();
+            break;
+        case GENOME_LIST_REQUEST_ID:
+            handleGenomeListRequest();
+        case LOCAL_ALIGN_START_ID:
+            handleAlignmentStart();
+            break;
+    }
+    return true;
+}
+
+void ClientHandler::handleGenomeListRequest()
+{
+    actions->listGenomes();
+}
+
+void ClientHandler::handleGenomeStart()
+{
+    unsigned name_length;
+    char * name_buffer;
+    
+    readItem(socket, name_length, "Error reading genome length from client");
+    name_buffer = new char[name_length + 1]; // TODO leaks when exceptions get thrown
+    recvfrom(socket, name_buffer, name_length, MSG_WAITALL, NULL, NULL); // TODO error check
+    name_buffer[name_length] = 0;
+    std::string name = name_buffer;
+    delete[] name_buffer;
+    
+    readItem(socket, uploadLength, "Error reading genome length from client");
+    
+    uploadInProgress = true;
+    uploadProgress = 0;
+    
+    actions->startGenomeUpload(name_buffer, uploadLength);
+}
+
+void ClientHandler::handleGenomeContinuation()
+{
+    const unsigned buff_len = 32*1024;
+    unsigned cur_buf_len = std::min(buff_len, uploadLength - uploadProgress);
+    std::vector<char> buffer(cur_buf_len);
+    ssize_t bytes_read = recvfrom(socket, buffer.data(), buffer.size(), 0, NULL, NULL);
+    if( bytes_read < 0 )
+    {
+        throw std::runtime_error("Error receiving genome data from client: " + toString(bytes_read));
+    }
+    buffer.resize(bytes_read);
+    actions->continueGenomeUpload(buffer);
+    
+    uploadProgress += bytes_read;
+    if( uploadProgress == uploadLength ) {
+        uploadInProgress = false;
+        uploadLength = uploadProgress = 0;
+    }
+}
+
+void ClientHandler::handleAlignmentStart()
+{
+    unsigned string_len = 0;
+    
+    readItem(socket, string_len, "Error reading local alignment genome name length");
+    char * buffer = new char[string_len + 1];
+    ssize_t bytes_read = recvfrom(socket, buffer, string_len, MSG_WAITALL, NULL, NULL);
+    if( bytes_read < 0 )
+    {
+        throw std::runtime_error("Error reading local alignment genome name");
+    }
+    buffer[string_len] = 0;
+    std::string names[2];
+    names[0] = buffer;
+    delete[] buffer;
+    
+    readItem(socket, string_len, "Error reading local alignment genome name length");
+    buffer = new char[string_len + 1];
+    bytes_read = recvfrom(socket, buffer, string_len, MSG_WAITALL, NULL, NULL);
+    if( bytes_read < 0 )
+    {
+        throw std::runtime_error("Error reading local alignment genome name");
+    }
+    buffer[string_len] = 0;
+    names[1] = buffer;
+    delete[] buffer;
+    
+    actions->alignmentRequest(names[0], names[1]);
+}
+
+void ClientProtocolImpl::sendGenomeList(const std::vector<std::string> &nameList)
+{
+    message_id_t msg_id = GENOME_LIST_RESPONSE_ID;
+    sendItem(socket, msg_id, "Error sending Genome List response message id");
+    
+    unsigned length = static_cast<unsigned>(nameList.size());
+    sendItem(socket, length, "Error sending the number of genomes to the client");
+    for( unsigned i = 0; i < nameList.size(); ++i )
+    {
+        length = static_cast<unsigned>(nameList[i].size());
+        sendItem(socket, length, "Error sending the length of a genome name to the client");
+        send(socket, nameList[i].data(), nameList[i].size(), 0);
+    }
+}
+
+void ClientProtocolImpl::sendLocalAlignResponse()
+{
+    message_id_t msg_id = LOCAL_ALIGN_FINISH_ID;
+    sendItem(socket, msg_id, "Error sending local align response id");
+    
+    // TODO fill this in!
 }

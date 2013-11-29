@@ -28,6 +28,24 @@ class WorkerActions
 
 WorkerActions * workerActionFactory(LeaderWorkerProtocol * w);
 
+class LeaderClientProtocol
+{
+    public:
+    virtual void sendGenomeList(const std::vector<std::string>& nameList) = 0;
+    virtual void sendLocalAlignResponse() = 0;
+};
+
+class ClientActions
+{
+    public:
+    virtual void startGenomeUpload(const std::string& name, unsigned length) = 0;
+    virtual void continueGenomeUpload(const std::vector<char>& data) = 0;
+    virtual void listGenomes() = 0;
+    virtual void alignmentRequest(const std::string& first, const std::string& second) = 0;
+};
+
+ClientActions * clientActionFactory(LeaderClientProtocol * c);
+
 class NetworkHandler
 {
     protected:
@@ -53,7 +71,9 @@ class NetworkHandler
 
 class WorkerHandler : public NetworkHandler
 {
+    // TODO leaks!
     WorkerActions * actions;
+    
     public:
     WorkerHandler(int socket);
     
@@ -63,6 +83,27 @@ class WorkerHandler : public NetworkHandler
     void handleListRequest();
     void handleClaimRequest();
     void handleSolutionReport();
+};
+
+class ClientHandler : public NetworkHandler
+{
+    // TODO leaks!
+    ClientActions * actions;
+    
+    public:
+    ClientHandler(int socket);
+    
+    virtual bool handleNetwork();
+    
+    private:
+    bool uploadInProgress;
+    unsigned uploadProgress;
+    unsigned uploadLength;
+    
+    void handleGenomeListRequest();
+    void handleGenomeStart();
+    void handleGenomeContinuation();
+    void handleAlignmentStart();
 };
 
 #endif /* __LEADER_PROTOCOL_H__ */
