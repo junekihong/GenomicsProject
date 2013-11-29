@@ -1,3 +1,4 @@
+#include <stdlib.h>
 #include <iostream>
 #include <set>
 #include <sstream>
@@ -7,7 +8,6 @@
 
 #include "cmd_options.h"
 
-#include <stdlib.h>
 
 int toInt(const std::string& str)
 {
