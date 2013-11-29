@@ -24,6 +24,8 @@
 #define LOCAL_ALIGN_START_ID        10
 #define LOCAL_ALIGN_FINISH_ID       11
 
+#define BUFF_SIZE 32*1024
+
 class ProblemDescription;
 
 typedef int message_id_t;

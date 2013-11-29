@@ -59,6 +59,7 @@ int main(int argc, const char* argv[])
     LeaderConfiguration config = parse_options(argc, argv);
     
     int listen_socket = start_listening(config.myport);
+    std::cout << "Listening on port " << config.myport << "\n";
     
     fd_set mask, dummy_mask, temp_mask;
     
@@ -121,6 +122,7 @@ int main(int argc, const char* argv[])
                         {
                             case ANNOUNCE_CLIENT:
                                 handlers.insert(new ClientHandler(cur_sock));
+                                std::cout << "Connected a client.\n";
                                 break;
                             case ANNOUNCE_LEADER:
                                 // Ignore this for now
@@ -128,6 +130,7 @@ int main(int argc, const char* argv[])
                                 break;
                             case ANNOUNCE_WORKER:
                                 handlers.insert(new WorkerHandler(cur_sock));
+                                std::cout << "Connected a worker.\n";
                                 break;
                             case ANNOUNCE_STORAGE:
                                 // This should probably be a no-op
