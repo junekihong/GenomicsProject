@@ -6,9 +6,7 @@ class Matrix
 	public:
 	int** matrix;
 	
-	Matrix()
-    {
-    }
+	Matrix();
 	Matrix(int length, int width);
 
     ~Matrix();

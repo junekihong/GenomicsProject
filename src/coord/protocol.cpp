@@ -1,5 +1,7 @@
 #include "protocol.h"
 
+#include <stdlib.h>
+
 class WorkerProtocolImpl : public LeaderWorkerProtocol
 {
     int socket;
