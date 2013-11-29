@@ -28,6 +28,7 @@ int main()
     
 
     //example from the slides. Output seems to match results on the slides.
+    // http://nbviewer.ipython.org/gist/BenLangmead/6994170
     char topList[] = {'T','A','T','A','T','G','C','G','G','C','G','T','T','T'};
     char leftList[] = {'G','G','T','A','T','G','C','T','G','G','C','G','C','T','A'};
     std::vector<char> topGenome = std::vector<char>(topList, topList + sizeof(topList)/sizeof(char));
