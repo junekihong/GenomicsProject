@@ -23,24 +23,22 @@ void runWorker(WorkerLeaderProtocol& leader, StorageProtocol& storage){
         
         // Select a problem
         ProblemDescription problemDescription = problemList.at(0);
-        ProblemID ID = problemDescription.id;
-        problems.push_back(ID);
+        ProblemID problemID = problemDescription.id;
+        problems.push_back(problemID);
         
         // Claim a problem
         bool claimed = leader.claimProblems(problems);
         if(!claimed){
             continue;
         }
-        
 
-        
+        // Query storage to check for a cache hit.
         int queryRequestID = 0;
         bool queryFlag = false;
         QueryResponse queryResponse = storage.queryByInitialConditions(queryRequestID, problemDescription, queryFlag);
         
-        //TODO take problem. produce solution.
+
         SolutionCertificate solutionCertificate;
-        
         if(queryResponse.exactMatch)
         {
             solutionCertificate = queryResponse.solutionCertificate;
@@ -51,14 +49,24 @@ void runWorker(WorkerLeaderProtocol& leader, StorageProtocol& storage){
         }
         else
         {
-            // TODO solve the problem manually.
+            // Solve the problem manually.
+            Solution solution = solveProblem(problemDescription);
+            while(!storage.insertSolution(solution)){
+                sleep(1);
+            }
+            queryResponse = storage.queryByProblemID(problemID);
+            solutionCertificate = queryResponse.solutionCertificate;
         }
 
         // Send solution back.
-        leader.sendSolution(solutionCertificate);
-        
-        
+        leader.sendSolution(solutionCertificate);        
     }
 }
 
 
+
+
+Solution solveProblem(ProblemDescription problemDescription){
+    Solution solution;
+    return solution;
+}
