@@ -1,3 +1,5 @@
+#include <stdexcept>
+
 #include "cmd_options.h"
 
 void extract_server_port(const std::string& combined, const std::string& default_port, ServerEndpoint& endpoint)
