@@ -4,12 +4,9 @@
 
 using boost::asio::ip::tcp;
 
-void connect_server(tcp::iostream& socket, const ServerEndpoint& server, tcp::resolver& resolver, const std::string& name)
+void connect_server(tcp::iostream& socket, const ServerEndpoint& server, const std::string& name)
 {
     try {
-        tcp::resolver::query query(server.host, server.port);
-        tcp::resolver::iterator iter = resolver.resolve(query);
-        
         std::cout << "Attempting to connect to " << name << " at " << server.host << ":" << server.port << "...\n";
         socket.connect(server.host, server.port);
         if( !socket ) {

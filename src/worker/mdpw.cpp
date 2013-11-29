@@ -22,9 +22,8 @@ using boost::asio::ip::tcp;
 
 void connect_to_servers(const WorkerConfiguration& config, Connections& conns)
 {
-    tcp::resolver resolver(io_service);
-    connect_server(conns.leader, config.leader, resolver, "leader");
-    connect_server(conns.storage, config.storage, resolver, "storage");
+    connect_server(conns.leader, config.leader, "leader");
+    connect_server(conns.storage, config.storage, "storage");
 }
 
 int main(int argc, const char* argv[])

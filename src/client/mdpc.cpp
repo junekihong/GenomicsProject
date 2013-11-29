@@ -82,8 +82,7 @@ int main(int argc, const char* argv[])
 
 void connect_to_leader(tcp::iostream& leader)
 {
-    tcp::resolver resolver(io_service);
-    connect_server(leader, leaderEndpoint, resolver, "leader");
+    connect_server(leader, leaderEndpoint, "leader");
     leader << static_cast<int>(ANNOUNCE_CLIENT);
 }
 
