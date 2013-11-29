@@ -6,9 +6,12 @@ LDFLAGS=-lboost_program_options -lboost_system
 
 all: $(TARGET)
 
+actions.o: actions.cpp protocol.h
 cmd_options.h: ../common/cmd_options.h
 cmd_options.o: cmd_options.cpp cmd_options.h
-mdpl.o: mdpl.cpp cmd_options.h
+protocol.h: ../common/problem.h ../common/solution.h
+protocol.o: protocol.cpp protocol.h
+mdpl.o: mdpl.cpp cmd_options.h protocol.h ../common/protocol.h
 
 %.o: %.cpp
 	$(CXX) $(CXXFLAGS) -c $*.cpp

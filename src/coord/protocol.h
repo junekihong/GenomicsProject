@@ -4,11 +4,12 @@
 #include <vector>
 
 #include "common/problem.h"
+#include "common/solution.h"
 
 class LeaderWorkerProtocol
 {
     public:
-    virtual void sendProblemList(std::vector<ProblemDescription>& problemList) = 0;
+    virtual void sendProblemList(const std::vector<ProblemDescription>& problemList) = 0;
     virtual void respondToProblemClaim(bool answer) = 0;
 };
 
@@ -22,7 +23,39 @@ class WorkerActions
     { }
     virtual void requestProblemList() = 0;
     virtual void claimProblems(const std::vector<ProblemID>& problems) = 0;
-    virtual void receiveSolution(const SolutionCertificat& solution) = 0;
+    virtual void receiveSolution(const SolutionCertificate& solution) = 0;
+};
+
+WorkerActions * workerActionFactory(LeaderWorkerProtocol * w);
+
+class NetworkHandler
+{
+    int socket;
+    public:
+    NetworkHandler(int _socket)
+        : socket(_socket)
+    { }
+    virtual ~NetworkHandler() { }
+    
+    /**
+     * Returns false if the network handler should be removed and deleted.
+     * The handler should not close the socket.
+     */
+    virtual bool handleNetwork() = 0;
+    
+    int getSocket() const
+    {
+        return socket;
+    }
+};
+
+class WorkerHandler : public NetworkHandler
+{
+    WorkerActions * actions;
+    public:
+    WorkerHandler(int socket);
+    
+    virtual bool handleNetwork();
 };
 
 #endif /* __LEADER_PROTOCOL_H__ */
