@@ -8,7 +8,7 @@ problem.o: problem.h problem.cpp
 protocol.o: protocol.cpp protocol.h problem.h
 cmd_options.o: cmd_options.cpp cmd_options.h
 
-matrix.o: matrix.h matrix.cpp
+matrix.o: matrix.h matrix.cpp pair_location_value.h
 
 
 %.o: %.cpp

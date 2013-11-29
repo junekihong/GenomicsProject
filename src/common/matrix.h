@@ -5,14 +5,8 @@
 #include <iostream>
 #include <algorithm>
 #include "location.h"
+#include "pair_location_value.h"
 
-// A Pair class for a location and a value. We use this to return the best value after performing local alignment. 
-class LocationValuePair
-{
-public:
-    Location location;
-    int value;
-};
 
 // Matrix class. Represents the matrix of a (local alignment) dynamic programming problem. It will also solve itself if you call it.
 class Matrix
