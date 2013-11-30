@@ -11,8 +11,8 @@ protocol.h: ../common/problem.h ../common/solution.h ../common/matrix.h
 	touch protocol.h # hack to get this depndency to matter
 ../common/problem.o: ../common/problem.h ../common/problem.cpp
 	$(CXX) $(CXXFLAGS) -c $*.cpp -o ../common/problem.o
-protocol_impl.h: protocol.h
-worker.h: protocol.h
+protocol_impl.h: protocol.h ../common/protocol.h
+worker.h: protocol.h ../common/protocol.h
 protocol_impl.o: protocol_impl.cpp protocol_impl.h ../common/protocol.h
 cmd_options.h: ../common/cmd_options.h
 cmd_options.o: cmd_options.cpp cmd_options.h

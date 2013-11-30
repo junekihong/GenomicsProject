@@ -59,6 +59,16 @@ void WorkerProtocolImpl::sendSolution(const SolutionCertificate& solution)
     socket.flush();
 }
 
+void StorageProtocolImpl::createNewGenome(const std::string& name, unsigned length)
+{
+    
+}
+
+void StorageProtocolImpl::insertGenomeData(unsigned index, std::vector<char>& data)
+{
+    
+}
+
 bool StorageProtocolImpl::insertSolution(const Solution& solution)
 {
 	return false;
@@ -74,7 +84,6 @@ QueryResponse StorageProtocolImpl::queryByInitialConditions(const int requestID,
 {
     QueryResponse response;
     return response;
-
 }
 
 

@@ -25,13 +25,4 @@ public:
     
 };
 
-class StorageProtocol
-{
-public:
-    virtual bool insertSolution(const Solution& solution) = 0;
-    virtual QueryResponse queryByProblemID(const ProblemID& problemID) = 0;
-    virtual QueryResponse queryByInitialConditions(const int requestID, const ProblemDescription& problemDescription, const bool queryFlag) = 0;
-
-};
-
 #endif // __WORKER_PROTOCOL_H__

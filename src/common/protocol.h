@@ -3,6 +3,10 @@
 
 #include <iostream>
 
+#include "location.h"
+#include "problem.h"
+#include "solution.h"
+
 #define ANNOUNCE_CLIENT             1
 #define ANNOUNCE_LEADER             2
 #define ANNOUNCE_WORKER             3
@@ -43,5 +47,33 @@ static inline void writeItem(std::ostream& socket, const T& dest)
     socket.write(reinterpret_cast<const char*>(&dest), sizeof(dest));
 }
 
+class QueryResponse
+{
+public:
+    int queryResponseID;
+    bool potentialMatch;
+    bool exactMatch;
+    
+    // Given problem description.
+    ProblemDescription problemDescription;
+    
+    // Solution description. Maximum value and location in the matrix.
+    int maxValue;
+    Location location;
+    
+    // The solution.
+    SolutionCertificate solutionCertificate;
+};
+
+class StorageProtocol
+{
+public:
+    virtual void createNewGenome(const std::string& name, unsigned length) = 0;
+    virtual void insertGenomeData(unsigned index, std::vector<char>& data) = 0;
+    virtual bool insertSolution(const Solution& solution) = 0;
+    virtual QueryResponse queryByProblemID(const ProblemID& problemID) = 0;
+    virtual QueryResponse queryByInitialConditions(const int requestID, const ProblemDescription& problemDescription, const bool queryFlag) = 0;
+    
+};
 
 #endif /* __PROTOCOL_COMMON_H__ */
