@@ -28,6 +28,9 @@
 #define LOCAL_ALIGN_START_ID        10
 #define LOCAL_ALIGN_FINISH_ID       11
 
+#define UPLOAD_REQUEST_RECIEVED_ID  8
+#define UPLOAD_CONTINUATION_ACK_ID  12
+
 #define BUFF_SIZE 32*1024
 
 class ProblemDescription;

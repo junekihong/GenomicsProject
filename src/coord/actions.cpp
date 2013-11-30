@@ -10,6 +10,8 @@ WorkerActions * workerActionFactory(LeaderWorkerProtocol * w)
 class ClientActionImpl : public ClientActions
 {
     LeaderClientProtocol * client;
+    int uploadCount;
+    
     public:
     ClientActionImpl(LeaderClientProtocol * c);
     
@@ -33,19 +35,30 @@ ClientActionImpl::ClientActionImpl(LeaderClientProtocol * c)
 void ClientActionImpl::startGenomeUpload(const std::string &name, unsigned int length)
 {
     //TODO contact storage
+
+    uploadCount = 0;
+    client->sendGenomeUploadResponse();
 }
 
 //TODO
 void ClientActionImpl::continueGenomeUpload(const std::vector<char>& data)
 {   
+    //TODO contact storage
+    uploadCount++;
+    client->sendGenomeContinueACK(uploadCount);
 }
 
 //TODO
 void ClientActionImpl::listGenomes()
 {
+
+    //TODO pass a string vector into sendGenomeList
+    //client->sendGenomeList();
 }
 
 //TODO
 void ClientActionImpl::alignmentRequest(const std::string& first, const std::string& second)
 {
+    
+    client->sendLocalAlignResponse();
 }
