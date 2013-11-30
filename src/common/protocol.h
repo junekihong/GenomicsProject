@@ -28,6 +28,12 @@
 #define LOCAL_ALIGN_START_ID        10
 #define LOCAL_ALIGN_FINISH_ID       11
 
+#define STORE_NEW_GENOME_ID         12
+#define STORE_NEW_DATA_ID           13
+#define STORE_NEW_SOLUTION_ID       14
+#define STORE_QUERY_BY_ID_ID        15
+#define STORE_QUERY_BY_COND_ID      16
+
 #define BUFF_SIZE 32*1024
 
 class ProblemDescription;
