@@ -21,6 +21,7 @@
 #define SOLUTION_REPORT_ID          7
 
 #define GENOME_UPLOAD_START_ID      8
+#define UPLOAD_REQUEST_RECIEVED_ID  8
 
 #define GENOME_LIST_REQUEST_ID      9
 #define GENOME_LIST_RESPONSE_ID     9

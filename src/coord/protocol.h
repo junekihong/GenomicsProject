@@ -33,6 +33,9 @@ class LeaderClientProtocol
     public:
     virtual void sendGenomeList(const std::vector<std::string>& nameList) = 0;
     virtual void sendLocalAlignResponse() = 0;
+
+    virtual void sendGenomeUploadResponse() = 0;
+    virtual void sendGenomeContinueACK(const int indexRecieved) = 0;
 };
 
 class ClientActions
@@ -40,6 +43,8 @@ class ClientActions
     public:
     virtual void startGenomeUpload(const std::string& name, unsigned length) = 0;
     virtual void continueGenomeUpload(const std::vector<char>& data) = 0;
+    virtual void finishGenomeUpload() = 0;
+
     virtual void listGenomes() = 0;
     virtual void alignmentRequest(const std::string& first, const std::string& second) = 0;
 };
@@ -102,6 +107,8 @@ class ClientHandler : public NetworkHandler
     
     void handleGenomeListRequest();
     void handleGenomeStart();
+    void handleGenomeFinish();
+
     void handleGenomeContinuation();
     void handleAlignmentStart();
 };
