@@ -3,9 +3,7 @@
 
 
 class WorkerActionImpl : public WorkerActions
-{
-    LeaderWorkerProtocol * worker;
-    
+{    
     public:
     WorkerActionImpl(LeaderWorkerProtocol * w);
     
@@ -21,12 +19,15 @@ WorkerActions * workerActionFactory(LeaderWorkerProtocol * w)
 }
 
 WorkerActionImpl::WorkerActionImpl(LeaderWorkerProtocol * w)
+    : WorkerActions(w)
 {
+
 }
 
 void WorkerActionImpl::requestProblemList()
 {
 }
+
 void WorkerActionImpl::claimProblems(const std::vector<ProblemID>& problems)
 {
     std::vector<ProblemID> p = problems;

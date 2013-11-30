@@ -15,12 +15,12 @@ class LeaderWorkerProtocol
 
 class WorkerActions
 {
-    //protected:
-    //LeaderWorkerProtocol * worker;
+    protected:
+    LeaderWorkerProtocol * worker;
     public:
-    //WorkerActions(LeaderWorkerProtocol * w)
-    //    : worker(w)
-    //{ }
+    WorkerActions(LeaderWorkerProtocol * w)
+        : worker(w)
+    { }
     virtual void requestProblemList() = 0;
     virtual void claimProblems(const std::vector<ProblemID>& problems) = 0;
     virtual void receiveSolution(const SolutionCertificate& solution) = 0;
