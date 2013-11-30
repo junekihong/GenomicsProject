@@ -14,7 +14,7 @@ LeaderConfiguration parse_options(int argc, const char* argv[])
     desc.add_options()
     ("help", "print this help message")
     ("port", po::value<std::string>(&config.myport)->default_value(DEFAULT_PORT),
-     "the port number of this coordinator should listen one")
+     "the port number of this coordinator should listen on")
     ("storage", po::value<std::string>(&storage_address)->default_value(DEFAULT_SERVER ":" DEFAULT_STORAGE_PORT),
      "the hostname and, optionally, the port number of a storage server")
     ;

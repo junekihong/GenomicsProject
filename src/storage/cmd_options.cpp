@@ -15,7 +15,7 @@ int parse_options(int argc, const char* argv[])
     desc.add_options()
     ("help", "print this help message")
     ("port", po::value<int>(&myport)->default_value(DEFAULT_STORAGE_PORT_INT),
-     "the port number of this storage node should listen one")
+     "the port number of this storage node should listen on")
     ;
     
     po::variables_map vm;
