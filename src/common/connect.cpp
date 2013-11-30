@@ -25,4 +25,3 @@ void connect_server(tcp::iostream& socket, const ServerEndpoint& server, const s
         exit(-1);
     }
 }
-

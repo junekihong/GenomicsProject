@@ -9,7 +9,7 @@ protocol.o: protocol.cpp protocol.h problem.h
 cmd_options.o: cmd_options.cpp cmd_options.h
 matrix.o: matrix.h matrix.cpp pair_location_value.h
 connect.o: connect.cpp connect.h cmd_options.h
-
+listen.o: listen.cpp listen.h
 
 
 %.o: %.cpp
