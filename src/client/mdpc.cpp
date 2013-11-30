@@ -180,6 +180,28 @@ void handle_local_align_args(std::vector<std::string>::iterator& arg_iter)
 {
     ++arg_iter;
     const std::string& first = *arg_iter;
+    if( first.size() == 0 )
+        throw std::runtime_error("You must specify genomes to align");
     ++arg_iter;
     const std::string& second = *arg_iter;
+    if( second.size() == 0 )
+        throw std::runtime_error("You must specify two genomes to align");
+    
+    tcp::iostream leader;
+    connect_to_leader(leader);
+    
+    message_id_t msg_id = LOCAL_ALIGN_START_ID;
+    writeItem(leader, msg_id);
+    
+    writeItem(leader, static_cast<unsigned>(first.size()));
+    leader.write(first.data(), first.size());
+    
+    writeItem(leader, static_cast<unsigned>(second.size()));
+    leader.write(second.data(), second.size());
+    
+    readItem(leader, msg_id);
+    if( msg_id != LOCAL_ALIGN_FINISH_ID )
+        throw std::runtime_error("Started");
+    
+    // TODO figure out what to do here.
 }
