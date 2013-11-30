@@ -8,10 +8,9 @@ void WorkerProtocolImpl::requestProblemList(std::vector<ProblemDescription>& pro
 	message_id_t msg_id = PROBLEM_LIST_REQUEST_ID;
 	
 	std::cout << "Requesting problem list";
-	socket << msg_id;
-    socket.flush();
+    writeItem(socket, msg_id);
 	
-	socket >> msg_id;
+    readItem(socket, msg_id);
 	
 	if( msg_id != PROBLEM_LIST_RESPONSE_ID )
 	{
@@ -20,7 +19,7 @@ void WorkerProtocolImpl::requestProblemList(std::vector<ProblemDescription>& pro
 	}
 	
 	unsigned problem_count;
-	socket >> problem_count;
+    readItem(socket, problem_count);
     std::cout << "Receiving " << problem_count << " problems.\n";
 	problemList.resize(problem_count);
 	for( unsigned prob_idx = 0; prob_idx < problem_count; ++ prob_idx )
@@ -33,13 +32,13 @@ void WorkerProtocolImpl::requestProblemList(std::vector<ProblemDescription>& pro
 bool WorkerProtocolImpl::claimProblems(const std::vector<ProblemID>& problems)
 {
     std::cout << "Requesting " << problems.size() << " problems\n";
-    socket << static_cast<message_id_t>(PROBLEM_CLAIM_REQUEST_ID);
-    socket << static_cast<unsigned>(problems.size());
+    message_id_t msg_id = PROBLEM_CLAIM_REQUEST_ID;
+    writeItem(socket, msg_id);
+    writeItem(socket, static_cast<unsigned>(problems.size()));
     socket.write(reinterpret_cast<const char*>(problems.data()), problems.size() * sizeof(ProblemID));
     socket.flush();
     
-    message_id_t msg_id = PROBLEM_CLAIM_RESPONSE_ID;
-    socket >> msg_id;
+    readItem(socket, msg_id);
 	if( msg_id != PROBLEM_CLAIM_RESPONSE_ID )
 	{
 		std::cout << "Attempted to claim problems, but got back message type " << msg_id << " instead.";
@@ -47,16 +46,16 @@ bool WorkerProtocolImpl::claimProblems(const std::vector<ProblemID>& problems)
 	}
 	
     bool result;
-    socket >> result;
+    readItem(socket, result);
     
 	return result;
 }
 
 void WorkerProtocolImpl::sendSolution(const SolutionCertificate& solution)
 {
-    socket << static_cast<message_id_t>(SOLUTION_REPORT_ID);
-    socket << solution.problemID.idnum;
-    socket << solution.solutionID.idnum;
+    writeItem(socket, static_cast<message_id_t>(SOLUTION_REPORT_ID));
+    writeItem(socket, solution.problemID.idnum);
+    writeItem(socket, solution.solutionID.idnum);
     socket.flush();
 }
 

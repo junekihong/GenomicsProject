@@ -72,7 +72,7 @@ int main(int argc, const char* argv[])
             exit(-1);
         }
     }
-    catch( std::exception err )
+    catch( const std::exception& err )
     {
         std::cerr << err.what() << "\n";
         return -1;
@@ -83,7 +83,8 @@ int main(int argc, const char* argv[])
 void connect_to_leader(tcp::iostream& leader)
 {
     connect_server(leader, leaderEndpoint, "leader");
-    leader << static_cast<int>(ANNOUNCE_CLIENT);
+    const int announce = ANNOUNCE_CLIENT;
+    writeItem(leader, announce);
 }
 
 void handle_genome_args(std::vector<std::string>::iterator& arg_iter)
@@ -117,9 +118,14 @@ void handle_genome_upload(const std::string& filename, const std::string& name)
     dna_file.close();
     
     message_id_t msg_id = GENOME_UPLOAD_START_ID;
-    leader << msg_id << static_cast<unsigned>(name.size());
+    writeItem(leader, msg_id);
+    
+    unsigned size = static_cast<unsigned>(name.size()); // FIXME loses precision;
+    writeItem(leader, size);
     leader.write(name.data(), name.size());
-    leader << static_cast<unsigned>(genome.size());
+    
+    size = static_cast<unsigned>(genome.size()); // FIXME loses precision
+    writeItem(leader, size);
     for( unsigned cur_idx = 0; cur_idx < genome.size(); cur_idx += BUFF_SIZE )
     {
         unsigned cur_chunk = std::min<unsigned>(static_cast<unsigned>(genome.size()) - cur_idx, BUFF_SIZE);

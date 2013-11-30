@@ -32,4 +32,16 @@ typedef int message_id_t;
 
 void readProblemDescription(std::istream& socket, ProblemDescription& cur_prob);
 
+template<typename T>
+static inline void readItem(std::istream& socket, T& dest)
+{
+    socket.read(reinterpret_cast<char*>(&dest), sizeof(dest));
+}
+template<typename T>
+static inline void writeItem(std::ostream& socket, const T& dest)
+{
+    socket.write(reinterpret_cast<const char*>(&dest), sizeof(dest));
+}
+
+
 #endif /* __PROTOCOL_COMMON_H__ */
