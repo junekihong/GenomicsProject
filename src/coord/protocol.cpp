@@ -5,6 +5,7 @@
 #include <sys/socket.h>
 
 #include "common/protocol.h"
+#include "common/util.h"
 #include "protocol.h"
 
 class WorkerProtocolImpl : public LeaderWorkerProtocol
@@ -24,14 +25,6 @@ WorkerHandler::WorkerHandler(int socket)
 {
     LeaderWorkerProtocol * w = new WorkerProtocolImpl(socket);
     actions = workerActionFactory(w);
-}
-
-template<typename T>
-static inline std::string toString(T obj)
-{
-    std::ostringstream strm;
-    strm << obj;
-    return strm.str();
 }
 
 template<typename T>
