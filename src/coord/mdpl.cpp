@@ -14,15 +14,6 @@
 
 #include "protocol.h"
 
-int toInt(const std::string& str)
-{
-    std::stringstream strm(str);
-    
-    int result;
-    strm >> result;
-    return result;
-}
-
 int start_listening(const std::string& myport_str)
 {
     int server_socket;
