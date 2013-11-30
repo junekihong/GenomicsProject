@@ -1,4 +1,4 @@
-CXXFLAGS=-g -pedantic -Wall -Wextra -std=c++98
+CXXFLAGS=-g -pedantic -Wall -Wextra -std=c++98 -I..
 
 TARGET=mdps
 OBJECTS=$(patsubst %.cpp,%.o,$(wildcard *.cpp))
