@@ -35,7 +35,6 @@ class LeaderClientProtocol
     virtual void sendLocalAlignResponse() = 0;
 
     virtual void sendGenomeUploadResponse() = 0;
-    virtual void sendGenomeContinueACK(const int indexRecieved) = 0;
 };
 
 class ClientActions

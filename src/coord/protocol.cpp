@@ -129,7 +129,6 @@ class ClientProtocolImpl : public LeaderClientProtocol
     virtual void sendLocalAlignResponse();
 
     virtual void sendGenomeUploadResponse();
-    virtual void sendGenomeContinueACK(const int indexRecieved);
 };
 
 ClientHandler::ClientHandler(int socket)
@@ -281,9 +280,4 @@ void ClientProtocolImpl::sendGenomeUploadResponse()
     sendItem(socket, msg_id, "Error sending message back to the client that the upload request was recieved");
 }
 
-void ClientProtocolImpl::sendGenomeContinueACK(const int indexRecieved)
-{
-    message_id_t msg_id = UPLOAD_CONTINUATION_ACK_ID;
-    sendItem(socket, msg_id, "Error sending continuation ACK back to the client");
-    sendItem(socket, indexRecieved, "Error sending the index that was recieved back to the client");
-}
+
