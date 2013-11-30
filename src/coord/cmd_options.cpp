@@ -13,7 +13,7 @@ LeaderConfiguration parse_options(int argc, const char* argv[])
     po::options_description desc("MDP Worker Options");
     desc.add_options()
     ("help", "print this help message")
-    ("[prt", po::value<std::string>(&config.myport)->default_value(DEFAULT_PORT),
+    ("port", po::value<std::string>(&config.myport)->default_value(DEFAULT_PORT),
      "the port number of this coordinator should listen one")
     ("storage", po::value<std::string>(&storage_address)->default_value(DEFAULT_SERVER ":" DEFAULT_STORAGE_PORT),
      "the hostname and, optionally, the port number of a storage server")
