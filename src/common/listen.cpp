@@ -8,9 +8,14 @@
 
 int start_listening(const std::string& myport_str)
 {
+    int myport = toInt(myport_str);
+    return start_listening(myport);
+}
+
+int start_listening(int myport)
+{
     int server_socket;
     long on = 1;
-    int myport = toInt(myport_str);
     
     struct sockaddr_in from_addr;
     from_addr.sin_family = AF_INET;
