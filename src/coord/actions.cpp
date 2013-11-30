@@ -1,16 +1,46 @@
+#include <stdlib.h>
 #include "protocol.h"
 
-#include <stdlib.h>
+
+class WorkerActionImpl : public WorkerActions
+{
+    LeaderWorkerProtocol * worker;
+    
+    public:
+    WorkerActionImpl(LeaderWorkerProtocol * w);
+    
+    virtual void requestProblemList();
+    virtual void claimProblems(const std::vector<ProblemID>& problems);
+    virtual void recieveSolution(const SolutionCertificate& solution);
+};
 
 WorkerActions * workerActionFactory(LeaderWorkerProtocol * w)
 {
-    return NULL;
+    //return NULL;
+    return new WorkerActionImpl(w);
 }
+
+WorkerActionImpl::WorkerActionImpl(LeaderWorkerProtocol * w)
+{
+}
+
+void WorkerActionImpl::requestProblemList()
+{
+}
+void WorkerActionImpl::claimProblems(const std::vector<ProblemID>& problems)
+{
+    std::vector<ProblemID> p = problems;
+}
+
+void WorkerActionImpl::recieveSolution(const SolutionCertificate& solution)
+{
+    SolutionCertificate s = solution;
+}
+
 
 class ClientActionImpl : public ClientActions
 {
     LeaderClientProtocol * client;
-    int uploadCount;
     
     public:
     ClientActionImpl(LeaderClientProtocol * c);
@@ -31,14 +61,13 @@ ClientActions * clientActionFactory(LeaderClientProtocol * c)
 //TODO
 ClientActionImpl::ClientActionImpl(LeaderClientProtocol * c)
 {
+    client = c;
 }
 
 //TODO
 void ClientActionImpl::startGenomeUpload(const std::string &name, unsigned int length)
 {
     //TODO contact storage
-
-    uploadCount = 0;
 }
 
 //TODO
