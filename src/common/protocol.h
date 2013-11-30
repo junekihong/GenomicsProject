@@ -54,6 +54,9 @@ static inline void writeItem(std::ostream& socket, const T& dest)
     socket.write(reinterpret_cast<const char*>(&dest), sizeof(dest));
 }
 
+#ifdef MSG_WAITALL
+
+// To use this function, include sys/socket.h before including this file
 template<typename T>
 static inline void readItem(int socket, T& item, const std::string& err_message)
 {
@@ -73,6 +76,8 @@ static inline void sendItem(int socket, T& item, const std::string& err_message)
         throw std::runtime_error(err_message);
     }
 }
+
+#endif
 
 class QueryResponse
 {
