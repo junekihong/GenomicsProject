@@ -24,7 +24,28 @@ ClientActions * clientActionFactory(LeaderClientProtocol * c)
     return new ClientActionImpl(c);
 }
 
+//TODO
+ClientActionImpl::ClientActionImpl(LeaderClientProtocol * c)
+{
+}
+
+//TODO
 void ClientActionImpl::startGenomeUpload(const std::string &name, unsigned int length)
 {
     //TODO contact storage
+}
+
+//TODO
+void ClientActionImpl::continueGenomeUpload(const std::vector<char>& data)
+{   
+}
+
+//TODO
+void ClientActionImpl::listGenomes()
+{
+}
+
+//TODO
+void ClientActionImpl::alignmentRequest(const std::string& first, const std::string& second)
+{
 }
