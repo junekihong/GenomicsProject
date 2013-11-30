@@ -151,14 +151,20 @@ bool ClientHandler::handleNetwork()
     {
         case GENOME_UPLOAD_START_ID:
             handleGenomeStart();
+            return false;
             break;
         case GENOME_LIST_REQUEST_ID:
             handleGenomeListRequest();
+            return false;
+            break;
         case LOCAL_ALIGN_START_ID:
             handleAlignmentStart();
+            return true;
             break;
+        default:
+            throw std::runtime_error("Got unknown message id from client: " + toString(msg_id));
+            return false;
     }
-    return true;
 }
 
 void ClientHandler::handleGenomeListRequest()
