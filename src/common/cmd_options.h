@@ -6,6 +6,7 @@
 #define DEFAULT_SERVER          "localhost"
 #define DEFAULT_PORT            "5528"
 #define DEFAULT_STORAGE_PORT    "5529"
+#define DEFAULT_STORAGE_PORT_INT 5529
 
 struct ServerEndpoint
 {
