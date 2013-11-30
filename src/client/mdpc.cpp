@@ -93,8 +93,12 @@ void handle_genome_args(std::vector<std::string>::iterator& arg_iter)
     {
         ++arg_iter;
         const std::string& filename = *arg_iter;
+        if( filename.size() == 0 )
+            throw std::runtime_error("You must specify a file that contains the genome");
         ++arg_iter;
         const std::string& name = *arg_iter;
+        if( name.size() == 0 )
+            throw std::runtime_error("You must specify a name for the genome");
         handle_genome_upload(filename, name);
     }
     else if( *arg_iter == "list" )
@@ -114,6 +118,8 @@ void handle_genome_upload(const std::string& filename, const std::string& name)
     connect_to_leader(leader);
     
     std::ifstream dna_file(filename.c_str());
+    if( !dna_file )
+        throw std::runtime_error("The file containing the genome (" + filename + ") could not be opened.");
     std::string genome = readFastaString(dna_file);
     dna_file.close();
     
