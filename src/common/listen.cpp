@@ -6,6 +6,8 @@
 #include "listen.h"
 #include "util.h"
 
+#include <cstdlib>
+
 int start_listening(const std::string& myport_str)
 {
     int server_socket;
