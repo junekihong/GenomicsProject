@@ -10,6 +10,8 @@
 
 #include "cmd_options.h"
 #include "common/protocol.h"
+#include "common/util.h"
+
 #include "protocol.h"
 
 int toInt(const std::string& str)
