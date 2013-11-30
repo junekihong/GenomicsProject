@@ -8,14 +8,14 @@
 
 class SolutionCertificate
 {
-    public:
+public:
 	ProblemID problemID;
     ProblemID solutionID;
 };
 
 class Solution
 {
-    public:
+public:
 	ProblemID problemID;
     ProblemID solutionID;
 	

@@ -5,6 +5,7 @@
 
 #include "common/problem.h"
 #include "common/solution.h"
+#include "common/protocol.h"
 
 class WorkerLeaderProtocol
 {
