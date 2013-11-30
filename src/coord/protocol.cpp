@@ -75,7 +75,7 @@ void WorkerHandler::handleSolutionReport()
     readItem(socket, sol.problemID, "Error reading solution problem id");
     readItem(socket, sol.solutionID, "Error reading solution solution id");
     
-    actions->receiveSolution(sol);
+    actions->recieveSolution(sol);
 }
 
 void WorkerProtocolImpl::sendProblemList(const std::vector<ProblemDescription> &problemList)

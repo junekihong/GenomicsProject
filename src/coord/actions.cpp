@@ -21,7 +21,6 @@ WorkerActions * workerActionFactory(LeaderWorkerProtocol * w)
 WorkerActionImpl::WorkerActionImpl(LeaderWorkerProtocol * w)
     : WorkerActions(w)
 {
-
 }
 
 void WorkerActionImpl::requestProblemList()

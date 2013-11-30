@@ -23,7 +23,7 @@ class WorkerActions
     { }
     virtual void requestProblemList() = 0;
     virtual void claimProblems(const std::vector<ProblemID>& problems) = 0;
-    virtual void receiveSolution(const SolutionCertificate& solution) = 0;
+    virtual void recieveSolution(const SolutionCertificate& solution) = 0;
 };
 
 WorkerActions * workerActionFactory(LeaderWorkerProtocol * w);
