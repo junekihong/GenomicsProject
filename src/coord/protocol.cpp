@@ -259,5 +259,3 @@ void ClientProtocolImpl::sendGenomeUploadResponse()
     message_id_t msg_id = UPLOAD_REQUEST_RECIEVED_ID;
     sendItem(socket, msg_id, "Error sending message back to the client that the upload request was recieved");
 }
-
-
