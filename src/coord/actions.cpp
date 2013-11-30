@@ -17,6 +17,8 @@ class ClientActionImpl : public ClientActions
     
     virtual void startGenomeUpload(const std::string& name, unsigned length);
     virtual void continueGenomeUpload(const std::vector<char>& data);
+    virtual void finishGenomeUpload();
+
     virtual void listGenomes();
     virtual void alignmentRequest(const std::string& first, const std::string& second);
 };
@@ -37,28 +39,29 @@ void ClientActionImpl::startGenomeUpload(const std::string &name, unsigned int l
     //TODO contact storage
 
     uploadCount = 0;
-    client->sendGenomeUploadResponse();
 }
 
 //TODO
 void ClientActionImpl::continueGenomeUpload(const std::vector<char>& data)
 {   
     //TODO contact storage
-    uploadCount++;
-    client->sendGenomeContinueACK(uploadCount);
+}
+
+void ClientActionImpl::finishGenomeUpload()
+{
+    client->sendGenomeUploadResponse();
 }
 
 //TODO
 void ClientActionImpl::listGenomes()
 {
 
-    //TODO pass a string vector into sendGenomeList
-    //client->sendGenomeList();
 }
 
 //TODO
 void ClientActionImpl::alignmentRequest(const std::string& first, const std::string& second)
 {
     
-    client->sendLocalAlignResponse();
+    //client->sendLocalAlignResponse();
 }
+

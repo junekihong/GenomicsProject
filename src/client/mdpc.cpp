@@ -138,6 +138,12 @@ void handle_genome_upload(const std::string& filename, const std::string& name)
         unsigned cur_chunk = std::min<unsigned>(static_cast<unsigned>(genome.size()) - cur_idx, BUFF_SIZE);
         leader.write(genome.data() + cur_idx, cur_chunk);
     }
+    
+    readItem(leader, msg_id);
+    if(GENOME_UPLOAD-START_ID == msg_id)
+    {
+        // the upload is sucessful. We have recieved an ACK back from the leader. And it matches.
+    }
 }
 
 void handle_genome_list()

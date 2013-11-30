@@ -195,6 +195,11 @@ void ClientHandler::handleGenomeStart()
     actions->startGenomeUpload(name_buffer, uploadLength);
 }
 
+void ClientHandler::handleGenomeFinish()
+{
+    actions->finishGenomeUpload();
+}
+
 void ClientHandler::handleGenomeContinuation()
 {
     const unsigned buff_len = 32*1024;
@@ -212,6 +217,8 @@ void ClientHandler::handleGenomeContinuation()
     if( uploadProgress == uploadLength ) {
         uploadInProgress = false;
         uploadLength = uploadProgress = 0;
+
+        handleGenomeFinish();
     }
 }
 
