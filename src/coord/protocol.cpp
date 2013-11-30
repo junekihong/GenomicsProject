@@ -27,26 +27,6 @@ WorkerHandler::WorkerHandler(int socket)
     actions = workerActionFactory(w);
 }
 
-template<typename T>
-static inline void readItem(int socket, T& item, const std::string& err_message)
-{
-    ssize_t bytes_read = recvfrom(socket, &item, sizeof(item), MSG_WAITALL, NULL, NULL);
-    if( bytes_read != sizeof(item) )
-    {
-        throw std::runtime_error(err_message);
-    }
-}
-
-template<typename T>
-static inline void sendItem(int socket, T& item, const std::string& err_message)
-{
-    ssize_t bytes_sent = send(socket, &item, sizeof(item), 0);
-    if( bytes_sent != sizeof(item) )
-    {
-        throw std::runtime_error(err_message);
-    }
-}
-
 bool WorkerHandler::handleNetwork()
 {
     message_id_t msg_id;

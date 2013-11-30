@@ -54,6 +54,26 @@ static inline void writeItem(std::ostream& socket, const T& dest)
     socket.write(reinterpret_cast<const char*>(&dest), sizeof(dest));
 }
 
+template<typename T>
+static inline void readItem(int socket, T& item, const std::string& err_message)
+{
+    ssize_t bytes_read = recvfrom(socket, &item, sizeof(item), MSG_WAITALL, NULL, NULL);
+    if( bytes_read != sizeof(item) )
+    {
+        throw std::runtime_error(err_message);
+    }
+}
+
+template<typename T>
+static inline void sendItem(int socket, T& item, const std::string& err_message)
+{
+    ssize_t bytes_sent = send(socket, &item, sizeof(item), 0);
+    if( bytes_sent != sizeof(item) )
+    {
+        throw std::runtime_error(err_message);
+    }
+}
+
 class QueryResponse
 {
 public:
