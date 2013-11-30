@@ -36,6 +36,12 @@
 #define STORE_QUERY_BY_ID_ID        15
 #define STORE_QUERY_BY_COND_ID      16
 
+#define STORE_GENOME_INFO_QUERY_ID      17
+#define STORE_GENOME_INFO_RESPONSE_ID   17
+
+#define STORE_GENOME_CONTENT_QUERY_ID       18
+#define STORE_GENOME_CONTENT_RESPONSE_ID    18
+
 #define BUFF_SIZE 32*1024
 
 class ProblemDescription;

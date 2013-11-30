@@ -127,6 +127,8 @@ Insert genome data:
     Length of chunk
     Data
 
+In the future, this should have an ACK.
+
 Query for genome information:
 
     Genome Info Request ID
