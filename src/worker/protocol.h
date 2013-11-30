@@ -5,7 +5,6 @@
 
 #include "common/problem.h"
 #include "common/solution.h"
-#include "common/query_response.h"
 
 class WorkerLeaderProtocol
 {

@@ -2,7 +2,6 @@
 
 #include <unistd.h>
 #include "common/solution.h"
-#include "common/query_response.h"
 #include "common/matrix.h"
 #include "common/pair_location_value.h"
 
