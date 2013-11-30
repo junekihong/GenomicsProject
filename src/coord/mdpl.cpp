@@ -98,9 +98,7 @@ int main(int argc, const char* argv[])
                     if( FD_ISSET(cur_handler->getSocket(), &temp_mask) )
                     {
                         bool keep = cur_handler->handleNetwork();
-                        if( !keep )
-                        {
-                            close(cur_handler->getSocket());
+                        if( !keep ) {
                             to_erase.insert(cur_handler);
                         }
                     }
@@ -109,6 +107,8 @@ int main(int argc, const char* argv[])
                 {
                     delete *iter;
                     handlers.erase(*iter);
+                    close((*iter)->getSocket());
+                    FD_CLR((*iter)->getSocket(), &mask);
                 }
                 
                 std::set<int> sockets_to_erase;
