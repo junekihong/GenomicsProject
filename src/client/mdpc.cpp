@@ -140,7 +140,7 @@ void handle_genome_upload(const std::string& filename, const std::string& name)
     }
     
     readItem(leader, msg_id);
-    if(GENOME_UPLOAD-START_ID == msg_id)
+    if(GENOME_UPLOAD_START_ID == msg_id)
     {
         // the upload is sucessful. We have recieved an ACK back from the leader. And it matches.
     }
