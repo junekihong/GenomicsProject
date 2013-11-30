@@ -2,6 +2,7 @@
 #define __PROTOCOL_COMMON_H__
 
 #include <iostream>
+#include <stdexcept>
 
 #include "location.h"
 #include "problem.h"
