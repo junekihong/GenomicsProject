@@ -179,6 +179,9 @@ void handle_query_by_id(int sock)
     
     QueryResponse resp;
     queryByID(prob, solution_wanted, resp);
+    
+    message_id_t msg_id = STORE_QUERY_RESPONSE_ID;
+    sendItem(sock, msg_id, "Error sending query response id");
     sendQueryResponse(sock, resp);
 }
 
@@ -191,5 +194,8 @@ void handle_query_by_cond(int sock)
     
     QueryResponse resp;
     queryByConditions(prob, partialsWanted, resp);
+    
+    message_id_t msg_id = STORE_QUERY_RESPONSE_ID;
+    sendItem(sock, msg_id, "Error sending query response id");
     sendQueryResponse(sock, resp);
 }
