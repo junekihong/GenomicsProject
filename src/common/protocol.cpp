@@ -128,5 +128,15 @@ void sendSolution(std::ostream& sock, const Solution& sol, const std::string&)
 
 void sendQueryResponse(int sock, const QueryResponse& resp)
 {
+    sendItem(sock, resp.success, "Error sending query response success");
+    if( !resp.success )
+        return;
     
+    sendItem(sock, resp.exactMatch, "Error sending query response exact match flag");
+    sendProblemDescription(sock, resp.problemDescription);
+    sendItem(sock, resp.maxValue, "Error sending query response max value");
+    sendItem(sock, resp.location, "Error sending query response max location");
+    if( resp.sol ) {
+        sendSolution(sock, *resp.sol);
+    }
 }
