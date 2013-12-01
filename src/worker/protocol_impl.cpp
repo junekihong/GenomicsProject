@@ -8,7 +8,7 @@ void WorkerProtocolImpl::requestProblemList(std::vector<ProblemDescription>& pro
 	message_id_t msg_id = PROBLEM_LIST_REQUEST_ID;
 	
 	std::cout << "Requesting problem list";
-    writeItem(socket, msg_id);
+    sendItem(socket, msg_id);
 	
     readItem(socket, msg_id);
 	
@@ -33,8 +33,8 @@ bool WorkerProtocolImpl::claimProblems(const std::vector<ProblemID>& problems)
 {
     std::cout << "Requesting " << problems.size() << " problems\n";
     message_id_t msg_id = PROBLEM_CLAIM_REQUEST_ID;
-    writeItem(socket, msg_id);
-    writeItem(socket, static_cast<unsigned>(problems.size()));
+    sendItem(socket, msg_id);
+    sendItem(socket, static_cast<unsigned>(problems.size()));
     socket.write(reinterpret_cast<const char*>(problems.data()), problems.size() * sizeof(ProblemID));
     socket.flush();
     
@@ -53,9 +53,9 @@ bool WorkerProtocolImpl::claimProblems(const std::vector<ProblemID>& problems)
 
 void WorkerProtocolImpl::sendSolution(const SolutionCertificate& solution)
 {
-    writeItem(socket, static_cast<message_id_t>(SOLUTION_REPORT_ID));
-    writeItem(socket, solution.problemID.idnum);
-    writeItem(socket, solution.solutionID.idnum);
+    sendItem(socket, static_cast<message_id_t>(SOLUTION_REPORT_ID));
+    sendItem(socket, solution.problemID.idnum);
+    sendItem(socket, solution.solutionID.idnum);
     socket.flush();
 }
 

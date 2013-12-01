@@ -111,7 +111,7 @@ The requestor may also query whether or not a problem is present; the storage sy
 These do not have to go over the wire; the storage system may be in the same process as another actor, in which case these may be function or method calls.
 
 
-Insert a new solution certificate:
+Insert a new solution:
 
     Solution insertion ID
     Problem ID

@@ -108,47 +108,9 @@ int main(int argc, const char* argv[])
     return 0;
 }
 
-static inline std::string readString(int sock, const std::string& err)
+static inline void readMatrix(int sock, Matrix& mat, const std::string& err)
 {
-    unsigned length;
-    readItem(sock, length, "Error reading the length of " + err);
-    char * buff = new char[length] + 1; // TODO leaks on exceptions
-    ssize_t bytes_read = recvfrom(sock, buff, length, MSG_WAITALL, NULL, NULL);
-    if( bytes_read != length )
-        throw std::runtime_error("Error reading " + err);
-    std::string result(buff);
-    delete []buff;
-    return result;
-}
-
-static inline void sendString(int sock, const std::string& str, const std::string& err)
-{
-    unsigned length = static_cast<unsigned>(str.size()); // TODO loses precision
-    sendItem(sock, length, "Error sending the length of " + err);
-    ssize_t bytes_sent = send(sock, str.data(), str.size(), 0);
-    if( bytes_sent != length )
-        throw std::runtime_error("Error sending " + err);
-}
-
-template<typename T>
-static inline void readVector(int sock, const std::string& err, std::vector<T>& result)
-{
-    unsigned length;
-    readItem(sock, length, "Error reading the length of " + err);
-    result.resize(length);
-    ssize_t bytes_read = recvfrom(sock, result.data(), length *sizeof(T), MSG_WAITALL, NULL, NULL);
-    if( bytes_read != length * sizeof(T) )
-        throw std::runtime_error("Error reading " + err);
-}
-
-template<typename T>
-static inline void sendVector(int sock, const std::vector<T>& vec, const std::string& err)
-{
-    unsigned length = static_cast<unsigned>(vec.size()); // TODO loses precision
-    sendItem(sock, length, "Error sending the length of " + err);
-    ssize_t bytes_sent = send(sock, vec.data(), vec.size() * sizeof(T), 0);
-    if( bytes_sent != length )
-        throw std::runtime_error("Error sending " + err);
+    
 }
 
 void handle_new_genome(int sock)
@@ -167,7 +129,7 @@ void handle_new_data(int sock)
     unsigned startIndex;
     readItem(sock, startIndex, "Error reading the index of the current genome chunk");
     std::vector<char> data;
-    readVector(sock, "Error reading genome data", data);
+    readVector(sock, data, "Error reading genome data");
     
     addGenomeData(name, startIndex, data);
 }

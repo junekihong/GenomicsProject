@@ -85,7 +85,7 @@ void connect_to_leader(tcp::iostream& leader)
 {
     connect_server(leader, leaderEndpoint, "leader");
     const int announce = ANNOUNCE_CLIENT;
-    writeItem(leader, announce);
+    sendItem(leader, announce);
 }
 
 void handle_genome_args(std::vector<std::string>::iterator& arg_iter)
@@ -125,14 +125,14 @@ void handle_genome_upload(const std::string& filename, const std::string& name)
     dna_file.close();
     
     message_id_t msg_id = GENOME_UPLOAD_START_ID;
-    writeItem(leader, msg_id);
+    sendItem(leader, msg_id);
     
     unsigned size = static_cast<unsigned>(name.size()); // FIXME loses precision;
-    writeItem(leader, size);
+    sendItem(leader, size);
     leader.write(name.data(), name.size());
     
     size = static_cast<unsigned>(genome.size()); // FIXME loses precision
-    writeItem(leader, size);
+    sendItem(leader, size);
     for( unsigned cur_idx = 0; cur_idx < genome.size(); cur_idx += BUFF_SIZE )
     {
         unsigned cur_chunk = std::min<unsigned>(static_cast<unsigned>(genome.size()) - cur_idx, BUFF_SIZE);
@@ -152,7 +152,7 @@ void handle_genome_list()
     connect_to_leader(leader);
     
     message_id_t msg_id = GENOME_LIST_REQUEST_ID;
-    writeItem(leader, msg_id);
+    sendItem(leader, msg_id);
     
     readItem(leader, msg_id);
     if( msg_id != GENOME_LIST_RESPONSE_ID )
@@ -197,12 +197,12 @@ void handle_local_align_args(std::vector<std::string>::iterator& arg_iter)
     connect_to_leader(leader);
     
     message_id_t msg_id = LOCAL_ALIGN_START_ID;
-    writeItem(leader, msg_id);
+    sendItem(leader, msg_id);
     
-    writeItem(leader, static_cast<unsigned>(first.size()));
+    sendItem(leader, static_cast<unsigned>(first.size()));
     leader.write(first.data(), first.size());
     
-    writeItem(leader, static_cast<unsigned>(second.size()));
+    sendItem(leader, static_cast<unsigned>(second.size()));
     leader.write(second.data(), second.size());
     
     readItem(leader, msg_id);

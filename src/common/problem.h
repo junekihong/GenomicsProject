@@ -27,6 +27,9 @@ class ProblemDescription
 {
 	public:
 	ProblemID problemID;
+    // the int value to the upper-left of this problem chunk
+    int corner;
+    
 	std::vector<int> top_numbers;
 	std::vector<int> left_numbers;
 	std::vector<char> top_genome;
