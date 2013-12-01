@@ -17,8 +17,8 @@ Matrix::Matrix(int _length, int _width)
 
 Matrix::Matrix(std::vector<int>& topNumbers, std::vector<int>& leftNumbers)
 {
-    length = topNumbers.size();
-    width = leftNumbers.size();
+    length = static_cast<int>(topNumbers.size()); // FIXME cast to int silences warning
+    width = static_cast<int>(leftNumbers.size());
     allocateMatrix();
     initialize(topNumbers, leftNumbers);
 
