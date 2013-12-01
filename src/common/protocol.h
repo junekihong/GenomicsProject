@@ -48,6 +48,9 @@ class ProblemDescription;
 
 typedef int message_id_t;
 
+void readMatrix(int socket, Matrix& mat, const std::string& err);
+void sendMatrix(int socket, const Matrix& mat, const std::string& err);
+
 void readProblemDescription(std::istream& socket, ProblemDescription& cur_prob);
 void sendProblemDescription(int socket, const ProblemDescription& cur_prob);
 

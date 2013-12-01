@@ -108,11 +108,6 @@ int main(int argc, const char* argv[])
     return 0;
 }
 
-static inline void readMatrix(int sock, Matrix& mat, const std::string& err)
-{
-    
-}
-
 void handle_new_genome(int sock)
 {
     std::string name = readString(sock, "the name of a new genome");

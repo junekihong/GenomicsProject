@@ -3,6 +3,30 @@
 #include "protocol.h"
 #include "problem.h"
 
+void readMatrix(int socket, Matrix& mat, const std::string& err)
+{
+    int length, width;
+    readItem(socket, length, "Error reading length of " + err);
+    readItem(socket, width, "Error reading width of " + err);
+    mat.resize(length, width);
+    
+    for( int i = 0; i <= mat.getWidth(); ++i ){
+        recvfrom(socket, mat.matrix[i], (mat.getLength() + 1)*sizeof(int), 0, NULL, NULL);
+    }
+}
+
+void sendMatrix(int socket, const Matrix& mat, const std::string& err)
+{
+    int length = mat.getLength();
+    int width = mat.getWidth();
+    sendItem(socket, length, "Error sending length of " + err);
+    readItem(socket, width, "Error sending width of " + err);
+    
+    for( int i = 0; i <= mat.getWidth(); ++i ) {
+        send(socket, mat.matrix[i], (mat.getLength() + 1)*sizeof(int), 0);
+    }
+}
+
 void readProblemDescription(std::istream& socket, ProblemDescription& cur_prob)
 {
     readItem(socket, cur_prob.problemID.idnum);
