@@ -36,8 +36,6 @@ int main(int argc, const char* argv[])
         {
             temp_mask = mask;
             int num = select(FD_SETSIZE, &temp_mask, &dummy_mask, &dummy_mask, NULL);
-            
-            std::cout << "right after the select call. mdpl.cpp: 40\n";
 
             if( num > 0 )
             {

@@ -164,11 +164,7 @@ void handle_genome_list()
     }
     
     unsigned name_count;
-
-    std::cout << "before name_count is: " << name_count << "\n";
     readItem(leader, name_count);
-    std::cout << "after name_count is: " << name_count << "\n";
-
     std::vector<std::string> genome_names;
     genome_names.reserve(name_count);
     for( unsigned i = 0; i < name_count; ++i )

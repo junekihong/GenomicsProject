@@ -236,8 +236,6 @@ void ClientHandler::handleAlignmentStart()
 
 void ClientProtocolImpl::sendGenomeList(const std::vector<std::string> &nameList)
 {
-    std::cout << "ClientProtocolImpl::sendGenomeList\n";
-
     message_id_t msg_id = GENOME_LIST_RESPONSE_ID;
     sendItem(socket, msg_id, "Error sending Genome List response message id");
     

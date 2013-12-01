@@ -138,8 +138,6 @@ void ClientActionImpl::finishGenomeUpload()
 
 void ClientActionImpl::listGenomes()
 {
-    std::cout << "ClientActionImpl::listGenomes()\n";
-
     //TODO populate nameList?
     client->sendGenomeList(nameList);
 }
