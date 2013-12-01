@@ -1,4 +1,9 @@
+CXXFLAGS+=-DDEBUG
 CXXFLAGS+=-g -pedantic -Wall -Wextra -std=c++98 -I..
+
+#debug print statements
+
+
 
 TARGET=mdpl
 OBJECTS=$(patsubst %.cpp,%.o,$(wildcard *.cpp)) ../common/cmd_options.o \

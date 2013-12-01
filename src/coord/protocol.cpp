@@ -36,12 +36,21 @@ bool WorkerHandler::handleNetwork()
     switch( msg_id )
     {
         case PROBLEM_LIST_REQUEST_ID:
+#ifdef DEBUG
+            std::cout << "WorkerHandler: handleListRequest()\n";
+#endif        
             handleListRequest();
             break;
         case PROBLEM_CLAIM_REQUEST_ID:
+#ifdef DEBUG
+            std::cout << "WorkerHandler: handleClaimRequest()\n";
+#endif
             handleClaimRequest();
             break;
         case SOLUTION_REPORT_ID:
+#ifdef DEBUG
+            std::cout << "WorkerHandler: handleSolutionReport()\n";
+#endif
             handleSolutionReport();
             break;
         default:
@@ -135,14 +144,23 @@ bool ClientHandler::handleNetwork()
     switch( msg_id )
     {
         case GENOME_UPLOAD_START_ID:
+#ifdef DEBUG
+            std::cout << "ClientHandler: handleGenomeStart()\n";
+#endif
             handleGenomeStart();
             return false;
             break;
         case GENOME_LIST_REQUEST_ID:
+#ifdef DEBUG
+            std::cout << "clientHandler: handleGenomeListRequest()\n";
+#endif
             handleGenomeListRequest();
             return false;
             break;
         case LOCAL_ALIGN_START_ID:
+#ifdef DEBUG
+            std::cout << "clientHandler: handleAlignmentStart()\n";
+#endif
             handleAlignmentStart();
             return true;
             break;
