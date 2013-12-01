@@ -171,10 +171,25 @@ void handle_new_solution(int sock)
 
 void handle_query_by_id(int sock)
 {
+    ProblemID prob;
+    bool solution_wanted;
     
+    readItem(sock, prob, "Error reading problem ID in query");
+    readItem(sock, solution_wanted, "Error reading entire solution flag in query");
+    
+    QueryResponse resp;
+    queryByID(prob, solution_wanted, resp);
+    sendQueryResponse(sock, resp);
 }
 
 void handle_query_by_cond(int sock)
 {
+    ProblemDescription prob;
+    bool partialsWanted;
+    readProblemDescription(sock, prob);
+    readItem(sock, partialsWanted, "Error reading whether partial matches should be returned");
     
+    QueryResponse resp;
+    queryByConditions(prob, partialsWanted, resp);
+    sendQueryResponse(sock, resp);
 }

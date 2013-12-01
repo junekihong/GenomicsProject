@@ -63,6 +63,9 @@ void sendSolution(int sock, const Solution& sol);
 void readSolution(std::istream& sock, Solution& sol, const std::string& err);
 void sendSolution(std::ostream& sock, const Solution& sol, const std::string& err);
 
+class QueryResponse;
+void sendQueryResponse(int sock, const QueryResponse& resp);
+
 template<typename T>
 static inline void readItem(std::istream& socket, T& dest, const std::string& err = "")
 {

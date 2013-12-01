@@ -75,3 +75,13 @@ void insertSolution(const ProblemDescription& prob, const Solution& s)
     sendProblemDescription(strm, prob, "Error writing problem description " + toString(prob.problemID.idnum));
     sendSolution(strm, s, "Error writing solution " + toString(sol->sol.id.idnum));
 }
+
+void queryByID(ProblemID id, bool solution_wanted, QueryResponse& resp)
+{
+    
+}
+
+void queryByConditions(const ProblemDescription& desc, bool partialsWanted, QueryResponse& resp)
+{
+    
+}

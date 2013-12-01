@@ -125,3 +125,8 @@ void sendSolution(std::ostream& sock, const Solution& sol, const std::string&)
     sendItem(sock, sol.maxValueLocation, "Error sending the location of the max value");
     sendMatrix(sock, sol.matrix, "solution matrix");
 }
+
+void sendQueryResponse(int sock, const QueryResponse& resp)
+{
+    
+}
