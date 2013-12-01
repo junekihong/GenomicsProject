@@ -2,9 +2,7 @@
 #define __WORKER_PROTOCOL_IMPL_H__
 
 #include <boost/asio/ip/tcp.hpp>
-
 #include "common/protocol.h"
-
 #include "protocol.h"
 
 class WorkerProtocolImpl : public WorkerLeaderProtocol
@@ -33,8 +31,8 @@ class StorageProtocolImpl : public StorageProtocol
     virtual void createNewGenome(const std::string& name, unsigned length);
     virtual void insertGenomeData(unsigned index, std::vector<char>& data);
     virtual bool insertSolution(const Solution& solution);
-    virtual QueryResponse queryByProblemID(const ProblemID& problemID);
-    virtual QueryResponse queryByInitialConditions(const int requestID, const ProblemDescription& problemDescription, const bool queryFlag);
+    virtual QueryResponse* queryByProblemID(const ProblemID& problemID, bool entireSolution);
+    virtual QueryResponse* queryByInitialConditions(const ProblemDescription& problemDescription, const bool wantPartials);
     
 };
 

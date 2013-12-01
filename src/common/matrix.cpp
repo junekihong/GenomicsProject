@@ -1,5 +1,6 @@
 #include "matrix.h"
 #include <stdlib.h>
+#include <cstring>
 
 Matrix::Matrix()
 : length(0), width(0), matrix(NULL)

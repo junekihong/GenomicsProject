@@ -36,18 +36,20 @@ void runWorker(WorkerLeaderProtocol& leader, StorageProtocol& storage){
 
         // Query storage to check for a cache hit.
         bool queryFlag = false;
-        QueryResponse queryResponse = storage.queryByInitialConditions(problemDescription, queryFlag);
-        
+        QueryResponse* queryResponse = storage.queryByInitialConditions(problemDescription, queryFlag);
+        Solution* solution = queryResponse->sol;
 
         SolutionCertificate solutionCertificate;
-        if(queryResponse.exactMatch)
+        if(queryResponse->exactMatch)
         {
-            solutionCertificate = queryResponse.solutionCertificate;
+            //solutionCertificate = queryResponse->solutionCertificate;
+            solutionCertificate.problemID = problemDescription.problemID;
+            solutionCertificate.solutionID = solution->id;
         }
-        else if(queryResponse.potentialMatch)
-        {
-            // TODO
-        }
+//        else if(queryResponse->success)
+//        {
+// TODO
+//        }
         else
         {
             // Solve the problem manually.
@@ -55,10 +57,11 @@ void runWorker(WorkerLeaderProtocol& leader, StorageProtocol& storage){
             while(!storage.insertSolution(solution)){
                 sleep(1);
             }
-            // TODO don't need to query storage here since we just computed the answer
-            queryResponse = storage.queryByProblemID(problemID, false);
-            solutionCertificate = queryResponse.solutionCertificate;
+            solutionCertificate.problemID = problemDescription.problemID;
+            solutionCertificate.solutionID = problemDescription.problemID;
         }
+
+        delete queryResponse;
 
         // Send solution back.
         leader.sendSolution(solutionCertificate);        
