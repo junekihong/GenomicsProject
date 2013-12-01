@@ -8,39 +8,41 @@
 #include "problem.h"
 #include "solution.h"
 
-#define ANNOUNCE_CLIENT             1
-#define ANNOUNCE_LEADER             2
-#define ANNOUNCE_WORKER             3
-#define ANNOUNCE_STORAGE            4
+#define ANNOUNCE_CLIENT                      1
+#define ANNOUNCE_LEADER                      2
+#define ANNOUNCE_WORKER                      3
+#define ANNOUNCE_STORAGE                     4
 
-#define PROBLEM_LIST_REQUEST_ID		5
-#define PROBLEM_LIST_RESPONSE_ID	5
+#define PROBLEM_LIST_REQUEST_ID              5
+#define PROBLEM_LIST_RESPONSE_ID             5
 
-#define PROBLEM_CLAIM_REQUEST_ID    6
-#define PROBLEM_CLAIM_RESPONSE_ID   6
+#define PROBLEM_CLAIM_REQUEST_ID             6
+#define PROBLEM_CLAIM_RESPONSE_ID            6
 
-#define SOLUTION_REPORT_ID          7
+#define SOLUTION_REPORT_ID                   7
 
-#define GENOME_UPLOAD_START_ID      8
-#define UPLOAD_REQUEST_RECIEVED_ID  8
+#define GENOME_UPLOAD_START_ID               8
+#define UPLOAD_REQUEST_RECIEVED_ID           8
 
-#define GENOME_LIST_REQUEST_ID      9
-#define GENOME_LIST_RESPONSE_ID     9
+#define GENOME_LIST_REQUEST_ID               9
+#define GENOME_LIST_RESPONSE_ID              9
 
-#define LOCAL_ALIGN_START_ID        10
-#define LOCAL_ALIGN_FINISH_ID       11
+#define LOCAL_ALIGN_START_ID                10
+#define LOCAL_ALIGN_FINISH_ID               11
 
-#define STORE_NEW_GENOME_ID         12
-#define STORE_NEW_DATA_ID           13
-#define STORE_NEW_SOLUTION_ID       14
-#define STORE_QUERY_BY_ID_ID        15
-#define STORE_QUERY_BY_COND_ID      16
+#define STORE_NEW_GENOME_ID             12
+#define STORE_NEW_DATA_ID                   13
+#define STORE_NEW_SOLUTION_ID               14
+#define STORE_QUERY_BY_ID_ID                15
+#define STORE_QUERY_BY_COND_ID              16
 
-#define STORE_GENOME_INFO_QUERY_ID      17
-#define STORE_GENOME_INFO_RESPONSE_ID   17
+#define STORE_GENOME_INFO_QUERY_ID          17
+#define STORE_GENOME_INFO_RESPONSE_ID       17
 
 #define STORE_GENOME_CONTENT_QUERY_ID       18
 #define STORE_GENOME_CONTENT_RESPONSE_ID    18
+
+#define STORE_QUERY_RESPONSE_ID             19
 
 #define BUFF_SIZE 32*1024
 
