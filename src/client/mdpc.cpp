@@ -45,7 +45,7 @@ int main(int argc, const char* argv[])
     
     std::vector<std::string>::iterator arg_iter = args.begin();
     
-    try {
+///    try {
         if( *arg_iter == "--server" )
         {
             arg_iter++;
@@ -72,12 +72,12 @@ int main(int argc, const char* argv[])
             std::cout << "Unrecognized command: " << *arg_iter << "\n";
             exit(-1);
         }
-    }
-    catch( const std::exception& err )
-    {
-        std::cerr << err.what() << "\n";
-        return -1;
-    }
+//    }
+//    catch( const std::exception& err )
+//    {
+//        std::cerr << err.what() << "\n";
+//        return -1;
+//    }
     return 0;
 }
 
@@ -164,7 +164,11 @@ void handle_genome_list()
     }
     
     unsigned name_count;
+
+    std::cout << "before name_count is: " << name_count << "\n";
     readItem(leader, name_count);
+    std::cout << "after name_count is: " << name_count << "\n";
+
     std::vector<std::string> genome_names;
     genome_names.reserve(name_count);
     for( unsigned i = 0; i < name_count; ++i )

@@ -88,7 +88,7 @@ void WorkerActionImpl::claimProblems(const std::vector<ProblemID>& problems)
 
 void WorkerActionImpl::recieveSolution(const SolutionCertificate& solution)
 {
-    SolutionCertificate s = solution;
+    solvedList.push_back(solution.problemID);
 }
 
 
@@ -117,7 +117,6 @@ ClientActionImpl::ClientActionImpl(LeaderClientProtocol * c)
     client = c;
 }
 
-//TODO
 void ClientActionImpl::startGenomeUpload(const std::string &name, unsigned int length)
 {
     //TODO contact storage
@@ -139,6 +138,8 @@ void ClientActionImpl::finishGenomeUpload()
 
 void ClientActionImpl::listGenomes()
 {
+    std::cout << "ClientActionImpl::listGenomes()\n";
+
     //TODO populate nameList?
     client->sendGenomeList(nameList);
 }
