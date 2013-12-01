@@ -2,26 +2,23 @@
 #include <stdlib.h>
 
 Matrix::Matrix()
+: length(0), width(0), matrix(NULL)
 {
-    length = 0;
-    width = 0;
     allocateMatrix();
 }
   
 Matrix::Matrix(int _length, int _width)
+: length(_length), width(_width), matrix(NULL)
 {
-    length = _length;
-    width = _width;
     allocateMatrix();
 }
 
-Matrix::Matrix(std::vector<int>& topNumbers, std::vector<int>& leftNumbers)
+Matrix::Matrix(const std::vector<int>& topNumbers, const std::vector<int>& leftNumbers)
 {
     length = static_cast<int>(topNumbers.size()); // FIXME cast to int silences warning
     width = static_cast<int>(leftNumbers.size());
     allocateMatrix();
     initialize(topNumbers, leftNumbers);
-
 }
 
 void Matrix::allocateMatrix()
@@ -43,7 +40,7 @@ Matrix::~Matrix()
 }
 
 
-void Matrix::initialize(std::vector<int>& topNumbers, std::vector<int>& leftNumbers)
+void Matrix::initialize(const std::vector<int>& topNumbers, const std::vector<int>& leftNumbers)
 {
     for(int i = 0; i < length; i++){
         matrix[0][i+1] = topNumbers[i];
@@ -53,13 +50,21 @@ void Matrix::initialize(std::vector<int>& topNumbers, std::vector<int>& leftNumb
     }
 }
 
+void Matrix::resize(int newLength, int newWidth)
+{
+    if( matrix )
+        this->~Matrix();
+    length = newLength;
+    width = newWidth;
+    allocateMatrix();
+}
 
 std::ostream& operator<<(std::ostream& os, const Matrix& matrix)
 {
-    os << matrix.length << " " << matrix.width << "\n";    
-    for(int i = 0; i <= matrix.width; i++)
+    os << matrix.getLength() << " " << matrix.getWidth() << "\n";
+    for(int i = 0; i <= matrix.getWidth(); i++)
     {
-        for(int j = 0; j <= matrix.length; j++)
+        for(int j = 0; j <= matrix.getLength(); j++)
         {
             os << matrix.matrix[i][j] << "\t";
         }
