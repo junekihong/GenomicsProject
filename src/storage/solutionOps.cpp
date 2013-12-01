@@ -89,7 +89,10 @@ void initializeSolutionSystem()
         readSolution(input, sol->sol, "Error reading solution");
         
         solutionById[sol->sol.id] = sol;
-        // TODO add to other indices
+        topNumberIndex.insert(sol);
+        leftNumberIndex.insert(sol);
+        topGenomeIndex.insert(sol);
+        leftGenomeIndex.insert(sol);
     }
 }
 
@@ -97,7 +100,10 @@ void insertSolution(const ProblemDescription& prob, const Solution& s)
 {
     CompleteSolution * sol = new CompleteSolution(prob, s);
     solutionById[sol->sol.id] = sol;
-    // TODO add to other indices
+    topNumberIndex.insert(sol);
+    leftNumberIndex.insert(sol);
+    topGenomeIndex.insert(sol);
+    leftGenomeIndex.insert(sol);
     
     std::ofstream strm((solutionRoot / toString(sol->sol.id.idnum)).generic_string<std::string>().c_str());
     sendProblemDescription(strm, prob, "Error writing problem description " + toString(prob.problemID.idnum));
