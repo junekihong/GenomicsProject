@@ -20,7 +20,7 @@ void sendMatrix(int socket, const Matrix& mat, const std::string& err)
     int length = mat.getLength();
     int width = mat.getWidth();
     sendItem(socket, length, "Error sending length of " + err);
-    readItem(socket, width, "Error sending width of " + err);
+    sendItem(socket, width, "Error sending width of " + err);
     
     for( int i = 0; i <= mat.getWidth(); ++i ) {
         send(socket, mat.matrix[i], (mat.getLength() + 1)*sizeof(int), 0);
