@@ -5,6 +5,9 @@
 
 #include "common/problem.h"
 #include "common/solution.h"
+#include "scheduling.h"
+
+
 
 class LeaderWorkerProtocol
 {

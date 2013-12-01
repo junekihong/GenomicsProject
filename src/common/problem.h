@@ -15,6 +15,12 @@ class ProblemID
 	ProblemID(unsigned long _id = 0)
         : idnum(_id)
 	{ }
+
+    bool operator==(const ProblemID &x) const
+    {
+        return (idnum == x.idnum);
+    }
+    
 };
 
 class ProblemDescription
@@ -25,6 +31,16 @@ class ProblemDescription
 	std::vector<int> left_numbers;
 	std::vector<char> top_genome;
 	std::vector<char> left_genome;
+
+    
+    bool operator==(const ProblemDescription &x) const 
+    {
+        return (top_numbers == x.top_numbers) && (left_numbers == x.left_numbers) && (top_genome == x.top_genome) && (left_genome == x.left_genome);
+    }
+    
 };
+
+    
+
 
 #endif // __PROBLEM_H__
