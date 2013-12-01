@@ -41,6 +41,8 @@ class Matrix
     }
     
     void resize(int newLength, int newWidth);
+    
+    Matrix& operator=(const Matrix& other);
 };
 
 
