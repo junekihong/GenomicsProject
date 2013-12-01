@@ -1,4 +1,6 @@
 #include <stdlib.h>
+#include <unistd.h>
+
 #include "protocol.h"
 #include "scheduling.h"
 
@@ -31,17 +33,29 @@ WorkerActionImpl::WorkerActionImpl(LeaderWorkerProtocol * w)
 
 void WorkerActionImpl::requestProblemList()
 {
-    // TODO reconcile how problemList is a vector of scheduler::Problem, wheras sendProblemList expects a vector of ProblemDescriptions
-    //worker->sendProblemList(problemList);
+    // Reconcile how problemList is a vector of scheduler::Problem, wheras sendProblemList expects a vector of ProblemDescriptions. What I do is populate a temp vector and send that instead.
+    
+    std::vector<ProblemDescription> tempProblemList;
+    for(unsigned int i = 0; i<problemList.size(); i++)
+    {
+        ProblemDescription problemDescription = ProblemDescription();
+        problemDescription.top_numbers = problemList[i].top_numbers;
+        problemDescription.left_numbers = problemList[i].left_numbers;
+        problemDescription.top_genome = problemList[i].top_genome;
+        problemDescription.left_genome = problemList[i].left_genome;
+        tempProblemList.push_back(problemDescription);
+    }
+
+    worker->sendProblemList(tempProblemList);
 }
 
 void WorkerActionImpl::claimProblems(const std::vector<ProblemID>& problems)
 {
-    for(int i = 0; i < problems.size(); i++)
+    for(unsigned int i = 0; i < problems.size(); i++)
     {
         // if problem is in problemList continue, else return false.
         bool found = false;
-        for(int j = 0; j < problemList.size(); j++)
+        for(unsigned int j = 0; j < problemList.size(); j++)
         {
             if(problemList[j].problemID == problems[i])
             {               
@@ -56,7 +70,7 @@ void WorkerActionImpl::claimProblems(const std::vector<ProblemID>& problems)
     }
  
     // If we make it here, then all the claimed problems appeared in our problem list. Remove them from the problem list and respond with true.
-    for(int i = 0; i < problems.size(); i++)
+    for(unsigned int i = 0; i < problems.size(); i++)
     {
         std::vector<scheduler::Problem>::iterator iter = problemList.begin();
         while(iter != problemList.end())
@@ -132,7 +146,7 @@ void ClientActionImpl::listGenomes()
 //TODO
 void ClientActionImpl::alignmentRequest(const std::string& first, const std::string& second)
 {
-    //TODO generate problem descriptions from the given problem. Add it to problemList.
+    // generate problem descriptions from the given problem. Add it to problemList.
     scheduler::Problem problem = scheduler::Problem();
     problem.problemID = problemNumber;
     problemNumber++;
@@ -144,10 +158,10 @@ void ClientActionImpl::alignmentRequest(const std::string& first, const std::str
     
     std::vector<int> top_numbers;
     std::vector<int> left_numbers;
-    for(int i=0; i< top_genome.size(); i++){
+    for(unsigned int i=0; i< top_genome.size(); i++){
         top_numbers.push_back(0);
     }
-    for(int i=0; i< left_genome.size(); i++){
+    for(unsigned int i=0; i< left_genome.size(); i++){
         left_numbers.push_back(0);
     }
 
@@ -157,8 +171,26 @@ void ClientActionImpl::alignmentRequest(const std::string& first, const std::str
     problem.left_numbers = left_numbers;
 
     problemList.push_back(problem);
- 
-    
-    //client->sendLocalAlignResponse();
+
+    // For now. Wait until we get back a solution and send it back in response.
+    while(true)
+    {
+        std::vector<ProblemID>::iterator iter = solvedList.begin();
+        for(; iter != solvedList.end(); iter++)
+        {
+            // If we find the solution in the solvedList, we can remove it and return.
+            if((*iter) == problem.problemID)
+            {
+                solvedList.erase(iter);
+
+                //TODO
+                Solution solution;
+                client->sendLocalAlignResponse(solution);
+                return;
+            }
+        }
+        usleep(1000);
+        //sleep(1);
+    }
 }
 

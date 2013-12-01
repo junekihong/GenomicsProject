@@ -109,7 +109,7 @@ class ClientProtocolImpl : public LeaderClientProtocol
     { }
     
     virtual void sendGenomeList(const std::vector<std::string>& nameList);
-    virtual void sendLocalAlignResponse();
+    virtual void sendLocalAlignResponse(const Solution solution);
 
     virtual void sendGenomeUploadResponse();
 };
@@ -249,16 +249,18 @@ void ClientProtocolImpl::sendGenomeList(const std::vector<std::string> &nameList
     }
 }
 
-void ClientProtocolImpl::sendLocalAlignResponse()
+void ClientProtocolImpl::sendLocalAlignResponse(Solution solution)
 {
     message_id_t msg_id = LOCAL_ALIGN_FINISH_ID;
     sendItem(socket, msg_id, "Error sending local align response id");
     
-    // TODO fill this in!
+    send(socket, &solution, sizeof(solution), 0);
 }
 
 void ClientProtocolImpl::sendGenomeUploadResponse()
 {
     message_id_t msg_id = UPLOAD_REQUEST_RECIEVED_ID;
     sendItem(socket, msg_id, "Error sending message back to the client that the upload request was recieved");
+    
+    
 }
