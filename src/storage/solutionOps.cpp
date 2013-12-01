@@ -78,7 +78,27 @@ void insertSolution(const ProblemDescription& prob, const Solution& s)
 
 void queryByID(ProblemID id, bool solution_wanted, QueryResponse& resp)
 {
+    if( !solutionById.count(id) )
+    {
+        resp.success = false;
+        return;
+    }
     
+    const CompleteSolution* sol = solutionById[id];
+    resp.success = true;
+    resp.exactMatch = true;
+    resp.problemDescription = sol->desc;
+    resp.maxValue = sol->sol.maxValue;
+    resp.location = sol->sol.maxValueLocation;
+    
+    if( solution_wanted )
+    {
+        resp.sol = new Solution;
+        (*resp.sol) = sol->sol;
+    }
+    else {
+        resp.sol = NULL;
+    }
 }
 
 void queryByConditions(const ProblemDescription& desc, bool partialsWanted, QueryResponse& resp)
