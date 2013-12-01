@@ -35,9 +35,8 @@ void runWorker(WorkerLeaderProtocol& leader, StorageProtocol& storage){
         }
 
         // Query storage to check for a cache hit.
-        int queryRequestID = 0;
         bool queryFlag = false;
-        QueryResponse queryResponse = storage.queryByInitialConditions(queryRequestID, problemDescription, queryFlag);
+        QueryResponse queryResponse = storage.queryByInitialConditions(problemDescription, queryFlag);
         
 
         SolutionCertificate solutionCertificate;
@@ -56,7 +55,8 @@ void runWorker(WorkerLeaderProtocol& leader, StorageProtocol& storage){
             while(!storage.insertSolution(solution)){
                 sleep(1);
             }
-            queryResponse = storage.queryByProblemID(problemID);
+            // TODO don't need to query storage here since we just computed the answer
+            queryResponse = storage.queryByProblemID(problemID, false);
             solutionCertificate = queryResponse.solutionCertificate;
         }
 

@@ -196,8 +196,9 @@ static inline void sendVector(int sock, const std::vector<T>& vec, const std::st
 class QueryResponse
 {
 public:
-    int queryResponseID;
-    bool potentialMatch;
+    // True if a match was found
+    bool success;
+    // True if an exact match was found
     bool exactMatch;
     
     // Given problem description.
@@ -208,7 +209,13 @@ public:
     Location location;
     
     // The solution.
-    SolutionCertificate solutionCertificate;
+    // This may be omitted
+    Solution * sol;
+    
+    ~QueryResponse()
+    {
+        delete sol;
+    }
 };
 
 class StorageProtocol
@@ -217,8 +224,8 @@ public:
     virtual void createNewGenome(const std::string& name, unsigned length) = 0;
     virtual void insertGenomeData(unsigned index, std::vector<char>& data) = 0;
     virtual bool insertSolution(const Solution& solution) = 0;
-    virtual QueryResponse queryByProblemID(const ProblemID& problemID) = 0;
-    virtual QueryResponse queryByInitialConditions(const int requestID, const ProblemDescription& problemDescription, const bool queryFlag) = 0;
+    virtual QueryResponse queryByProblemID(const ProblemID& problemID, bool entireSolution) = 0;
+    virtual QueryResponse queryByInitialConditions(const ProblemDescription& problemDescription, bool wantPartials) = 0;
     
 };
 
