@@ -1,7 +1,7 @@
 CXXFLAGS=-g -pedantic -Wall -Wextra -std=c++98 -I..
 
 TARGET=mdps
-OBJECTS=$(patsubst %.cpp,%.o,$(wildcard *.cpp)) ../common/listen.o
+OBJECTS=$(patsubst %.cpp,%.o,$(wildcard *.cpp)) ../common/listen.o ../common/matrix.o
 LDFLAGS+=-lboost_program_options -lboost_system -lboost_filesystem
 
 all: $(TARGET)

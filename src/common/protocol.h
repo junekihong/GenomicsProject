@@ -49,6 +49,7 @@ class ProblemDescription;
 typedef int message_id_t;
 
 void readProblemDescription(std::istream& socket, ProblemDescription& cur_prob);
+void sendProblemDescription(int socket, const ProblemDescription& cur_prob);
 
 template<typename T>
 static inline void readItem(std::istream& socket, T& dest)

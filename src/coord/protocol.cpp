@@ -85,7 +85,10 @@ void WorkerProtocolImpl::sendProblemList(const std::vector<ProblemDescription> &
     send(socket, &msg_id, sizeof(msg_id), 0);
     unsigned problem_count = static_cast<unsigned>(problemList.size());
     send(socket, &problem_count, sizeof(problem_count), 0);
-    send(socket, problemList.data(), problemList.size() * sizeof(ProblemID), 0);
+    for( unsigned i = 0; i < problem_count; ++i )
+    {
+        sendProblemDescription(socket, problemList[i]);
+    }
 }
 
 void WorkerProtocolImpl::respondToProblemClaim(bool answer)
