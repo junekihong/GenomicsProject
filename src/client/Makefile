@@ -14,7 +14,7 @@ fasta.o: fasta.cpp fasta.h
 	$(CXX) $(CXXFLAGS) -c $*.cpp
 
 $(TARGET) : $(OBJECTS)
-	$(CXX) $(LDFLAGS) $^ -o $(TARGET)
+	$(CXX) $^ $(LDFLAGS) -o $(TARGET)
 
 .PHONY: clean
 clean:

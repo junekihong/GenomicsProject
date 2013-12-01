@@ -23,7 +23,7 @@ mdpw.o: mdpw.cpp cmd_options.h protocol.h protocol_impl.h worker.h
 
 $(TARGET) : $(OBJECTS)
 	cd ../common; make
-	$(CXX) $(LDFLAGS) $^ -o $(TARGET)
+	$(CXX) $^ $(LDFLAGS) -o $(TARGET)
 
 .PHONY: clean
 clean:

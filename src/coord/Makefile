@@ -19,7 +19,7 @@ mdpl.o: mdpl.cpp cmd_options.h protocol.h ../common/protocol.h ../common/listen.
 	$(CXX) $(CXXFLAGS) -c $*.cpp
 
 $(TARGET) : $(OBJECTS)
-	$(CXX) $(LDFLAGS) $^ -o $(TARGET)
+	$(CXX) $^ $(LDFLAGS) -o $(TARGET)
 
 .PHONY: clean
 clean:
