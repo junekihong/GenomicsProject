@@ -180,3 +180,8 @@ static void queryExactly(const ProblemDescription& desc, QueryResponse& resp)
         resp.sol = new Solution(answer->sol);
     }
 }
+
+static void queryApproximately(const ProblemDescription& desc, QueryResponse& resp)
+{
+    resp.success = false;
+}
