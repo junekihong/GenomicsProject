@@ -1,6 +1,8 @@
 #include <fstream>
 #include <iostream>
 #include <map>
+#include <set>
+
 #include <boost/filesystem.hpp>
 
 #include "common/problem.h"
@@ -14,6 +16,7 @@ class CompleteSolution
 {
 public:
     ProblemDescription desc;
+    // TODO store solution on disk
     Solution sol;
     
     CompleteSolution()
@@ -25,13 +28,38 @@ public:
     { }
 };
 
+static bool compare_top_numbers(const CompleteSolution* left, const CompleteSolution * right)
+{
+    if( left->desc.corner != right->desc.corner )
+        return left->desc.corner < right->desc.corner;
+    return left->desc.top_numbers < right->desc.top_numbers;
+}
+static bool compare_left_numbers(const CompleteSolution* left, const CompleteSolution * right)
+{
+    if( left->desc.corner != right->desc.corner )
+        return left->desc.corner < right->desc.corner;
+    return left->desc.left_numbers < right->desc.left_numbers;
+}
+static bool compare_top_genomes(const CompleteSolution* left, const CompleteSolution * right)
+{
+    return left->desc.top_genome < right->desc.top_genome;
+}
+static bool compare_left_genomes(const CompleteSolution* left, const CompleteSolution * right)
+{
+    return left->desc.left_genome < right->desc.left_genome;
+}
+
 static const boost::filesystem::path solutionRoot("solutions");
 
 // This map owns the solutions
 std::map<ProblemID, const CompleteSolution*> solutionById;
 typedef std::pair<ProblemID, const CompleteSolution*> solution_pair;
 
-// TODO other indexes of solutions...
+// other indexes of solutions...
+std::set<const CompleteSolution*, bool(*)(const CompleteSolution*, const CompleteSolution*)> topNumberIndex(compare_top_numbers);
+std::set<const CompleteSolution*, bool(*)(const CompleteSolution*, const CompleteSolution*)> leftNumberIndex(compare_left_numbers);
+std::set<const CompleteSolution*, bool(*)(const CompleteSolution*, const CompleteSolution*)> topGenomeIndex(compare_top_genomes);
+std::set<const CompleteSolution*, bool(*)(const CompleteSolution*, const CompleteSolution*)> leftGenomeIndex(compare_left_genomes);
 
 void initializeSolutionSystem()
 {
