@@ -21,6 +21,9 @@ class ProblemID
         return (idnum == x.idnum);
     }
     
+    bool operator<(const ProblemID& other) const {
+        return idnum < other.idnum;
+    }
 };
 
 class ProblemDescription

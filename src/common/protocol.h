@@ -54,11 +54,12 @@ void sendMatrix(int socket, const Matrix& mat, const std::string& err);
 void readProblemDescription(std::istream& socket, ProblemDescription& cur_prob);
 void readProblemDescription(int socket, ProblemDescription& cur_prob);
 void sendProblemDescription(int socket, const ProblemDescription& cur_prob);
+void sendProblemDescription(std::ostream& socket, const ProblemDescription& cur_prob, const std::string& err);
 
 void readSolution(int sock, Solution& sol);
 void sendSolution(int sock, const Solution& sol);
-void readSolution(std::istream& sock, Solution& sol);
-void sendSolution(std::ostream& sock, const Solution& sol);
+void readSolution(std::istream& sock, Solution& sol, const std::string& err);
+void sendSolution(std::ostream& sock, const Solution& sol, const std::string& err);
 
 template<typename T>
 static inline void readItem(std::istream& socket, T& dest, const std::string& err = "")
@@ -113,11 +114,13 @@ static inline void readVector(std::istream& sock, std::vector<T>& result)
 }
 
 template<typename T>
-static inline void sendVector(std::ostream& sock, const std::vector<T>& vec)
+static inline void sendVector(std::ostream& sock, const std::vector<T>& vec, const std::string& err)
 {
     unsigned length = static_cast<unsigned>(vec.size()); // TODO loses precision
     sendItem(sock, length);
-    sock.write(vec.data(), vec.size() * sizeof(T));
+    sock.write(reinterpret_cast<const char*>(vec.data()), vec.size() * sizeof(T));
+    if( !sock )
+        throw std::runtime_error(err);
 }
 
 #ifdef MSG_WAITALL

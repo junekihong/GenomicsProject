@@ -61,6 +61,17 @@ void readProblemDescription(std::istream& socket, ProblemDescription& cur_prob)
     readVector(socket, cur_prob.left_genome);
 }
 
+void sendProblemDescription(std::ostream& socket, const ProblemDescription& cur_prob, const std::string&)
+{
+    // TODO use err passed in
+    sendItem(socket, cur_prob.problemID.idnum, "Error sending problem ID");
+    sendItem(socket, cur_prob.corner, "Error sending problem corner element");
+    sendVector(socket, cur_prob.top_numbers, "Error sending the top numbers of a problem");
+    sendVector(socket, cur_prob.left_numbers, "Error sending the left numbers of a problem");
+    sendVector(socket, cur_prob.top_genome, "Error sending the top genome of a problem");
+    sendVector(socket, cur_prob.left_genome, "Error sending the left genome of a problem");
+}
+
 void sendProblemDescription(int socket, const ProblemDescription& cur_prob)
 {
     sendItem(socket, cur_prob.problemID.idnum, "Error sending problem ID");
@@ -97,16 +108,18 @@ void sendSolution(int sock, const Solution& sol)
     sendMatrix(sock, sol.matrix, "solution matrix");
 }
 
-void readSolution(std::istream& sock, Solution& sol)
+void readSolution(std::istream& sock, Solution& sol, const std::string&)
 {
+    // TODO use the err passed in
     readItem(sock, sol.id, "Error reading solution id");
     readItem(sock, sol.maxValue, "Error reading the maximum value in the solution");
     readItem(sock, sol.maxValueLocation, "Error reading the location of the max value");
     readMatrix(sock, sol.matrix, "solution matrix");
 }
 
-void sendSolution(std::ostream& sock, const Solution& sol)
+void sendSolution(std::ostream& sock, const Solution& sol, const std::string&)
 {
+    // TODO use the err passed in
     sendItem(sock, sol.id, "Error sending solution id");
     sendItem(sock, sol.maxValue, "Error sending the maximum value in the solution");
     sendItem(sock, sol.maxValueLocation, "Error sending the location of the max value");
