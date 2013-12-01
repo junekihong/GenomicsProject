@@ -8,22 +8,19 @@
 
 class SolutionCertificate
 {
-public:
+    public:
 	ProblemID problemID;
     ProblemID solutionID;
 };
 
 class Solution
 {
-public:
-	ProblemID problemID;
-    ProblemID solutionID;
+    public:
+    ProblemID id;
 	
 	int maxValue;
 	Location maxValueLocation;
 	Matrix matrix;
 };
-
-
 
 #endif // __SOLUTION_H__
