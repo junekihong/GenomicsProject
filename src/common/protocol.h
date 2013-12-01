@@ -224,8 +224,9 @@ public:
     virtual void createNewGenome(const std::string& name, unsigned length) = 0;
     virtual void insertGenomeData(unsigned index, std::vector<char>& data) = 0;
     virtual bool insertSolution(const Solution& solution) = 0;
-    virtual QueryResponse queryByProblemID(const ProblemID& problemID, bool entireSolution) = 0;
-    virtual QueryResponse queryByInitialConditions(const ProblemDescription& problemDescription, bool wantPartials) = 0;
+    // The calling function is responsible for deleting the QueryResponse
+    virtual QueryResponse * queryByProblemID(const ProblemID& problemID, bool entireSolution) = 0;
+    virtual QueryResponse * queryByInitialConditions(const ProblemDescription& problemDescription, bool wantPartials) = 0;
     
 };
 
