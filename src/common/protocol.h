@@ -57,16 +57,32 @@ void sendProblemDescription(int socket, const ProblemDescription& cur_prob);
 
 void readSolution(int sock, Solution& sol);
 void sendSolution(int sock, const Solution& sol);
+void readSolution(std::istream& sock, Solution& sol);
+void sendSolution(std::ostream& sock, const Solution& sol);
 
 template<typename T>
-static inline void readItem(std::istream& socket, T& dest)
+static inline void readItem(std::istream& socket, T& dest, const std::string& err = "")
 {
     socket.read(reinterpret_cast<char*>(&dest), sizeof(dest));
+    if( !socket )
+        throw std::runtime_error(err);
 }
 template<typename T>
-static inline void sendItem(std::ostream& socket, const T& dest)
+static inline void sendItem(std::ostream& socket, const T& dest, const std::string& err = "")
 {
     socket.write(reinterpret_cast<const char*>(&dest), sizeof(dest));
+    if( !socket )
+        throw std::runtime_error(err);
+}
+
+/* When I tried to use sendItem in sendMatrix(std::ostream&...), the compiler
+ * could not resolve which template I wanted. So writeItem is here. */
+template<typename T>
+static inline void writeItem(std::ostream& socket, const T& dest, const std::string& err = "")
+{
+    socket.write(reinterpret_cast<const char*>(&dest), sizeof(dest));
+    if( !socket )
+        throw std::runtime_error(err);
 }
 
 static inline std::string readString(std::istream& sock)

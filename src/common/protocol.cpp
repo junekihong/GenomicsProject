@@ -27,6 +27,30 @@ void sendMatrix(int socket, const Matrix& mat, const std::string& err)
     }
 }
 
+void readMatrix(std::istream& socket, Matrix& mat, const std::string& err)
+{
+    int length, width;
+    readItem(socket, length, "Error reading length of " + err);
+    readItem(socket, width, "Error reading width of " + err);
+    mat.resize(length, width);
+    
+    for( int i = 0; i <= mat.getWidth(); ++i ){
+        socket.read(reinterpret_cast<char*>(mat.matrix[i]), (mat.getLength() + 1)*sizeof(int));
+    }
+}
+
+void sendMatrix(std::ostream& socket, const Matrix& mat, const std::string& err)
+{
+    int length = mat.getLength();
+    int width = mat.getWidth();
+    writeItem(socket, length, "Error sending length of " + err);
+    writeItem(socket, width, "Error sending width of " + err);
+    
+    for( int i = 0; i <= mat.getWidth(); ++i ) {
+        socket.write(reinterpret_cast<const char*>(mat.matrix[i]), (mat.getLength() + 1)*sizeof(int));
+    }
+}
+
 void readProblemDescription(std::istream& socket, ProblemDescription& cur_prob)
 {
     readItem(socket, cur_prob.problemID.idnum);
@@ -66,6 +90,22 @@ void readSolution(int sock, Solution& sol)
 }
 
 void sendSolution(int sock, const Solution& sol)
+{
+    sendItem(sock, sol.id, "Error sending solution id");
+    sendItem(sock, sol.maxValue, "Error sending the maximum value in the solution");
+    sendItem(sock, sol.maxValueLocation, "Error sending the location of the max value");
+    sendMatrix(sock, sol.matrix, "solution matrix");
+}
+
+void readSolution(std::istream& sock, Solution& sol)
+{
+    readItem(sock, sol.id, "Error reading solution id");
+    readItem(sock, sol.maxValue, "Error reading the maximum value in the solution");
+    readItem(sock, sol.maxValueLocation, "Error reading the location of the max value");
+    readMatrix(sock, sol.matrix, "solution matrix");
+}
+
+void sendSolution(std::ostream& sock, const Solution& sol)
 {
     sendItem(sock, sol.id, "Error sending solution id");
     sendItem(sock, sol.maxValue, "Error sending the maximum value in the solution");
