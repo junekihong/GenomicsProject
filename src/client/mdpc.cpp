@@ -86,6 +86,9 @@ void connect_to_leader(tcp::iostream& leader)
     connect_server(leader, leaderEndpoint, "leader");
     const int announce = ANNOUNCE_CLIENT;
     sendItem(leader, announce);
+    if( !leader ) {
+        throw std::runtime_error("Error announcing to the leader");
+    }
 }
 
 void handle_genome_args(std::vector<std::string>::iterator& arg_iter)
