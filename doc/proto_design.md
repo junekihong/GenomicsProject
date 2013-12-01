@@ -114,8 +114,8 @@ These do not have to go over the wire; the storage system may be in the same pro
 Insert a new solution:
 
     Solution insertion ID
-    Problem ID
     Problem Description
+    Solution ID
     Maximum value and location in matrix
     Contents of the matrix (in col-major order)
 

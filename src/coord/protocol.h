@@ -35,7 +35,7 @@ class LeaderClientProtocol
 {
     public:
     virtual void sendGenomeList(const std::vector<std::string>& nameList) = 0;
-    virtual void sendLocalAlignResponse(const Solution solution) = 0;
+    virtual void sendLocalAlignResponse(const Solution& solution) = 0;
 
     virtual void sendGenomeUploadResponse() = 0;
 };

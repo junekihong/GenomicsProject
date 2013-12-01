@@ -11,6 +11,7 @@
 
 #include "cmd_options.h"
 #include "genomeOps.h"
+#include "solutionOps.h"
 
 // TODO Doesn't handle sockets closing
 
@@ -27,6 +28,7 @@ int main(int argc, const char* argv[])
     int myport = parse_options(argc, argv);
     
     initializeGenomeSystem();
+    initializeSolutionSystem();
     
     try {
         int listen_socket = start_listening(myport);
@@ -159,7 +161,12 @@ void handle_genome_content_query(int sock)
 
 void handle_new_solution(int sock)
 {
+    Solution sol;
+    ProblemDescription desc;
+    readProblemDescription(sock, desc);
+    readSolution(sock, sol);
     
+    insertSolution(desc, sol);
 }
 
 void handle_query_by_id(int sock)

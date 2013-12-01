@@ -52,7 +52,11 @@ void readMatrix(int socket, Matrix& mat, const std::string& err);
 void sendMatrix(int socket, const Matrix& mat, const std::string& err);
 
 void readProblemDescription(std::istream& socket, ProblemDescription& cur_prob);
+void readProblemDescription(int socket, ProblemDescription& cur_prob);
 void sendProblemDescription(int socket, const ProblemDescription& cur_prob);
+
+void readSolution(int sock, Solution& sol);
+void sendSolution(int sock, const Solution& sol);
 
 template<typename T>
 static inline void readItem(std::istream& socket, T& dest)
@@ -165,6 +169,7 @@ static inline void sendVector(int sock, const std::vector<T>& vec, const std::st
     if( bytes_sent != length )
         throw std::runtime_error("Error sending " + err);
 }
+
 #endif
 
 class QueryResponse

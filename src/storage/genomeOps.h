@@ -2,6 +2,7 @@
 #define __GENOME_OPS_H__
 
 #include <string>
+#include <vector>
 
 class GenomeInfo
 {

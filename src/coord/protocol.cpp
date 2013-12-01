@@ -109,7 +109,7 @@ class ClientProtocolImpl : public LeaderClientProtocol
     { }
     
     virtual void sendGenomeList(const std::vector<std::string>& nameList);
-    virtual void sendLocalAlignResponse(const Solution solution);
+    virtual void sendLocalAlignResponse(const Solution& solution);
 
     virtual void sendGenomeUploadResponse();
 };
@@ -249,12 +249,11 @@ void ClientProtocolImpl::sendGenomeList(const std::vector<std::string> &nameList
     }
 }
 
-void ClientProtocolImpl::sendLocalAlignResponse(Solution solution)
+void ClientProtocolImpl::sendLocalAlignResponse(const Solution& solution)
 {
     message_id_t msg_id = LOCAL_ALIGN_FINISH_ID;
     sendItem(socket, msg_id, "Error sending local align response id");
-    
-    send(socket, &solution, sizeof(solution), 0);
+    sendSolution(socket, solution);
 }
 
 void ClientProtocolImpl::sendGenomeUploadResponse()
