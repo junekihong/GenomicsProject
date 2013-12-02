@@ -13,8 +13,6 @@ int problemNumber = 0;
 
 std::vector<ProblemID> solvedList;
 
-std::set<ProblemID, scheduler::Problem> problemsInProgress;
-
 class WorkerActionImpl : public WorkerActions
 {    
     public:
@@ -95,12 +93,13 @@ void WorkerActionImpl::recieveSolution(const SolutionCertificate& solution)
 class ClientActionImpl : public ClientActions
 {
     LeaderClientProtocol * client;
-    
+    std::string storedName;
+
     public:
     ClientActionImpl(LeaderClientProtocol * c);
     
     virtual void startGenomeUpload(const std::string& name, unsigned length);
-    virtual void continueGenomeUpload(const std::vector<char>& data);
+    virtual void continueGenomeUpload(unsigned index, const std::vector<char>& data);
     virtual void finishGenomeUpload();
 
     virtual void listGenomes();
@@ -119,15 +118,15 @@ ClientActionImpl::ClientActionImpl(LeaderClientProtocol * c)
 
 void ClientActionImpl::startGenomeUpload(const std::string &name, unsigned int length)
 {
-    //TODO contact storage
-    
+    storedName = name;
+    storage->createNewGenome(name, length);
     nameList.push_back(name);
+    
 }
 
-//TODO
-void ClientActionImpl::continueGenomeUpload(const std::vector<char>& data)
+void ClientActionImpl::continueGenomeUpload(unsigned index, const std::vector<char>& data)
 {   
-    //TODO contact storage
+    storage->insertGenomeData(storedName, index, data);
 }
 
 void ClientActionImpl::finishGenomeUpload()
@@ -138,7 +137,7 @@ void ClientActionImpl::finishGenomeUpload()
 
 void ClientActionImpl::listGenomes()
 {
-    //TODO populate nameList?
+    //TODO request a genome list from storage?
     client->sendGenomeList(nameList);
 }
 

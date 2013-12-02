@@ -156,8 +156,9 @@ void StorageProtocolImpl::createNewGenome(const std::string& name, unsigned leng
     // if(responseMessage == STORE_QUERY_RESPONSE_ID) {}
 }
 
-void StorageProtocolImpl::insertGenomeData(unsigned index, std::vector<char>& data)
+void StorageProtocolImpl::insertGenomeData(const std::string& name, unsigned& index, const std::vector<char>& data)
 {
+    sendString(socket, name); // TODO. Whoever is listening on the other end needs to read the name in as well.
     sendItem(socket, index);
     sendVector(socket, data, "Error. Was not able to send data to storage from worker.");
     socket.flush();

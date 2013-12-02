@@ -97,7 +97,7 @@ static inline std::string readString(std::istream& sock)
 {
     unsigned length;
     readItem(sock, length);
-    char * buff = new char[length] + 1; // TODO leaks on exceptions
+    char * buff = new char[length + 1]; // TODO leaks on exceptions
     sock.read(buff, length);
     std::string result(buff);
     delete []buff;
@@ -157,7 +157,7 @@ static inline std::string readString(int sock, const std::string& err)
 {
     unsigned length;
     readItem(sock, length, "Error reading the length of " + err);
-    char * buff = new char[length] + 1; // TODO leaks on exceptions
+    char * buff = new char[length + 1]; // TODO leaks on exceptions
     ssize_t bytes_read = recvfrom(sock, buff, length, MSG_WAITALL, NULL, NULL);
     if( bytes_read != length )
         throw std::runtime_error("Error reading " + err);
@@ -229,7 +229,7 @@ class StorageProtocol
 {
 public:
     virtual void createNewGenome(const std::string& name, unsigned length) = 0;
-    virtual void insertGenomeData(unsigned index, std::vector<char>& data) = 0;
+    virtual void insertGenomeData(const std::string& name, unsigned& index, const std::vector<char>& data) = 0;
     virtual bool insertSolution(const Solution& solution) = 0;
     // The calling function is responsible for deleting the QueryResponse
     virtual QueryResponse * queryByProblemID(const ProblemID& problemID, bool entireSolution) = 0;
@@ -247,7 +247,7 @@ public:
     { }
     
     virtual void createNewGenome(const std::string& name, unsigned length);
-    virtual void insertGenomeData(unsigned index, std::vector<char>& data);
+    virtual void insertGenomeData(const std::string& name, unsigned& index, const std::vector<char>& data);
     virtual bool insertSolution(const Solution& solution);
     virtual QueryResponse* queryByProblemID(const ProblemID& problemID, bool entireSolution);
     virtual QueryResponse* queryByInitialConditions(const ProblemDescription& problemDescription, const bool wantPartials);
