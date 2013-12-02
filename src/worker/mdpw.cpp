@@ -23,6 +23,8 @@ using boost::asio::ip::tcp;
 void connect_to_servers(const WorkerConfiguration& config, Connections& conns)
 {
     connect_server(conns.leader, config.leader, "leader");
+    int announce = ANNOUNCE_WORKER;
+    writeItem(conns.leader, announce, "Error sending worker announcement");
     connect_server(conns.storage, config.storage, "storage");
 }
 
