@@ -6,14 +6,12 @@
 #include "common/matrix.h"
 #include "common/pair_location_value.h"
 
-void runWorker(WorkerLeaderProtocol& leader, StorageProtocol& storage){
-    std::vector<ProblemDescription> problemList;
-    std::vector<ProblemID> problems;
-    
+void runWorker(WorkerLeaderProtocol& leader, StorageProtocol& storage)
+{
     while(true)
     {
-        problemList.clear();
-        problems.clear();
+        std::vector<ProblemDescription> problemList;
+        std::vector<ProblemID> problems;
         
         // Get a problem list.
         leader.requestProblemList(problemList);
@@ -37,19 +35,15 @@ void runWorker(WorkerLeaderProtocol& leader, StorageProtocol& storage){
         // Query storage to check for a cache hit.
         bool wantPartials = false;
         QueryResponse* queryResponse = storage.queryByInitialConditions(problemDescription, wantPartials);
-        Solution* solution = queryResponse->sol;
 
         SolutionCertificate solutionCertificate;
-        if(queryResponse->exactMatch)
+        if(queryResponse->success && queryResponse->exactMatch)
         {
             //solutionCertificate = queryResponse->solutionCertificate;
             solutionCertificate.problemID = problemDescription.problemID;
+            Solution* solution = queryResponse->sol;
             solutionCertificate.solutionID = solution->id;
         }
-//        else if(queryResponse->success)
-//        {
-// TODO
-//        }
         else
         {
             // Solve the problem manually.

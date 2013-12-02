@@ -221,6 +221,8 @@ public:
     {
         delete sol;
     }
+    
+    // TODO figure out a way to send back solution certificates
 };
 
 class StorageProtocol
