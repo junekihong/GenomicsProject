@@ -11,12 +11,10 @@ struct Connections
     boost::asio::ip::tcp::iostream leader;
     boost::asio::ip::tcp::iostream storage;
 
-    Connections(boost::asio::io_service&)
+    Connections()
         : leader(), storage()
     { }
 };
-
-boost::asio::io_service io_service;
 
 using boost::asio::ip::tcp;
 
@@ -32,7 +30,7 @@ int main(int argc, const char* argv[])
 {
     WorkerConfiguration config = parse_options(argc, argv);
 
-    Connections conns(io_service);
+    Connections conns;
 
     try {
         connect_to_servers(config, conns);
