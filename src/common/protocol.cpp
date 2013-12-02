@@ -192,9 +192,10 @@ void StorageProtocolImpl::insertGenomeData(const std::string& name, unsigned& in
     // if(responseMessage == STORE_QUERY_RESPONSE_ID) {}
 }
 
-bool StorageProtocolImpl::insertSolution(const Solution& solution)
+bool StorageProtocolImpl::insertSolution(const ProblemDescription& prob, const Solution& solution)
 {
     sendItem(socket, static_cast<message_id_t>(STORE_NEW_SOLUTION_ID));
+    sendProblemDescription(socket, prob, "Error sending problem description of a solution");
     sendSolution(socket, solution, "Error. Could not insert solution to storage.");
     socket.flush();
     

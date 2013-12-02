@@ -48,7 +48,7 @@ void runWorker(WorkerLeaderProtocol& leader, StorageProtocol& storage)
         {
             // Solve the problem manually.
             Solution solution = solveProblem(problemDescription);
-            while(!storage.insertSolution(solution)){
+            while(!storage.insertSolution(problemDescription, solution)){
                 usleep(1000);
             }
             solutionCertificate.problemID = problemDescription.problemID;

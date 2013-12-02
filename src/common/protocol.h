@@ -239,7 +239,7 @@ class StorageProtocol
 public:
     virtual void createNewGenome(const std::string& name, unsigned length) = 0;
     virtual void insertGenomeData(const std::string& name, unsigned& index, const std::vector<char>& data) = 0;
-    virtual bool insertSolution(const Solution& solution) = 0;
+    virtual bool insertSolution(const ProblemDescription& prob, const Solution& solution) = 0;
     // The calling function is responsible for deleting the QueryResponse
     virtual QueryResponse * queryByProblemID(const ProblemID& problemID, bool entireSolution) = 0;
     virtual QueryResponse * queryByInitialConditions(const ProblemDescription& problemDescription, bool wantPartials) = 0;
@@ -257,7 +257,7 @@ public:
     
     virtual void createNewGenome(const std::string& name, unsigned length);
     virtual void insertGenomeData(const std::string& name, unsigned& index, const std::vector<char>& data);
-    virtual bool insertSolution(const Solution& solution);
+    virtual bool insertSolution(const ProblemDescription& prob, const Solution& solution);
     virtual QueryResponse* queryByProblemID(const ProblemID& problemID, bool entireSolution);
     virtual QueryResponse* queryByInitialConditions(const ProblemDescription& problemDescription, const bool wantPartials);
     
