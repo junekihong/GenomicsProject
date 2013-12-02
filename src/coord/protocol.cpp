@@ -178,7 +178,7 @@ void ClientHandler::handleGenomeListRequest()
 void ClientHandler::handleGenomeStart()
 {
     std::string name;
-    readString(socket, name);
+    name = readString(socket, "Error reading the gnome name");
     
     readItem(socket, uploadLength, "Error reading genome length from client");
     
