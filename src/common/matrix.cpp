@@ -122,7 +122,7 @@ LocationValuePair Matrix::localAlignment(std::vector<char>& topGenome, std::vect
 Matrix& Matrix::operator=(const Matrix& other)
 {
     resize(other.length, other.width);
-    for( unsigned i = 0; i <= width; ++i )
+    for( int i = 0; i <= width; ++i )
     {
         memcpy(matrix[i], other.matrix[i], sizeof(int) * (length + 1));
     }

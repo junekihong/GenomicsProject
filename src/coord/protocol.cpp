@@ -134,8 +134,7 @@ bool ClientHandler::handleNetwork()
 {
     if( uploadInProgress )
     {
-        handleGenomeContinuation();
-        return true;
+        return handleGenomeContinuation();
     }
     
     message_id_t msg_id;
@@ -148,7 +147,7 @@ bool ClientHandler::handleNetwork()
             std::cout << "ClientHandler: handleGenomeStart()\n";
 #endif
             handleGenomeStart();
-            return false;
+            return true;
             break;
         case GENOME_LIST_REQUEST_ID:
 #ifdef DEBUG
@@ -200,7 +199,7 @@ void ClientHandler::handleGenomeFinish()
     actions->finishGenomeUpload();
 }
 
-void ClientHandler::handleGenomeContinuation()
+bool ClientHandler::handleGenomeContinuation()
 {
     const unsigned buff_len = 32*1024;
     unsigned cur_buf_len = std::min(buff_len, uploadLength - uploadProgress);
@@ -219,6 +218,10 @@ void ClientHandler::handleGenomeContinuation()
         uploadLength = uploadProgress = 0;
 
         handleGenomeFinish();
+        return false;
+    }
+    else {
+        return true;
     }
 }
 
@@ -278,6 +281,4 @@ void ClientProtocolImpl::sendGenomeUploadResponse()
 {
     message_id_t msg_id = UPLOAD_REQUEST_RECIEVED_ID;
     sendItem(socket, msg_id, "Error sending message back to the client that the upload request was recieved");
-    
-    
 }

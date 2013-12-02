@@ -142,7 +142,6 @@ void ClientActionImpl::listGenomes()
     client->sendGenomeList(nameList);
 }
 
-//TODO
 void ClientActionImpl::alignmentRequest(const std::string& first, const std::string& second)
 {
     // generate problem descriptions from the given problem. Add it to problemList.

@@ -23,6 +23,8 @@ using boost::asio::ip::tcp;
 void connect_to_servers(const WorkerConfiguration& config, Connections& conns)
 {
     connect_server(conns.leader, config.leader, "leader");
+    int announce = ANNOUNCE_WORKER;
+    writeItem(conns.leader, announce, "Error sending worker announcement");
     connect_server(conns.storage, config.storage, "storage");
 }
 
@@ -34,6 +36,10 @@ int main(int argc, const char* argv[])
 
     try {
         connect_to_servers(config, conns);
+        
+        WorkerProtocolImpl leader(conns.leader);
+        StorageProtocolImpl storage(conns.storage);
+        runWorker(leader, storage);
     }
     catch( const std::exception& err)
     {
@@ -41,9 +47,5 @@ int main(int argc, const char* argv[])
         return -1;
     }
 
-    WorkerProtocolImpl leader(conns.leader);
-    StorageProtocolImpl storage(conns.storage);
-    runWorker(leader, storage);
-    
     return 0;
 }
