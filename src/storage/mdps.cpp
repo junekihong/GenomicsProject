@@ -112,6 +112,10 @@ int main(int argc, const char* argv[])
 
 void handle_new_genome(int sock)
 {
+#ifdef DEBUG
+    std::cout << "mdps.cpp: handling new genome.\n";
+#endif
+
     std::string name = readString(sock, "the name of a new genome");
     
     unsigned genome_length;
@@ -126,6 +130,10 @@ void handle_new_genome(int sock)
 
 void handle_new_data(int sock)
 {
+#ifdef DEBUG
+    std::cout << "mdps.cpp: handling new data.\n";
+#endif
+
     std::string name = readString(sock, "the name of the genome currently uploading");
     unsigned startIndex;
     readItem(sock, startIndex, "Error reading the index of the current genome chunk");
@@ -141,6 +149,10 @@ void handle_new_data(int sock)
 
 void handle_genome_info_query(int sock)
 {
+#ifdef DEBUG
+    std::cout << "mdps.cpp: handling genome info query.\n";
+#endif
+
     std::string name = readString(sock, "the name of the genome in the info request");
     const GenomeInfo& info = getGenomeInfo(name);
     
@@ -152,6 +164,11 @@ void handle_genome_info_query(int sock)
 
 void handle_genome_content_query(int sock)
 {
+#ifdef DEBUG
+    std::cout << "mdps.cpp: handling genome content query.\n";
+#endif
+
+
     std::string name = readString(sock, "genome name in content request");
     unsigned startIndex, length;
     readItem(sock, startIndex, "Error reading start index in genome content request");
@@ -169,6 +186,10 @@ void handle_genome_content_query(int sock)
 
 void handle_new_solution(int sock)
 {
+#ifdef DEBUG
+    std::cout << "mdps.cpp: handling new solution.\n";
+#endif
+
     Solution sol;
     ProblemDescription desc;
     readProblemDescription(sock, desc);
@@ -179,6 +200,10 @@ void handle_new_solution(int sock)
 
 void handle_query_by_id(int sock)
 {
+#ifdef DEBUG
+    std::cout << "mdps.cpp: handling query by id.\n";
+#endif
+
     ProblemID prob;
     bool solution_wanted;
     
@@ -195,6 +220,10 @@ void handle_query_by_id(int sock)
 
 void handle_query_by_cond(int sock)
 {
+#ifdef DEBUG
+    std::cout << "mdps.cpp: handling query by conditions.\n";
+#endif
+
     ProblemDescription prob;
     bool partialsWanted;
     readProblemDescription(sock, prob);

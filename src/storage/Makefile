@@ -1,4 +1,5 @@
 CXXFLAGS=-g -pedantic -Wall -Wextra -std=c++98 -I.. -DBOOST_ASIO_DISABLE_THREADS
+CXXFLAGS+=-DDEBUG
 
 TARGET=mdps
 OBJECTS=$(patsubst %.cpp,%.o,$(wildcard *.cpp)) ../common/listen.o ../common/matrix.o\
