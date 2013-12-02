@@ -134,11 +134,9 @@ void handle_genome_upload(const std::string& filename, const std::string& name)
     message_id_t msg_id = GENOME_UPLOAD_START_ID;
     sendItem(leader, msg_id);
     
-    unsigned size = static_cast<unsigned>(name.size()); // FIXME loses precision;
-    sendItem(leader, size);
-    leader.write(name.data(), name.size());
+    sendString(leader, name);
     
-    size = static_cast<unsigned>(genome.size()); // FIXME loses precision
+    unsigned size = static_cast<unsigned>(genome.size()); // FIXME loses precision
     sendItem(leader, size);
     for( unsigned cur_idx = 0; cur_idx < genome.size(); cur_idx += BUFF_SIZE )
     {
