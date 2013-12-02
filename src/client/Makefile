@@ -3,7 +3,7 @@ CXXFLAGS+=-DDEBUG
 
 TARGET=mdpc
 OBJECTS=$(patsubst %.cpp,%.o,$(wildcard *.cpp)) ../common/cmd_options.o ../common/connect.o \
-    ../common/solution.o ../common/matrix.o
+    ../common/matrix.o ../common/protocol.o
 LDFLAGS=-lboost_system
 
 all: $(TARGET)
