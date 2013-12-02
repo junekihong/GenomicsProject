@@ -86,7 +86,7 @@ int main(int argc, const char* argv[])
                                     handle_query_by_cond(cur_sock);
                                     break;
                                 case STORE_QUERY_BY_NAME_ID:
-                                    handle_genome_content_query(cur_sock);
+                                    handle_genome_info_query(cur_sock);
                                     break;
                                 case STORE_GENOME_INFO_QUERY_ID:
                                     handle_genome_info_query(cur_sock);
