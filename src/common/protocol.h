@@ -97,7 +97,7 @@ static inline std::string readString(std::istream& sock)
 {
     unsigned length;
     readItem(sock, length);
-    char * buff = new char[length] + 1; // TODO leaks on exceptions
+    char * buff = new char[length + 1]; // TODO leaks on exceptions
     sock.read(buff, length);
     std::string result(buff);
     delete []buff;
@@ -157,7 +157,7 @@ static inline std::string readString(int sock, const std::string& err)
 {
     unsigned length;
     readItem(sock, length, "Error reading the length of " + err);
-    char * buff = new char[length] + 1; // TODO leaks on exceptions
+    char * buff = new char[length + 1]; // TODO leaks on exceptions
     ssize_t bytes_read = recvfrom(sock, buff, length, MSG_WAITALL, NULL, NULL);
     if( bytes_read != length )
         throw std::runtime_error("Error reading " + err);
