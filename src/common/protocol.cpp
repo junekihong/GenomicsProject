@@ -236,7 +236,7 @@ std::vector<char> StorageProtocolImpl::queryByName(const std::string& name, int 
 
     message_id_t responseMessage;
     readItem(socket, responseMessage);
-    if(responseMessage != STORE_GENOME_INFO_RESPONSE_ID)
+    if(responseMessage != STORE_GENOME_CONTENT_RESPONSE_ID)
     {
         std::cerr << "Error. Storage did not properly respond to our query by name\n";
         return genome;
