@@ -8,7 +8,10 @@
 
 std::map<ProblemID, scheduler::Problem> problemList;
 typedef std::map<ProblemID, scheduler::Problem>::iterator ProbIter;
+
 std::vector<std::string> nameList;
+std::map<std::string, int> nameToGenomeLength;
+
 int problemNumber = 0;
 
 std::map<ProblemID, scheduler::Problem> problemsInProgress;
@@ -132,7 +135,8 @@ void ClientActionImpl::startGenomeUpload(const std::string &name, unsigned int l
     storedName = name;
     storage->createNewGenome(name, length);
     nameList.push_back(name);
-    
+
+    nameToGenomeLength[name] = length;
 }
 
 void ClientActionImpl::continueGenomeUpload(unsigned index, const std::vector<char>& data)
@@ -154,13 +158,20 @@ void ClientActionImpl::listGenomes()
 
 void ClientActionImpl::alignmentRequest(const std::string& first, const std::string& second)
 {
+    int firstStartIndex = 0;
+    int secondStartIndex = 0;
+    
+    int firstLength = nameToGenomeLength.find(first)->second;
+    int secondLength = nameToGenomeLength.find(second)->second;
+
+
     // generate problem descriptions from the given problem. Add it to problemList.
     scheduler::Problem problem = scheduler::Problem();
     problem.problemID = problemNumber;
     problemNumber++;
 
-    std::vector<char> top_genome = storage->queryByName(first);
-    std::vector<char> left_genome = storage->queryByName(second);
+    std::vector<char> top_genome = storage->queryByName(first, firstStartIndex, firstLength);
+    std::vector<char> left_genome = storage->queryByName(second, secondStartIndex, secondLength);
     
     std::vector<int> top_numbers;
     std::vector<int> left_numbers;

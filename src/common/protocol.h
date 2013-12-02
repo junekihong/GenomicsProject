@@ -239,7 +239,7 @@ public:
     virtual QueryResponse * queryByInitialConditions(const ProblemDescription& problemDescription, bool wantPartials) = 0;
 
     // query a name, recieve the genome.
-    virtual std::vector<char> queryByName(const std::string& name) = 0;
+    virtual std::vector<char> queryByName(const std::string& name, int startIndex, int length) = 0;
 };
 
 class StorageProtocolImpl : public StorageProtocol
@@ -257,7 +257,7 @@ public:
     virtual QueryResponse* queryByProblemID(const ProblemID& problemID, bool entireSolution);
     virtual QueryResponse* queryByInitialConditions(const ProblemDescription& problemDescription, const bool wantPartials);
     
-    virtual std::vector<char> queryByName(const std::string& name);
+    virtual std::vector<char> queryByName(const std::string& name, int startIndex, int length);
 };
 
 #endif /* __PROTOCOL_COMMON_H__ */
