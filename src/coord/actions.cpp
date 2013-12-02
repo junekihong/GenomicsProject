@@ -98,7 +98,7 @@ void WorkerActionImpl::recieveSolution(const SolutionCertificate& solution)
     scheduler::Problem problem = problemsInProgress[solution.problemID];
     problemsInProgress.erase(solution.problemID);
     
-    QueryResponse * resp = storage->queryByProblemID(problem.problemID, true);
+    QueryResponse * resp = storage->queryByProblemID(solution.solutionID, true);
     if( resp->success == false || resp->exactMatch == false || resp->sol == NULL )
         throw std::runtime_error("Error getting the solution from storage");
     problem.requestor->sendLocalAlignResponse(*(resp->sol));
