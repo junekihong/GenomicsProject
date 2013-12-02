@@ -126,6 +126,7 @@ class ClientProtocolImpl : public LeaderClientProtocol
 ClientHandler::ClientHandler(int socket)
     : NetworkHandler(socket), uploadInProgress(false), uploadProgress(0), uploadLength(0)
 {
+
     LeaderClientProtocol * c = new ClientProtocolImpl(socket);
     actions = clientActionFactory(c);
 }
@@ -210,7 +211,8 @@ bool ClientHandler::handleGenomeContinuation()
         throw std::runtime_error("Error receiving genome data from client: " + toString(bytes_read));
     }
     buffer.resize(bytes_read);
-    actions->continueGenomeUpload(buffer);
+
+    actions->continueGenomeUpload(uploadProgress, buffer);
     
     uploadProgress += bytes_read;
     if( uploadProgress == uploadLength ) {

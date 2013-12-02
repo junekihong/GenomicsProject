@@ -47,7 +47,7 @@ class ClientActions
 {
     public:
     virtual void startGenomeUpload(const std::string& name, unsigned length) = 0;
-    virtual void continueGenomeUpload(const std::vector<char>& data) = 0;
+    virtual void continueGenomeUpload(unsigned index, const std::vector<char>& data) = 0;
     virtual void finishGenomeUpload() = 0;
 
     virtual void listGenomes() = 0;
