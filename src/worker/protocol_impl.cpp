@@ -7,7 +7,7 @@ void WorkerProtocolImpl::requestProblemList(std::vector<ProblemDescription>& pro
 {
 	message_id_t msg_id = PROBLEM_LIST_REQUEST_ID;
 	
-	std::cout << "Requesting problem list";
+	std::cout << "Requesting problem list\n";
     sendItem(socket, msg_id);
 	
     readItem(socket, msg_id);
