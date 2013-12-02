@@ -44,6 +44,10 @@ class ProblemDescription
         return (top_numbers == x.top_numbers) && (left_numbers == x.left_numbers) && (top_genome == x.top_genome) && (left_genome == x.left_genome);
     }
     
+    bool operator<(const ProblemDescription& other) const
+    {
+        return problemID < other.problemID;
+    }
 };
 
     
