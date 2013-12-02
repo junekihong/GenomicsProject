@@ -11,7 +11,8 @@ typedef std::map<ProblemID, scheduler::Problem>::iterator ProbIter;
 std::vector<std::string> nameList;
 int problemNumber = 0;
 
-std::vector<ProblemID> solvedList;
+std::map<ProblemID, scheduler::Problem> problemsInProgress;
+std::map<ProblemID, SolutionCertificate> solvedProblems;
 
 class WorkerActionImpl : public WorkerActions
 {    
@@ -80,13 +81,23 @@ void WorkerActionImpl::claimProblems(const std::vector<ProblemID>& problems)
     for( std::vector<ProblemID>::const_iterator iter = problems.begin(); iter != problems.end(); ++iter)
     {
         problemList.erase(*iter);
+        // FIXME, doing the lookup into problemList again...
+        problemsInProgress.insert(std::make_pair(*iter, problemList.at(*iter)));
     }
     worker->respondToProblemClaim(true);
 }
 
 void WorkerActionImpl::recieveSolution(const SolutionCertificate& solution)
 {
-    solvedList.push_back(solution.problemID);
+    solvedProblems.insert(std::make_pair(solution.problemID, solution));
+    scheduler::Problem problem = problemsInProgress[solution.problemID];
+    problemsInProgress.erase(solution.problemID);
+    
+    QueryResponse * resp = storage->queryByProblemID(problem.problemID, true);
+    if( resp->success == false || resp->exactMatch == false || resp->sol == NULL )
+        throw std::runtime_error("Error getting the solution from storage");
+    problem.requestor->sendLocalAlignResponse(*(resp->sol));
+    delete resp;
 }
 
 
