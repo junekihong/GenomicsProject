@@ -35,8 +35,8 @@ void runWorker(WorkerLeaderProtocol& leader, StorageProtocol& storage){
         }
 
         // Query storage to check for a cache hit.
-        bool queryFlag = false;
-        QueryResponse* queryResponse = storage.queryByInitialConditions(problemDescription, queryFlag);
+        bool wantPartials = false;
+        QueryResponse* queryResponse = storage.queryByInitialConditions(problemDescription, wantPartials);
         Solution* solution = queryResponse->sol;
 
         SolutionCertificate solutionCertificate;
