@@ -63,7 +63,7 @@ int main(int argc, const char* argv[])
             ++arg_iter;
             handle_genome_args(arg_iter);
         }
-        else if( *arg_iter == "local_align" )
+        else if( *arg_iter == "local-align" )
         {
             ++arg_iter;
             handle_local_align_args(arg_iter);
@@ -143,7 +143,7 @@ void handle_genome_upload(const std::string& filename, const std::string& name)
     }
     
     readItem(leader, msg_id);
-    if(GENOME_UPLOAD_START_ID == msg_id)
+    if(UPLOAD_REQUEST_RECIEVED_ID == msg_id)
     {
         // the upload is sucessful. We have recieved an ACK back from the leader. And it matches.
     }

@@ -120,7 +120,7 @@ ClientActionImpl::ClientActionImpl(LeaderClientProtocol * c)
 void ClientActionImpl::startGenomeUpload(const std::string &name, unsigned int length)
 {
     //TODO contact storage
-
+    
     nameList.push_back(name);
 }
 
