@@ -189,7 +189,6 @@ void handle_genome_list()
 
 void handle_local_align_args(std::vector<std::string>::iterator& arg_iter)
 {
-    ++arg_iter;
     const std::string& first = *arg_iter;
     if( first.size() == 0 )
         throw std::runtime_error("You must specify genomes to align");
