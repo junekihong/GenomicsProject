@@ -91,9 +91,11 @@ void WorkerProtocolImpl::sendProblemList(const std::vector<ProblemDescription> &
 {
     message_id_t msg_id = PROBLEM_LIST_RESPONSE_ID;
     // TOOD error checks
-    send(socket, &msg_id, sizeof(msg_id), 0);
+    sendItem(socket, msg_id, "Error sending problem list message ID");
     unsigned problem_count = static_cast<unsigned>(problemList.size());
-    send(socket, &problem_count, sizeof(problem_count), 0);
+    ssize_t bytes_sent = send(socket, &problem_count, sizeof(problem_count), 0);
+    if( bytes_sent != sizeof(problem_count) )
+        throw std::runtime_error("Error sending the number of problems");
     for( unsigned i = 0; i < problem_count; ++i )
     {
         sendProblemDescription(socket, problemList[i]);
