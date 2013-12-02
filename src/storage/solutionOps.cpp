@@ -202,6 +202,9 @@ static void queryExactly(const ProblemDescription& desc, QueryResponse& resp)
     
     if( result.size() )
     {
+#ifdef DEBUG
+        std::cout << "Found " << result.size() << " matches\n";
+#endif
         const CompleteSolution * answer = *result.begin();
         resp.success = true;
         resp.exactMatch = true;

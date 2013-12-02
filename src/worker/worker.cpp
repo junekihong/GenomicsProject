@@ -39,6 +39,9 @@ void runWorker(WorkerLeaderProtocol& leader, StorageProtocol& storage)
         SolutionCertificate solutionCertificate;
         if(queryResponse->success && queryResponse->exactMatch)
         {
+#ifdef DEBUG
+            std::cout << "Cache hit!\n";
+#endif
             //solutionCertificate = queryResponse->solutionCertificate;
             solutionCertificate.problemID = problemDescription.problemID;
             Solution* solution = queryResponse->sol;
@@ -69,6 +72,9 @@ Solution solveProblem(ProblemDescription problemDescription)
 {
     Solution solution;
     solution.id = problemDescription.problemID;
+#ifdef DEBUG
+    std::cout << "Solving problem " << solution.id.idnum << "\n";
+#endif
     solution.matrix = Matrix(problemDescription.top_numbers, problemDescription.left_numbers);
 
     LocationValuePair maxValuePair = solution.matrix.localAlignment(problemDescription.top_genome, problemDescription.left_genome);
