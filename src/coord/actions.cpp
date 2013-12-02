@@ -1,12 +1,13 @@
 #include <algorithm>
-#include <stdlib.h>
+#include <map>
+
 #include <unistd.h>
 
 #include "protocol.h"
 #include "scheduling.h"
 
-std::set<scheduler::Problem> problemList;
-typedef std::set<scheduler::Problem>::iterator ProbIter;
+std::map<ProblemID, scheduler::Problem> problemList;
+typedef std::map<ProblemID, scheduler::Problem>::iterator ProbIter;
 std::vector<std::string> nameList;
 int problemNumber = 0;
 
@@ -39,13 +40,13 @@ void WorkerActionImpl::requestProblemList()
     // Reconcile how problemList is a vector of scheduler::Problem, wheras sendProblemList expects a vector of ProblemDescriptions. What I do is populate a temp vector and send that instead.
     
     std::vector<ProblemDescription> tempProblemList;
-    for( std::set<scheduler::Problem>::iterator iter = problemList.begin(); iter != problemList.end(); ++iter )
+    for( ProbIter iter = problemList.begin(); iter != problemList.end(); ++iter )
     {
         ProblemDescription problemDescription = ProblemDescription();
-        problemDescription.top_numbers = iter->top_numbers;
-        problemDescription.left_numbers = iter->left_numbers;
-        problemDescription.top_genome = iter->top_genome;
-        problemDescription.left_genome = iter->left_genome;
+        problemDescription.top_numbers = iter->second.top_numbers;
+        problemDescription.left_numbers = iter->second.left_numbers;
+        problemDescription.top_genome = iter->second.top_genome;
+        problemDescription.left_genome = iter->second.left_genome;
         tempProblemList.push_back(problemDescription);
     }
 
@@ -66,25 +67,19 @@ public:
 
 void WorkerActionImpl::claimProblems(const std::vector<ProblemID>& problems)
 {
-    std::set<scheduler::Problem> to_remove;
     for(unsigned int i = 0; i < problems.size(); i++)
     {
         // if problem is in problemList continue, else return false.
-        // Add iterators to the set of found objects as we go, so we can
-        // delete them without searching again later
-        std::set<scheduler::Problem>::iterator iter = std::find_if(problemList.begin(), problemList.end(), ProblemComparator(problems[i]));
-        if( iter != problemList.end() )
+        ProbIter iter = problemList.find(problems[i]);
+        if( iter == problemList.end() )
         {
-            to_remove.insert(*iter);
-        }
-        else {
             worker->respondToProblemClaim(false);
             return;
         }
     }
  
     // If we make it here, then all the claimed problems appeared in our problem list. Remove them from the problem list and respond with true.
-    for( std::set<scheduler::Problem>::iterator iter = to_remove.begin(); iter != to_remove.end(); ++iter)
+    for( std::vector<ProblemID>::const_iterator iter = problems.begin(); iter != problems.end(); ++iter)
     {
         problemList.erase(*iter);
     }
@@ -174,7 +169,7 @@ void ClientActionImpl::alignmentRequest(const std::string& first, const std::str
     problem.left_numbers = left_numbers;
     problem.requestor = client;
 
-    problemList.insert(problem);
+    problemList.insert(std::pair<ProblemID, scheduler::Problem>(problem.problemID, problem));
 
     // The response will get sent back to the client when the solution
     // is given to us by a worker.
