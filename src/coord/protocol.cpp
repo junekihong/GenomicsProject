@@ -89,13 +89,15 @@ void WorkerHandler::handleSolutionReport()
 
 void WorkerProtocolImpl::sendProblemList(const std::vector<ProblemDescription> &problemList)
 {
+#ifdef DEBUG
+    std::cout << "Sending the list of problems:\n";
+    for( unsigned i = 0; i < problemList.size(); ++i )
+        std::cout << "\t" << problemList[i].problemID.idnum << "\n";
+#endif
     message_id_t msg_id = PROBLEM_LIST_RESPONSE_ID;
-    // TOOD error checks
     sendItem(socket, msg_id, "Error sending problem list message ID");
     unsigned problem_count = static_cast<unsigned>(problemList.size());
-    ssize_t bytes_sent = send(socket, &problem_count, sizeof(problem_count), 0);
-    if( bytes_sent != sizeof(problem_count) )
-        throw std::runtime_error("Error sending the number of problems");
+    sendItem(socket, problem_count, "Error sending the number of problems");
     for( unsigned i = 0; i < problem_count; ++i )
     {
         sendProblemDescription(socket, problemList[i]);
