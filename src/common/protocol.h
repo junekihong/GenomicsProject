@@ -32,19 +32,20 @@
 #define LOCAL_ALIGN_START_ID                10
 #define LOCAL_ALIGN_FINISH_ID               11
 
-#define STORE_NEW_GENOME_ID             12
+#define STORE_NEW_GENOME_ID                 12
 #define STORE_NEW_DATA_ID                   13
 #define STORE_NEW_SOLUTION_ID               14
 #define STORE_QUERY_BY_ID_ID                15
 #define STORE_QUERY_BY_COND_ID              16
+#define STORE_QUERY_BY_NAME_ID              17
 
-#define STORE_GENOME_INFO_QUERY_ID          17
-#define STORE_GENOME_INFO_RESPONSE_ID       17
+#define STORE_GENOME_INFO_QUERY_ID          18
+#define STORE_GENOME_INFO_RESPONSE_ID       18
 
-#define STORE_GENOME_CONTENT_QUERY_ID       18
-#define STORE_GENOME_CONTENT_RESPONSE_ID    18
+#define STORE_GENOME_CONTENT_QUERY_ID       19
+#define STORE_GENOME_CONTENT_RESPONSE_ID    19
 
-#define STORE_QUERY_RESPONSE_ID             19
+#define STORE_QUERY_RESPONSE_ID             20
 
 #define BUFF_SIZE 32*1024
 
@@ -236,7 +237,9 @@ public:
     // The calling function is responsible for deleting the QueryResponse
     virtual QueryResponse * queryByProblemID(const ProblemID& problemID, bool entireSolution) = 0;
     virtual QueryResponse * queryByInitialConditions(const ProblemDescription& problemDescription, bool wantPartials) = 0;
-    
+
+    // query a name, recieve the genome.
+    virtual std::vector<char> queryByName(const std::string& name) = 0;
 };
 
 class StorageProtocolImpl : public StorageProtocol
@@ -254,6 +257,7 @@ public:
     virtual QueryResponse* queryByProblemID(const ProblemID& problemID, bool entireSolution);
     virtual QueryResponse* queryByInitialConditions(const ProblemDescription& problemDescription, const bool wantPartials);
     
+    virtual std::vector<char> queryByName(const std::string& name);
 };
 
 #endif /* __PROTOCOL_COMMON_H__ */

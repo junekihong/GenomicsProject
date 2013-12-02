@@ -223,3 +223,24 @@ QueryResponse* StorageProtocolImpl::queryByInitialConditions(const ProblemDescri
     
     return response;
 }
+
+std::vector<char> StorageProtocolImpl::queryByName(const std::string& name)
+{
+    sendItem(socket, static_cast<message_id_t>(STORE_QUERY_BY_NAME_ID));
+    sendString(socket, name);
+    socket.flush();
+
+    std::vector<char> genome;
+
+    message_id_t responseMessage;
+    readItem(socket, responseMessage);
+    if(responseMessage != STORE_QUERY_RESPONSE_ID)
+    {
+        std::cerr << "Error. Storage did not properly respond to our query by name\n";
+        return genome;
+    }
+
+    readVector(socket, genome);
+
+    return genome;
+}

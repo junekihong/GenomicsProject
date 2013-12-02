@@ -159,10 +159,8 @@ void ClientActionImpl::alignmentRequest(const std::string& first, const std::str
     problem.problemID = problemNumber;
     problemNumber++;
 
-    std::vector<char> top_genome;
-    std::copy(first.begin(), first.end(), std::back_inserter(top_genome));
-    std::vector<char> left_genome;
-    std::copy(second.begin(), second.end(), std::back_inserter(left_genome));
+    std::vector<char> top_genome = storage->queryByName(first);
+    std::vector<char> left_genome = storage->queryByName(second);
     
     std::vector<int> top_numbers;
     std::vector<int> left_numbers;
