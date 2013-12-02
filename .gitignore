@@ -25,3 +25,6 @@ mdpw
 *.pyc
 .ycm_extra_conf.*
 .DS_Store
+data
+solutions
+genomes
