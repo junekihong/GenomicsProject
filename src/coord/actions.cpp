@@ -98,6 +98,7 @@ void WorkerActionImpl::recieveSolution(const SolutionCertificate& solution)
         throw std::runtime_error("Error getting the solution from storage");
     problem.requestor->sendLocalAlignResponse(*(resp->sol));
     delete resp;
+    destroy_socket(problem.requestor->getSocket());
 }
 
 

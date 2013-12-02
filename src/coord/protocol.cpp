@@ -125,6 +125,10 @@ class ClientProtocolImpl : public LeaderClientProtocol
     virtual void sendLocalAlignResponse(const Solution& solution);
 
     virtual void sendGenomeUploadResponse();
+    
+    virtual int getSocket() const {
+        return socket;
+    }
 };
 
 ClientHandler::ClientHandler(int socket)

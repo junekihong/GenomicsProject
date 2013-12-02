@@ -18,6 +18,13 @@
 #include "protocol.h"
 
 StorageProtocol* storage = NULL;
+static std::map<int, NetworkHandler*> handlers;
+static std::set<int> to_erase;
+
+void destroy_socket(int socket)
+{
+    to_erase.insert(socket);
+}
 
 int main(int argc, const char* argv[])
 {
@@ -40,7 +47,6 @@ int main(int argc, const char* argv[])
         FD_SET(listen_socket, &mask);
         
         std::set<int> unannounced_sockets;
-        std::map<int, NetworkHandler*> handlers;
         
         for(;;)
         {
@@ -56,7 +62,7 @@ int main(int argc, const char* argv[])
                     unannounced_sockets.insert(new_socket);
                 }
                 
-                std::set<int> to_erase;
+                to_erase.clear();
                 for( std::map<int, NetworkHandler*>::iterator iter = handlers.begin(); iter != handlers.end(); ++iter )
                 {
                     NetworkHandler * cur_handler = iter->second;
