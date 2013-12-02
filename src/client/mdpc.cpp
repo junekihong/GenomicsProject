@@ -213,5 +213,9 @@ void handle_local_align_args(std::vector<std::string>::iterator& arg_iter)
     if( msg_id != LOCAL_ALIGN_FINISH_ID )
         throw std::runtime_error("Started");
     
-    // TODO figure out what to do here.
+    Solution sol;
+    readSolution(leader, sol, "Error reading alignment solution");
+    
+    std::cout << "Maximum value " << sol.maxValue << " at location (" << sol.maxValueLocation.column << ", " << sol.maxValueLocation.row << ")\n";
+    std::cout << sol.matrix << "\n";
 }
