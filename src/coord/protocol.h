@@ -111,7 +111,7 @@ class ClientHandler : public NetworkHandler
     void handleGenomeStart();
     void handleGenomeFinish();
 
-    void handleGenomeContinuation();
+    bool handleGenomeContinuation();
     void handleAlignmentStart();
 };
 
