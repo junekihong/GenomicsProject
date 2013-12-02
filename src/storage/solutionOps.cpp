@@ -157,14 +157,45 @@ static void queryExactly(const ProblemDescription& desc, QueryResponse& resp)
 {
     CompleteSolution dummySolution;
     dummySolution.desc = desc;
-    std::pair<IndexIter, IndexIter> top_num_range = topNumberIndex.equal_range(&dummySolution);
-    std::pair<IndexIter, IndexIter> left_num_range = leftNumberIndex.equal_range(&dummySolution);
-    std::pair<IndexIter, IndexIter> top_gen_range = topGenomeIndex.equal_range(&dummySolution);
-    std::pair<IndexIter, IndexIter> left_gen_range = leftGenomeIndex.equal_range(&dummySolution);
-    
     std::set<const CompleteSolution*> matches[2];
+    
+    std::pair<IndexIter, IndexIter> top_num_range = topNumberIndex.equal_range(&dummySolution);
+    if( top_num_range.first == top_num_range.second )
+    {
+        resp.success = false;
+        return;
+    }
+    std::pair<IndexIter, IndexIter> left_num_range = leftNumberIndex.equal_range(&dummySolution);
+    if( left_num_range.first == left_num_range.second )
+    {
+        resp.success = false;
+        return;
+    }
     std::set_intersection(top_num_range.first, top_num_range.second, left_num_range.first, left_num_range.second, std::inserter(matches[0], matches[0].begin()));
+    if( matches[0].size() == 0 )
+    {
+        resp.success = false;
+        return;
+    }
+    std::pair<IndexIter, IndexIter> top_gen_range = topGenomeIndex.equal_range(&dummySolution);
+    if( top_gen_range.first == top_gen_range.second )
+    {
+        resp.success = false;
+        return;
+    }
+    std::pair<IndexIter, IndexIter> left_gen_range = leftGenomeIndex.equal_range(&dummySolution);
+    if( left_gen_range.first == left_gen_range.second )
+    {
+        resp.success = false;
+        return;
+    }
+    
     std::set_intersection(top_gen_range.first, top_gen_range.second, left_gen_range.first, left_gen_range.second, std::inserter(matches[1], matches[1].begin()));
+    if( matches[1].size() == 0 )
+    {
+        resp.success = false;
+        return;
+    }
     
     std::set<const CompleteSolution*> result;
     std::set_intersection(matches[0].begin(), matches[0].end(), matches[1].begin(), matches[1].end(), std::inserter(result, result.begin()));
