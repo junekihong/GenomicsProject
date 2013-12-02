@@ -67,10 +67,10 @@ int main(int argc, const char* argv[])
                 }
                 for( std::set<NetworkHandler*>::iterator iter = to_erase.begin(); iter != to_erase.end(); ++iter )
                 {
-                    delete *iter;
                     handlers.erase(*iter);
                     close((*iter)->getSocket());
                     FD_CLR((*iter)->getSocket(), &mask);
+                    delete *iter;
                 }
                 
                 std::set<int> sockets_to_erase;
