@@ -177,22 +177,15 @@ void ClientHandler::handleGenomeListRequest()
 
 void ClientHandler::handleGenomeStart()
 {
-    unsigned name_length;
-    char * name_buffer;
-    
-    readItem(socket, name_length, "Error reading genome length from client");
-    name_buffer = new char[name_length + 1]; // TODO leaks when exceptions get thrown
-    recvfrom(socket, name_buffer, name_length, MSG_WAITALL, NULL, NULL); // TODO error check
-    name_buffer[name_length] = 0;
-    std::string name = name_buffer;
-    delete[] name_buffer;
+    std::string name;
+    readString(socket, name);
     
     readItem(socket, uploadLength, "Error reading genome length from client");
     
     uploadInProgress = true;
     uploadProgress = 0;
     
-    actions->startGenomeUpload(name_buffer, uploadLength);
+    actions->startGenomeUpload(name, uploadLength);
 }
 
 void ClientHandler::handleGenomeFinish()
