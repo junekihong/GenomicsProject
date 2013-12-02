@@ -221,7 +221,7 @@ QueryResponse* StorageProtocolImpl::queryByProblemID(const ProblemID& problemID,
     }
     
     QueryResponse* response = new QueryResponse();
-    readItem(socket, *(response), "Error. Failed to read the response to the query by problemID");
+    readQueryResponse(socket, *(response));
     
 	return response;
 }
