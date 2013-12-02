@@ -36,6 +36,10 @@ int main(int argc, const char* argv[])
 
     try {
         connect_to_servers(config, conns);
+        
+        WorkerProtocolImpl leader(conns.leader);
+        StorageProtocolImpl storage(conns.storage);
+        runWorker(leader, storage);
     }
     catch( const std::exception& err)
     {
@@ -43,9 +47,5 @@ int main(int argc, const char* argv[])
         return -1;
     }
 
-    WorkerProtocolImpl leader(conns.leader);
-    StorageProtocolImpl storage(conns.storage);
-    runWorker(leader, storage);
-    
     return 0;
 }
