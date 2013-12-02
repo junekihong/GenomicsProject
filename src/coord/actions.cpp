@@ -167,28 +167,11 @@ void ClientActionImpl::alignmentRequest(const std::string& first, const std::str
     problem.left_genome = left_genome;
     problem.top_numbers = top_numbers;
     problem.left_numbers = left_numbers;
+    problem.requestor = client;
 
     problemList.push_back(problem);
 
-    // For now. Wait until we get back a solution and send it back in response.
-    while(true)
-    {
-        std::vector<ProblemID>::iterator iter = solvedList.begin();
-        for(; iter != solvedList.end(); iter++)
-        {
-            // If we find the solution in the solvedList, we can remove it and return.
-            if((*iter) == problem.problemID)
-            {
-                solvedList.erase(iter);
-
-                //TODO
-                Solution solution;
-                client->sendLocalAlignResponse(solution);
-                return;
-            }
-        }
-        usleep(1000);
-        //sleep(1);
-    }
+    // The response will get sent back to the client when the solution
+    // is given to us by a worker.
 }
 

@@ -5,6 +5,8 @@
 
 #include "common/problem.h"
 
+class LeaderClientProtocol;
+
 namespace scheduler {
 
     class Problem : public ProblemDescription
@@ -14,13 +16,14 @@ namespace scheduler {
         ProblemDescription * right;
         ProblemDescription * down;
         ProblemDescription * right_down;
+        LeaderClientProtocol * requestor;
     };
     
-    class Job
+    /*class Job
     {
         std::set<Problem*> subproblems;
         std::set<Problem*> initialProblems;
-    };
+    };*/
     
 }
 
