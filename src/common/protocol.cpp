@@ -155,6 +155,7 @@ void readQueryResponse(std::istream& sock, QueryResponse& resp)
     bool has_solution;
     readItem(sock, has_solution, "Error reading whether query response has a solution");
     if( has_solution ) {
+        resp.sol = new Solution;
         readSolution(sock, *resp.sol, "Error reading query response solution");
     }
     else {
