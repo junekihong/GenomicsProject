@@ -136,8 +136,30 @@ void sendQueryResponse(int sock, const QueryResponse& resp)
     sendProblemDescription(sock, resp.problemDescription);
     sendItem(sock, resp.maxValue, "Error sending query response max value");
     sendItem(sock, resp.location, "Error sending query response max location");
+    bool has_solution = (resp.sol != NULL);
+    sendItem(sock, has_solution, "Error sending whether query response has a solution");
     if( resp.sol ) {
         sendSolution(sock, *resp.sol);
+    }
+}
+void readQueryResponse(std::istream& sock, QueryResponse& resp)
+{
+    readItem(sock, resp.success, "Error reading query response success");
+    if( !resp.success )
+        return;
+    
+    readItem(sock, resp.exactMatch, "Error sending query response exact match flag");
+    readProblemDescription(sock, resp.problemDescription);
+    readItem(sock, resp.maxValue, "Error reading query response max value");
+    readItem(sock, resp.location, "Error reading query response max location");
+    bool has_solution;
+    readItem(sock, has_solution, "Error reading whether query response has a solution");
+    if( has_solution ) {
+        resp.sol = new Solution;
+        readSolution(sock, *resp.sol, "Error reading query response solution");
+    }
+    else {
+        resp.sol = NULL;
     }
 }
 
@@ -171,9 +193,10 @@ void StorageProtocolImpl::insertGenomeData(const std::string& name, unsigned& in
     // if(responseMessage == STORE_QUERY_RESPONSE_ID) {}
 }
 
-bool StorageProtocolImpl::insertSolution(const Solution& solution)
+bool StorageProtocolImpl::insertSolution(const ProblemDescription& prob, const Solution& solution)
 {
     sendItem(socket, static_cast<message_id_t>(STORE_NEW_SOLUTION_ID));
+    sendProblemDescription(socket, prob, "Error sending problem description of a solution");
     sendSolution(socket, solution, "Error. Could not insert solution to storage.");
     socket.flush();
     
@@ -198,7 +221,7 @@ QueryResponse* StorageProtocolImpl::queryByProblemID(const ProblemID& problemID,
     }
     
     QueryResponse* response = new QueryResponse();
-    readItem(socket, *(response), "Error. Failed to read the response to the query by problemID");
+    readQueryResponse(socket, *(response));
     
 	return response;
 }
@@ -219,7 +242,7 @@ QueryResponse* StorageProtocolImpl::queryByInitialConditions(const ProblemDescri
     }
     
     QueryResponse* response = new QueryResponse();
-    readItem(socket, *(response), "Error. Failed to read the response to the query by initial conditions");
+    readQueryResponse(socket, *response);
     
     return response;
 }

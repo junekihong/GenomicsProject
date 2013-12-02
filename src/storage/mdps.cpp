@@ -199,6 +199,11 @@ void handle_new_solution(int sock)
     readSolution(sock, sol);
     
     insertSolution(desc, sol);
+    
+    // Send an ACK
+    // FIXME Paul doesn't like this ACK code, or the ACK in general, but that's another story
+    message_id_t msg_id = STORE_QUERY_RESPONSE_ID;
+    sendItem(sock, msg_id, "Error sending solution insertion ACK");
 }
 
 void handle_query_by_id(int sock)

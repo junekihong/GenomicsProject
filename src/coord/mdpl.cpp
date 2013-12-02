@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <iostream>
+#include <map>
 #include <set>
 #include <sstream>
 
@@ -17,6 +18,13 @@
 #include "protocol.h"
 
 StorageProtocol* storage = NULL;
+static std::map<int, NetworkHandler*> handlers;
+static std::set<int> to_erase;
+
+void destroy_socket(int socket)
+{
+    to_erase.insert(socket);
+}
 
 int main(int argc, const char* argv[])
 {
@@ -39,7 +47,6 @@ int main(int argc, const char* argv[])
         FD_SET(listen_socket, &mask);
         
         std::set<int> unannounced_sockets;
-        std::set<NetworkHandler*> handlers;
         
         for(;;)
         {
@@ -55,24 +62,24 @@ int main(int argc, const char* argv[])
                     unannounced_sockets.insert(new_socket);
                 }
                 
-                std::set<NetworkHandler*> to_erase;
-                for( std::set<NetworkHandler*>::iterator iter = handlers.begin(); iter != handlers.end(); ++iter )
+                to_erase.clear();
+                for( std::map<int, NetworkHandler*>::iterator iter = handlers.begin(); iter != handlers.end(); ++iter )
                 {
-                    NetworkHandler * cur_handler = *iter;
+                    NetworkHandler * cur_handler = iter->second;
                     if( FD_ISSET(cur_handler->getSocket(), &temp_mask) )
                     {
                         bool keep = cur_handler->handleNetwork();
                         if( !keep ) {
-                            to_erase.insert(cur_handler);
+                            to_erase.insert(iter->first);
                         }
                     }
                 }
-                for( std::set<NetworkHandler*>::iterator iter = to_erase.begin(); iter != to_erase.end(); ++iter )
+                for( std::set<int>::iterator iter = to_erase.begin(); iter != to_erase.end(); ++iter )
                 {
+                    close(*iter);
+                    FD_CLR(*iter, &mask);
+                    delete handlers[*iter];
                     handlers.erase(*iter);
-                    close((*iter)->getSocket());
-                    FD_CLR((*iter)->getSocket(), &mask);
-                    delete *iter;
                 }
                 
                 std::set<int> sockets_to_erase;
@@ -94,7 +101,7 @@ int main(int argc, const char* argv[])
                             switch(announce_type)
                             {
                                 case ANNOUNCE_CLIENT:
-                                    handlers.insert(new ClientHandler(cur_sock));
+                                    handlers.insert(std::make_pair(cur_sock, new ClientHandler(cur_sock)));
                                     std::cout << "Connected a client.\n";
                                     break;
                                 case ANNOUNCE_LEADER:
@@ -102,7 +109,7 @@ int main(int argc, const char* argv[])
                                     close(cur_sock);
                                     break;
                                 case ANNOUNCE_WORKER:
-                                    handlers.insert(new WorkerHandler(cur_sock));
+                                    handlers.insert(std::make_pair(cur_sock, new WorkerHandler(cur_sock)));
                                     std::cout << "Connected a worker.\n";
                                     break;
                                 case ANNOUNCE_STORAGE:

@@ -24,6 +24,7 @@ class Matrix
 	Matrix();
 	Matrix(int _length, int _width);
     Matrix(const std::vector<int>& topNumbers, const std::vector<int>& leftNumbers);
+    Matrix(const Matrix& matrix);
     ~Matrix();
 
     // This function will prepare the matrix by filling in the sides with the initial values. After initialization, we can perform local alignment.

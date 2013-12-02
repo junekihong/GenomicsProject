@@ -41,6 +41,8 @@ class LeaderClientProtocol
     virtual void sendLocalAlignResponse(const Solution& solution) = 0;
 
     virtual void sendGenomeUploadResponse() = 0;
+    
+    virtual int getSocket() const = 0;
 };
 
 class ClientActions
@@ -117,5 +119,7 @@ class ClientHandler : public NetworkHandler
     bool handleGenomeContinuation();
     void handleAlignmentStart();
 };
+
+void destroy_socket(int socket);
 
 #endif /* __LEADER_PROTOCOL_H__ */
