@@ -45,6 +45,8 @@ void WorkerActionImpl::requestProblemList()
     for( ProbIter iter = problemList.begin(); iter != problemList.end(); ++iter )
     {
         ProblemDescription problemDescription = ProblemDescription();
+        problemDescription.problemID = iter->second.problemID;
+        problemDescription.corner = iter->second.corner;
         problemDescription.top_numbers = iter->second.top_numbers;
         problemDescription.left_numbers = iter->second.left_numbers;
         problemDescription.top_genome = iter->second.top_genome;
