@@ -136,8 +136,29 @@ void sendQueryResponse(int sock, const QueryResponse& resp)
     sendProblemDescription(sock, resp.problemDescription);
     sendItem(sock, resp.maxValue, "Error sending query response max value");
     sendItem(sock, resp.location, "Error sending query response max location");
+    bool has_solution = (resp.sol != NULL);
+    sendItem(sock, has_solution, "Error sending whether query response has a solution");
     if( resp.sol ) {
         sendSolution(sock, *resp.sol);
+    }
+}
+void readQueryResponse(std::istream& sock, QueryResponse& resp)
+{
+    readItem(sock, resp.success, "Error reading query response success");
+    if( !resp.success )
+        return;
+    
+    readItem(sock, resp.exactMatch, "Error sending query response exact match flag");
+    readProblemDescription(sock, resp.problemDescription);
+    readItem(sock, resp.maxValue, "Error reading query response max value");
+    readItem(sock, resp.location, "Error reading query response max location");
+    bool has_solution;
+    readItem(sock, has_solution, "Error reading whether query response has a solution");
+    if( has_solution ) {
+        readSolution(sock, *resp.sol, "Error reading query response solution");
+    }
+    else {
+        resp.sol = NULL;
     }
 }
 
@@ -219,7 +240,7 @@ QueryResponse* StorageProtocolImpl::queryByInitialConditions(const ProblemDescri
     }
     
     QueryResponse* response = new QueryResponse();
-    readItem(socket, *(response), "Error. Failed to read the response to the query by initial conditions");
+    readQueryResponse(socket, *response);
     
     return response;
 }
