@@ -118,6 +118,13 @@ void handle_new_genome(int sock)
     readItem(sock, genome_length, "Error reading the length of genome " + name);
     
     createGenome(name, genome_length);
+
+
+    message_id_t ack = STORE_QUERY_RESPONSE_ID;
+    sendItem(sock, ack, "Error. Could not send back an ACK to the leader for making a new genome.");
+
+
+
 }
 
 void handle_new_data(int sock)
