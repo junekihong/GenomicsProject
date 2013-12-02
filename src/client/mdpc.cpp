@@ -45,7 +45,9 @@ int main(int argc, const char* argv[])
     
     std::vector<std::string>::iterator arg_iter = args.begin();
     
-///    try {
+#ifndef DEBUG
+    try {
+#endif
         if( *arg_iter == "--server" )
         {
             arg_iter++;
@@ -72,12 +74,14 @@ int main(int argc, const char* argv[])
             std::cout << "Unrecognized command: " << *arg_iter << "\n";
             exit(-1);
         }
-//    }
-//    catch( const std::exception& err )
-//    {
-//        std::cerr << err.what() << "\n";
-//        return -1;
-//    }
+#ifndef DEBUG
+    }
+    catch( const std::exception& err )
+    {
+        std::cerr << err.what() << "\n";
+        return -1;
+    }
+#endif
     return 0;
 }
 
