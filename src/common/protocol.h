@@ -37,7 +37,6 @@
 #define STORE_NEW_SOLUTION_ID               14
 #define STORE_QUERY_BY_ID_ID                15
 #define STORE_QUERY_BY_COND_ID              16
-#define STORE_QUERY_BY_NAME_ID              17
 
 #define STORE_GENOME_INFO_QUERY_ID          18
 #define STORE_GENOME_INFO_RESPONSE_ID       18

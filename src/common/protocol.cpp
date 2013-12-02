@@ -249,7 +249,7 @@ QueryResponse* StorageProtocolImpl::queryByInitialConditions(const ProblemDescri
 
 std::vector<char> StorageProtocolImpl::queryByName(const std::string& name, int startIndex, int length)
 {
-    sendItem(socket, static_cast<message_id_t>(STORE_QUERY_BY_NAME_ID));
+    sendItem(socket, static_cast<message_id_t>(STORE_GENOME_CONTENT_QUERY_ID));
     sendString(socket, name);
     sendItem(socket, startIndex);
     sendItem(socket, length);
