@@ -8,6 +8,7 @@
 #include <netinet/in.h>
 #include <unistd.h>
 
+#include "common/connect.h"
 #include "common/listen.h"
 #include "common/protocol.h"
 #include "common/util.h"
@@ -15,11 +16,17 @@
 #include "cmd_options.h"
 #include "protocol.h"
 
+StorageProtocol* storage = NULL;
+
 int main(int argc, const char* argv[])
 {
     LeaderConfiguration config = parse_options(argc, argv);
+    boost::asio::ip::tcp::iostream storage_stream;
     
     try {
+        connect_server(storage_stream, config.storage, "storage");
+        storage = new StorageProtocolImpl(storage_stream);
+        
         int listen_socket = start_listening(config.myport);
         std::cout << "Listening on port " << config.myport << "\n";
         

@@ -19,21 +19,4 @@ class WorkerProtocolImpl : public WorkerLeaderProtocol
     virtual void sendSolution(const SolutionCertificate& solution);
 };
 
-class StorageProtocolImpl : public StorageProtocol
-{
-    boost::asio::ip::tcp::iostream& socket;
-    
-    public:
-    StorageProtocolImpl(boost::asio::ip::tcp::iostream& s)
-    : socket(s)
-    { }
-    
-    virtual void createNewGenome(const std::string& name, unsigned length);
-    virtual void insertGenomeData(unsigned index, std::vector<char>& data);
-    virtual bool insertSolution(const Solution& solution);
-    virtual QueryResponse* queryByProblemID(const ProblemID& problemID, bool entireSolution);
-    virtual QueryResponse* queryByInitialConditions(const ProblemDescription& problemDescription, const bool wantPartials);
-    
-};
-
 #endif // __WORKER_PROTOCOL_IMPL_H__

@@ -3,11 +3,14 @@
 
 #include <vector>
 
+#include <boost/asio/ip/tcp.hpp>
+
 #include "common/problem.h"
+#include "common/protocol.h"
 #include "common/solution.h"
 #include "scheduling.h"
 
-
+extern StorageProtocol* storage;
 
 class LeaderWorkerProtocol
 {

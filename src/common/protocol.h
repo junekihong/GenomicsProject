@@ -4,6 +4,8 @@
 #include <iostream>
 #include <stdexcept>
 
+#include <boost/asio/ip/tcp.hpp>
+
 #include "location.h"
 #include "problem.h"
 #include "solution.h"
@@ -230,6 +232,23 @@ public:
     // The calling function is responsible for deleting the QueryResponse
     virtual QueryResponse * queryByProblemID(const ProblemID& problemID, bool entireSolution) = 0;
     virtual QueryResponse * queryByInitialConditions(const ProblemDescription& problemDescription, bool wantPartials) = 0;
+    
+};
+
+class StorageProtocolImpl : public StorageProtocol
+{
+    boost::asio::ip::tcp::iostream& socket;
+    
+public:
+    StorageProtocolImpl(boost::asio::ip::tcp::iostream& s)
+    : socket(s)
+    { }
+    
+    virtual void createNewGenome(const std::string& name, unsigned length);
+    virtual void insertGenomeData(unsigned index, std::vector<char>& data);
+    virtual bool insertSolution(const Solution& solution);
+    virtual QueryResponse* queryByProblemID(const ProblemID& problemID, bool entireSolution);
+    virtual QueryResponse* queryByInitialConditions(const ProblemDescription& problemDescription, const bool wantPartials);
     
 };
 

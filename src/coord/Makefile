@@ -1,13 +1,9 @@
 CXXFLAGS+=-DDEBUG
 CXXFLAGS+=-g -pedantic -Wall -Wextra -std=c++98 -I..
 
-#debug print statements
-
-
-
 TARGET=mdpl
 OBJECTS=$(patsubst %.cpp,%.o,$(wildcard *.cpp)) ../common/cmd_options.o \
-    ../common/listen.o ../common/protocol.o ../common/matrix.o
+    ../common/listen.o ../common/protocol.o ../common/matrix.o ../common/connect.o
 
 LDFLAGS=-lboost_program_options -lboost_system
 
