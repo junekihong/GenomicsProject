@@ -80,9 +80,9 @@ void WorkerActionImpl::claimProblems(const std::vector<ProblemID>& problems)
     // If we make it here, then all the claimed problems appeared in our problem list. Remove them from the problem list and respond with true.
     for( std::vector<ProblemID>::const_iterator iter = problems.begin(); iter != problems.end(); ++iter)
     {
-        problemList.erase(*iter);
         // FIXME, doing the lookup into problemList again...
         problemsInProgress.insert(std::make_pair(*iter, problemList.at(*iter)));
+        problemList.erase(*iter);
     }
     worker->respondToProblemClaim(true);
 }

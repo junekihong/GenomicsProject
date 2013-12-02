@@ -7,7 +7,9 @@ void WorkerProtocolImpl::requestProblemList(std::vector<ProblemDescription>& pro
 {
 	message_id_t msg_id = PROBLEM_LIST_REQUEST_ID;
 	
-	std::cout << "Requesting problem list";
+#ifdef DEBUG
+	std::cout << "Requesting problem list\n";
+#endif
     sendItem(socket, msg_id);
 	
     readItem(socket, msg_id);
@@ -20,7 +22,9 @@ void WorkerProtocolImpl::requestProblemList(std::vector<ProblemDescription>& pro
 	
 	unsigned problem_count;
     readItem(socket, problem_count);
+#ifdef DEBUG
     std::cout << "Receiving " << problem_count << " problems.\n";
+#endif
 	problemList.resize(problem_count);
 	for( unsigned prob_idx = 0; prob_idx < problem_count; ++ prob_idx )
 	{
@@ -31,11 +35,15 @@ void WorkerProtocolImpl::requestProblemList(std::vector<ProblemDescription>& pro
 
 bool WorkerProtocolImpl::claimProblems(const std::vector<ProblemID>& problems)
 {
+#ifdef DEBUG
     std::cout << "Requesting " << problems.size() << " problems\n";
+    std::cout << "They are:\n";
+    for( unsigned i = 0; i < problems.size(); ++i )
+        std::cout << "\t" << problems[i].idnum << "\n";
+#endif
     message_id_t msg_id = PROBLEM_CLAIM_REQUEST_ID;
     sendItem(socket, msg_id);
-    sendItem(socket, static_cast<unsigned>(problems.size()));
-    socket.write(reinterpret_cast<const char*>(problems.data()), problems.size() * sizeof(ProblemID));
+    sendVector(socket, problems, "the vector of problem ids to claim");
     socket.flush();
     
     readItem(socket, msg_id);

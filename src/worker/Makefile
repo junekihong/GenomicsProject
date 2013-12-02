@@ -1,4 +1,5 @@
 CXXFLAGS+=-g -pedantic -Wall -Wextra -std=c++98 -DBOOST_ASIO_DISABLE_THREADS -I.. -Wno-c++11-long-long
+CXXFLAGS+=-DDEBUG
 
 TARGET=mdpw
 OBJECTS=$(patsubst %.cpp,%.o,$(wildcard *.cpp)) ../common/problem.o ../common/protocol.o \

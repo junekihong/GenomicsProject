@@ -23,7 +23,9 @@ int main(int argc, const char* argv[])
     LeaderConfiguration config = parse_options(argc, argv);
     boost::asio::ip::tcp::iostream storage_stream;
     
+#ifndef DEBUG
     try {
+#endif
         connect_server(storage_stream, config.storage, "storage");
         storage = new StorageProtocolImpl(storage_stream);
         
@@ -126,11 +128,13 @@ int main(int argc, const char* argv[])
 
             }
         }
+#ifndef DEBUG
     }
     catch( const std::exception& err )
     {
         std::cerr << err.what() << "\n";
         exit(-1);
     }
+#endif
     return 0;
 }

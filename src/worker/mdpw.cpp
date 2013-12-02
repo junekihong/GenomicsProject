@@ -32,18 +32,22 @@ int main(int argc, const char* argv[])
 
     Connections conns;
 
+#ifndef DEBUG
     try {
+#endif
         connect_to_servers(config, conns);
         
         WorkerProtocolImpl leader(conns.leader);
         StorageProtocolImpl storage(conns.storage);
         runWorker(leader, storage);
+#ifndef DEBUG
     }
     catch( const std::exception& err)
     {
         std::cerr << err.what() << "\n";
         return -1;
     }
+#endif
 
     return 0;
 }

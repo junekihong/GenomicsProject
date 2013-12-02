@@ -195,7 +195,7 @@ static inline void sendVector(int sock, const std::vector<T>& vec, const std::st
     unsigned length = static_cast<unsigned>(vec.size()); // TODO loses precision
     sendItem(sock, length, "Error sending the length of " + err);
     ssize_t bytes_sent = send(sock, vec.data(), vec.size() * sizeof(T), 0);
-    if( bytes_sent != length )
+    if( bytes_sent != length * sizeof(T) )
         throw std::runtime_error("Error sending " + err);
 }
 

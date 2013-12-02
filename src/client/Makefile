@@ -1,4 +1,5 @@
 CXXFLAGS=-g -pedantic -Wall -Wextra -std=c++98  -DBOOST_ASIO_DISABLE_THREADS -I..
+CXXFLAGS+=-DDEBUG
 
 TARGET=mdpc
 OBJECTS=$(patsubst %.cpp,%.o,$(wildcard *.cpp)) ../common/cmd_options.o ../common/connect.o
