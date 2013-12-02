@@ -220,9 +220,15 @@ public:
     // This may be omitted
     Solution * sol;
     
+    QueryResponse()
+    : success(false), exactMatch(false), problemDescription(), maxValue(-1),
+      location(), sol(NULL)
+    { }
+    
     ~QueryResponse()
     {
-        delete sol;
+        if( sol )
+            delete sol;
     }
     
     // TODO figure out a way to send back solution certificates

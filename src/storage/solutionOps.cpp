@@ -179,6 +179,9 @@ static void queryExactly(const ProblemDescription& desc, QueryResponse& resp)
         resp.location = answer->sol.maxValueLocation;
         resp.sol = new Solution(answer->sol);
     }
+    else {
+        resp.success = false;
+    }
 }
 
 static void queryApproximately(const ProblemDescription& desc, QueryResponse& resp)
