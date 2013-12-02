@@ -122,9 +122,6 @@ void handle_new_genome(int sock)
 
     message_id_t ack = STORE_QUERY_RESPONSE_ID;
     sendItem(sock, ack, "Error. Could not send back an ACK to the leader for making a new genome.");
-
-
-
 }
 
 void handle_new_data(int sock)
@@ -136,6 +133,10 @@ void handle_new_data(int sock)
     readVector(sock, data, "Error reading genome data");
     
     addGenomeData(name, startIndex, data);
+
+
+    message_id_t ack = STORE_QUERY_RESPONSE_ID;
+    sendItem(sock, ack, "Error. Could not send back an ACK to the leader for handling new data.");
 }
 
 void handle_genome_info_query(int sock)
