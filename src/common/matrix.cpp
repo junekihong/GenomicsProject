@@ -33,7 +33,7 @@ void Matrix::allocateMatrix()
 
 Matrix::~Matrix()
 {
-    for(int i = 0; i < width; i++)
+    for(int i = 0; i <= width; i++)
     {
         free(matrix[i]);
     }
