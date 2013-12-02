@@ -22,6 +22,12 @@ Matrix::Matrix(const std::vector<int>& topNumbers, const std::vector<int>& leftN
     initialize(topNumbers, leftNumbers);
 }
 
+Matrix::Matrix(const Matrix& other)
+: length(0), width(0), matrix(NULL)
+{
+    (*this) = other;
+}
+
 void Matrix::allocateMatrix()
 {
     matrix = (int**)calloc(width + 1, sizeof(int*));
