@@ -37,6 +37,9 @@ int main(int argc, const char* argv[])
         connect_server(storage_stream, config.storage, "storage");
         storage = new StorageProtocolImpl(storage_stream);
         
+        problemNumber = storage->getNextSolutionID();
+        storage->getGenomeList(genomes);
+        
         int listen_socket = start_listening(config.myport);
         std::cout << "Listening on port " << config.myport << "\n";
         
@@ -135,11 +138,13 @@ int main(int argc, const char* argv[])
 
             }
         }
+        delete storage;
 #ifndef DEBUG
     }
     catch( const std::exception& err )
     {
         std::cerr << err.what() << "\n";
+        delete storage;
         exit(-1);
     }
 #endif

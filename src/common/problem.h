@@ -24,6 +24,10 @@ class ProblemID
     bool operator<(const ProblemID& other) const {
         return idnum < other.idnum;
     }
+    
+    void increment() {
+        idnum++;
+    }
 };
 
 class ProblemDescription

@@ -56,6 +56,7 @@ static const boost::filesystem::path solutionRoot("solutions");
 // This map owns the solutions
 std::map<ProblemID, const CompleteSolution*> solutionById;
 typedef std::pair<ProblemID, const CompleteSolution*> solution_pair;
+ProblemID nextSolutionID(0);
 
 // other indexes of solutions...
 std::set<const CompleteSolution*, bool(*)(const CompleteSolution*, const CompleteSolution*)> topNumberIndex(compare_top_numbers);
@@ -86,6 +87,9 @@ void initializeSolutionSystem()
         ++iter )
     {
         std::string name = iter->path().filename().generic_string<std::string>();
+        // Ignore hidden files
+        if( !name.size() || name[0] == '.' )
+            continue;
         std::ifstream input(iter->path().generic_string<std::string>().c_str());
         
         CompleteSolution * sol = new CompleteSolution;
@@ -97,6 +101,11 @@ void initializeSolutionSystem()
         leftNumberIndex.insert(sol);
         topGenomeIndex.insert(sol);
         leftGenomeIndex.insert(sol);
+        
+        if( sol->sol.id.idnum >= nextSolutionID.idnum )
+        {
+            nextSolutionID.idnum = sol->sol.id.idnum + 1;
+        }
     }
 }
 

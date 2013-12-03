@@ -75,4 +75,7 @@ void getGenomeData(const std::string& name, unsigned index, unsigned length, std
     data.resize(length);
     strm.seekg(index, std::ios::beg);
     strm.read(data.data(), length);
+#ifdef DEBUG
+    std::cout << "read data from index " << index << " in file " << (genomeRoot / name).generic_string<std::string>().c_str() << ":\n" << std::string(data.begin(), data.end()) << "\n";
+#endif
 }

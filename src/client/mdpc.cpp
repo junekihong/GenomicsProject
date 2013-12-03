@@ -165,20 +165,8 @@ void handle_genome_list()
         throw std::runtime_error("Requested the genome list but got back message type " + toString(msg_id) + " instead");
     }
     
-    unsigned name_count;
-    readItem(leader, name_count);
     std::vector<std::string> genome_names;
-    genome_names.reserve(name_count);
-    for( unsigned i = 0; i < name_count; ++i )
-    {
-        unsigned name_len;
-        readItem(leader, name_len);
-        char * buffer = new char[name_len + 1]; // TODO leaks on exceptions
-        leader.read(buffer, name_len);
-        buffer[name_len] = 0;
-        genome_names.push_back(buffer);
-        delete[] buffer;
-    }
+    readGenomeList(leader, genome_names);
     
     std::cout << "There are " << genome_names.size() << " genomes.\n";
     for( unsigned i = 0; i < genome_names.size(); ++i )

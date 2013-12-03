@@ -46,6 +46,9 @@
 
 #define STORE_QUERY_RESPONSE_ID             20
 
+#define STORE_MAX_SOL_REQUEST_ID            21
+#define STORE_MAX_SOL_RESPONSE_ID           21
+
 #define BUFF_SIZE 32*1024
 
 class ProblemDescription;
@@ -68,6 +71,8 @@ void sendSolution(std::ostream& sock, const Solution& sol, const std::string& er
 class QueryResponse;
 void sendQueryResponse(int sock, const QueryResponse& resp);
 void readQueryResponse(std::istream& sock, QueryResponse& resp);
+void readGenomeList(std::istream& sock, std::vector<std::string>& genome_names);
+//void readGenomeList(int sock, std::vector<std::string>& genome_names);
 
 template<typename T>
 static inline void readItem(std::istream& socket, T& dest, const std::string& err = "")
@@ -237,6 +242,7 @@ public:
 class StorageProtocol
 {
 public:
+    virtual ~StorageProtocol() { }
     virtual void createNewGenome(const std::string& name, unsigned length) = 0;
     virtual void insertGenomeData(const std::string& name, unsigned& index, const std::vector<char>& data) = 0;
     virtual bool insertSolution(const ProblemDescription& prob, const Solution& solution) = 0;
@@ -246,6 +252,9 @@ public:
 
     // query a name, recieve the genome.
     virtual std::vector<char> queryByName(const std::string& name, int startIndex, int length) = 0;
+    
+    virtual ProblemID getNextSolutionID() = 0;
+    virtual void getGenomeList(std::map<std::string, int>& genome_list) = 0;
 };
 
 class StorageProtocolImpl : public StorageProtocol
@@ -264,6 +273,8 @@ public:
     virtual QueryResponse* queryByInitialConditions(const ProblemDescription& problemDescription, const bool wantPartials);
     
     virtual std::vector<char> queryByName(const std::string& name, int startIndex, int length);
+    virtual ProblemID getNextSolutionID();
+    virtual void getGenomeList(std::map<std::string, int>& genome_list);
 };
 
 #endif /* __PROTOCOL_COMMON_H__ */

@@ -27,4 +27,7 @@ namespace scheduler {
     
 }
 
+extern ProblemID problemNumber;
+extern std::map<std::string, int> genomes;
+
 #endif /* __SCHEDULING_H__ */

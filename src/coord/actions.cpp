@@ -9,10 +9,9 @@
 std::map<ProblemID, scheduler::Problem> problemList;
 typedef std::map<ProblemID, scheduler::Problem>::iterator ProbIter;
 
-std::vector<std::string> nameList;
-std::map<std::string, int> nameToGenomeLength;
+std::map<std::string, int> genomes;
 
-int problemNumber = 0;
+ProblemID problemNumber(0);
 
 std::map<ProblemID, scheduler::Problem> problemsInProgress;
 std::map<ProblemID, SolutionCertificate> solvedProblems;
@@ -137,9 +136,7 @@ void ClientActionImpl::startGenomeUpload(const std::string &name, unsigned int l
 {
     storedName = name;
     storage->createNewGenome(name, length);
-    nameList.push_back(name);
-
-    nameToGenomeLength[name] = length;
+    genomes.insert(std::make_pair(name, length));
 }
 
 void ClientActionImpl::continueGenomeUpload(unsigned index, const std::vector<char>& data)
@@ -155,7 +152,10 @@ void ClientActionImpl::finishGenomeUpload()
 
 void ClientActionImpl::listGenomes()
 {
-    //TODO request a genome list from storage?
+    // TODO without the insane amount of copying
+    std::vector<std::string> nameList(genomes.size());
+    for( std::map<std::string, int>::iterator iter = genomes.begin(); iter != genomes.end(); ++iter )
+        nameList.push_back(iter->first);
     client->sendGenomeList(nameList);
 }
 
@@ -164,18 +164,22 @@ void ClientActionImpl::alignmentRequest(const std::string& first, const std::str
     int firstStartIndex = 0;
     int secondStartIndex = 0;
     
-    int firstLength = nameToGenomeLength.find(first)->second;
-    int secondLength = nameToGenomeLength.find(second)->second;
+    int firstLength = genomes[first];
+    int secondLength = genomes[second];
 
 
     // generate problem descriptions from the given problem. Add it to problemList.
     scheduler::Problem problem = scheduler::Problem();
     problem.problemID = problemNumber;
-    problemNumber++;
+    problemNumber.increment();
 
     std::vector<char> top_genome = storage->queryByName(first, firstStartIndex, firstLength);
     std::vector<char> left_genome = storage->queryByName(second, secondStartIndex, secondLength);
     
+#ifdef DEBUG
+    std::cout << "top genome = " << std::string(top_genome.begin(), top_genome.end()) << "\n";
+#endif
+
     std::vector<int> top_numbers;
     std::vector<int> left_numbers;
     for(unsigned int i=0; i< top_genome.size(); i++){
