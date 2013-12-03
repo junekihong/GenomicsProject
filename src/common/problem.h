@@ -16,6 +16,10 @@ class ProblemID
         : idnum(_id)
 	{ }
 
+    void operator=(const ProblemID &x) {
+        idnum = x.idnum;
+    }
+
     bool operator==(const ProblemID &x) const
     {
         return (idnum == x.idnum);
@@ -38,7 +42,16 @@ class ProblemDescription
 	std::vector<char> top_genome;
 	std::vector<char> left_genome;
 
-    
+    void operator=(const ProblemDescription &x)
+    {
+        problemID = x.problemID;
+        corner = x.corner;
+        top_numbers = x.top_numbers;
+        left_numbers = x.left_numbers;
+        top_genome = x.top_genome;
+        left_genome = x.left_genome;
+    }
+
     bool operator==(const ProblemDescription &x) const 
     {
         return (top_numbers == x.top_numbers) && (left_numbers == x.left_numbers) && (top_genome == x.top_genome) && (left_genome == x.left_genome);
