@@ -6,16 +6,20 @@
 #include "protocol.h"
 #include "scheduling.h"
 
+// The list of problems.
 std::map<ProblemID, scheduler::Problem> problemList;
 typedef std::map<ProblemID, scheduler::Problem>::iterator ProbIter;
 
+// Names of genomes.
 std::vector<std::string> nameList;
 std::map<std::string, int> nameToGenomeLength;
 
 int problemNumber = 0;
-
 std::map<ProblemID, scheduler::Problem> problemsInProgress;
 std::map<ProblemID, SolutionCertificate> solvedProblems;
+
+// List of workers that are ready for a new problem.
+std::vector<LeaderWorkerProtocol *> availableWorkers;
 
 class WorkerActionImpl : public WorkerActions
 {    
@@ -39,18 +43,18 @@ WorkerActionImpl::WorkerActionImpl(LeaderWorkerProtocol * w)
 
 void WorkerActionImpl::requestProblemList()
 {
+    // If our problem list is empty, we keep our worker waiting around until we can send them a populated list.
+    if(problemList.empty())
+    {
+        availableWorkers.push_back(worker);
+        return;
+    }
+
     // Reconcile how problemList is a vector of scheduler::Problem, wheras sendProblemList expects a vector of ProblemDescriptions. What I do is populate a temp vector and send that instead.
-    
     std::vector<ProblemDescription> tempProblemList;
     for( ProbIter iter = problemList.begin(); iter != problemList.end(); ++iter )
     {
-        ProblemDescription problemDescription = ProblemDescription();
-        problemDescription.problemID = iter->second.problemID;
-        problemDescription.corner = iter->second.corner;
-        problemDescription.top_numbers = iter->second.top_numbers;
-        problemDescription.left_numbers = iter->second.left_numbers;
-        problemDescription.top_genome = iter->second.top_genome;
-        problemDescription.left_genome = iter->second.left_genome;
+        ProblemDescription problemDescription = iter->second;
         tempProblemList.push_back(problemDescription);
     }
 
@@ -60,7 +64,7 @@ void WorkerActionImpl::requestProblemList()
 class ProblemComparator
 {
     ProblemID desired_id;
-public:
+    public:
     ProblemComparator(ProblemID _id)
     : desired_id(_id)
     { }
@@ -103,6 +107,7 @@ void WorkerActionImpl::recieveSolution(const SolutionCertificate& solution)
         throw std::runtime_error("Error getting the solution from storage");
     problem.requestor->sendLocalAlignResponse(*(resp->sol));
     delete resp;
+
     destroy_socket(problem.requestor->getSocket());
 }
 
@@ -195,5 +200,20 @@ void ClientActionImpl::alignmentRequest(const std::string& first, const std::str
 
     // The response will get sent back to the client when the solution
     // is given to us by a worker.
+
+
+    // Make a list of problems on the spot
+    std::vector<ProblemDescription> tempProblemList;
+    for( ProbIter iter = problemList.begin(); iter != problemList.end(); ++iter )
+    {
+        ProblemDescription problemDescription = iter->second;
+        tempProblemList.push_back(problemDescription);
+    }
+    // We actively give the problem list out to our available workers
+    for(unsigned int i = 0; i < availableWorkers.size(); i++)
+    {
+        availableWorkers[i]->sendProblemList(tempProblemList);
+    }
+    availableWorkers.clear();
 }
 
