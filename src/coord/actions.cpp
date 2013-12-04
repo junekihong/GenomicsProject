@@ -6,9 +6,12 @@
 #include "protocol.h"
 #include "scheduling.h"
 
+// Iterator typedefs
+typedef std::map<ProblemID, scheduler::Problem>::iterator ProbMapIter;
+typedef std::vector<ProblemID>::const_iterator ProbIter;
+
 // The list of problems.
 std::map<ProblemID, scheduler::Problem> problemList;
-typedef std::map<ProblemID, scheduler::Problem>::iterator ProbIter;
 
 // Names of genomes.
 std::vector<std::string> nameList;
@@ -52,7 +55,7 @@ void WorkerActionImpl::requestProblemList()
 
     // Reconcile how problemList is a vector of scheduler::Problem, wheras sendProblemList expects a vector of ProblemDescriptions. What I do is populate a temp vector and send that instead.
     std::vector<ProblemDescription> tempProblemList;
-    for( ProbIter iter = problemList.begin(); iter != problemList.end(); ++iter )
+    for( ProbMapIter iter = problemList.begin(); iter != problemList.end(); ++iter )
     {
         ProblemDescription problemDescription = iter->second;
         tempProblemList.push_back(problemDescription);
@@ -78,7 +81,7 @@ void WorkerActionImpl::claimProblems(const std::vector<ProblemID>& problems)
     for(unsigned int i = 0; i < problems.size(); i++)
     {
         // if problem is in problemList continue, else return false.
-        ProbIter iter = problemList.find(problems[i]);
+        ProbMapIter iter = problemList.find(problems[i]);
         if( iter == problemList.end() )
         {
             worker->respondToProblemClaim(false);
@@ -87,7 +90,7 @@ void WorkerActionImpl::claimProblems(const std::vector<ProblemID>& problems)
     }
  
     // If we make it here, then all the claimed problems appeared in our problem list. Remove them from the problem list and respond with true.
-    for( std::vector<ProblemID>::const_iterator iter = problems.begin(); iter != problems.end(); ++iter)
+    for( ProbIter iter = problems.begin(); iter != problems.end(); ++iter)
     {
         // FIXME, doing the lookup into problemList again...
         problemsInProgress.insert(std::make_pair(*iter, problemList.at(*iter)));
@@ -204,7 +207,7 @@ void ClientActionImpl::alignmentRequest(const std::string& first, const std::str
 
     // Make a list of problems on the spot
     std::vector<ProblemDescription> tempProblemList;
-    for( ProbIter iter = problemList.begin(); iter != problemList.end(); ++iter )
+    for( ProbMapIter iter = problemList.begin(); iter != problemList.end(); ++iter )
     {
         ProblemDescription problemDescription = iter->second;
         tempProblemList.push_back(problemDescription);
