@@ -177,50 +177,56 @@ void ClientActionImpl::alignmentRequest(const std::string& first, const std::str
     {
         divisionConstant = 1;
     }
-    
+
+    //We allocate a problem chunk matrix to keep track of it all.
+    scheduler::Problem problemChunkMatrix[divisionConstant][divisionConstant];    
     int firstSubLength = firstLength / divisionConstant;
     int secondSubLength = secondLength / divisionConstant;
 
-    //std::vector<std::string> firstStrings;
-    //std::vector<std::string> secondStrings;
-
-    //TODO. Optimization. We can un-nest the loops to make a vector of string chunks.
-    for(int i = 0; i < divisionConstant; i++)
+    for(int j = 0; j < divisionConstant; j++)
     {
-        int firstIndex = i * firstSubLength;
+        int firstIndex = j * firstSubLength;
         std::string firstChunk = first.substr(firstIndex, firstSubLength);
         
-        for(int j = 0; j < divisionConstant; j++)
+        for(int i = 0; i < divisionConstant; i++)
         {
-            int secondIndex = j * secondSubLength;
+            int secondIndex = i * secondSubLength;
             std::string secondChunk = second.substr(secondIndex, secondSubLength);         
-        
             scheduler::Problem problem = scheduler::Problem();
-            //problem.problemID = problemNumber;
-            //problemNumber++;
-            
+            problem.problemID = problemNumber;
+            problemNumber++;
+
             std::vector<char> top_genome = storage->queryByName(first, firstIndex, firstChunk.length());
             std::vector<char> left_genome = storage->queryByName(second, secondIndex, secondChunk.length());
             problem.top_genome = top_genome;
             problem.left_genome = left_genome;
 
-            for(unsigned int k=0; k< top_genome.size(); k++){
-                problem.top_numbers.push_back(0);
-            }
-            for(unsigned int k=0; k< left_genome.size(); k++){
-                problem.left_numbers.push_back(0);
-            }
-
             problem.requestor = client;
+            problemChunkMatrix[i][j] = problem;
             
-            //problemList.insert(std::pair<ProblemID, scheduler::Problem>(problem.problemID, problem));
-
+            if(i > 0){
+                problemChunkMatrix[i-1][j].down = &problem;
+            }
+            if(j > 0){
+                problemChunkMatrix[i][j-1].right = &problem;
+            }
+            if(i > 0 && j > 0){
+                problemChunkMatrix[i-1][j-1].right_down = &problem;
+            }
+            if(i > 0 || j > 0){
+                problemChunkMatrix[i][j].first = &problemChunkMatrix[0][0];
+            }
         }
-        
-        
     }
+    scheduler::Problem firstProblem = problemChunkMatrix[0][0];
+    for(unsigned int k=0; k< firstProblem.top_genome.size(); k++){
+        firstProblem.top_numbers.push_back(0);
+    }
+    for(unsigned int k=0; k< firstProblem.left_genome.size(); k++){
+        firstProblem.left_numbers.push_back(0);
+    }
+    problemList.insert(std::pair<ProblemID, scheduler::Problem>(firstProblem.problemID,problem);
     
-
 
     int firstStartIndex = 0;
     int secondStartIndex = 0;
