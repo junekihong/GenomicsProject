@@ -169,11 +169,64 @@ void ClientActionImpl::listGenomes()
 
 void ClientActionImpl::alignmentRequest(const std::string& first, const std::string& second)
 {
+    int divisionConstant = 2;
+    int firstLength = nameToGenomeLength.find(first)->second;
+    int secondLength = nameToGenomeLength.find(second)->second;
+
+    if(firstLength <= 1 || secondLength <= 1)
+    {
+        divisionConstant = 1;
+    }
+    
+    int firstSubLength = firstLength / divisionConstant;
+    int secondSubLength = secondLength / divisionConstant;
+
+    //std::vector<std::string> firstStrings;
+    //std::vector<std::string> secondStrings;
+
+    //TODO. Optimization. We can un-nest the loops to make a vector of string chunks.
+    for(int i = 0; i < divisionConstant; i++)
+    {
+        int firstIndex = i * firstSubLength;
+        std::string firstChunk = first.substr(firstIndex, firstSubLength);
+        
+        for(int j = 0; j < divisionConstant; j++)
+        {
+            int secondIndex = j * secondSubLength;
+            std::string secondChunk = second.substr(secondIndex, secondSubLength);         
+        
+            scheduler::Problem problem = scheduler::Problem();
+            //problem.problemID = problemNumber;
+            //problemNumber++;
+            
+            std::vector<char> top_genome = storage->queryByName(first, firstIndex, firstChunk.length());
+            std::vector<char> left_genome = storage->queryByName(second, secondIndex, secondChunk.length());
+            problem.top_genome = top_genome;
+            problem.left_genome = left_genome;
+
+            for(unsigned int k=0; k< top_genome.size(); k++){
+                problem.top_numbers.push_back(0);
+            }
+            for(unsigned int k=0; k< left_genome.size(); k++){
+                problem.left_numbers.push_back(0);
+            }
+
+            problem.requestor = client;
+            
+            //problemList.insert(std::pair<ProblemID, scheduler::Problem>(problem.problemID, problem));
+
+        }
+        
+        
+    }
+    
+
+
     int firstStartIndex = 0;
     int secondStartIndex = 0;
     
-    int firstLength = nameToGenomeLength.find(first)->second;
-    int secondLength = nameToGenomeLength.find(second)->second;
+    
+
 
 
     // generate problem descriptions from the given problem. Add it to problemList.
@@ -184,19 +237,15 @@ void ClientActionImpl::alignmentRequest(const std::string& first, const std::str
     std::vector<char> top_genome = storage->queryByName(first, firstStartIndex, firstLength);
     std::vector<char> left_genome = storage->queryByName(second, secondStartIndex, secondLength);
     
-    std::vector<int> top_numbers;
-    std::vector<int> left_numbers;
-    for(unsigned int i=0; i< top_genome.size(); i++){
-        top_numbers.push_back(0);
-    }
-    for(unsigned int i=0; i< left_genome.size(); i++){
-        left_numbers.push_back(0);
-    }
-
     problem.top_genome = top_genome;
     problem.left_genome = left_genome;
-    problem.top_numbers = top_numbers;
-    problem.left_numbers = left_numbers;
+
+    for(unsigned int i=0; i< top_genome.size(); i++){
+        problem.top_numbers.push_back(0);
+    }
+    for(unsigned int i=0; i< left_genome.size(); i++){
+        problem.left_numbers.push_back(0);
+    }
     problem.requestor = client;
 
     problemList.insert(std::pair<ProblemID, scheduler::Problem>(problem.problemID, problem));
