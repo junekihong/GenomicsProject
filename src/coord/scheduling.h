@@ -15,9 +15,9 @@ namespace scheduler {
         Problem();
         
         // The neighboring problems, NULL if no neighboring problem. Forward pointers.
-        ProblemDescription * right;
-        ProblemDescription * down;
-        ProblemDescription * right_down;
+        Problem * right;
+        Problem * down;
+        Problem * right_down;
         LeaderClientProtocol * requestor;
 
         // Backwards booleans
@@ -29,18 +29,6 @@ namespace scheduler {
         ProblemDescription * first;
 
     };
-
-    Problem::Problem()
-    {
-        right = NULL;
-        down = NULL;
-        right_down = NULL;
-        requestor = NULL;
-
-        left = false;
-        up = false;
-        left_up = false;
-    }
 
     
     /*class Job
