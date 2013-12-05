@@ -200,13 +200,6 @@ void ClientActionImpl::alignmentRequest(const std::string& first, const std::str
         divisionConstant = 1;
     }
 
-    int firstStartIndex = 0;
-    int secondStartIndex = 0;
-    
-    int firstLength = nameToGenomeLength[first];
-    int secondLength = nameToGenomeLength[second];
-
-
     //We allocate a problem chunk matrix to keep track of it all.
     std::vector<std::vector<scheduler::Problem> > problemChunkMatrix;
     for(int i = 0; i < divisionConstant; i++) {
@@ -229,8 +222,8 @@ void ClientActionImpl::alignmentRequest(const std::string& first, const std::str
             int secondIndex = i * secondSubLength;
             std::string secondChunk = second.substr(secondIndex, secondSubLength);         
             problemChunkMatrix[i][j].problemID = problemNumber;
-            problemNumber++;
-
+            problemNumber.increment();
+            
             std::vector<char> top_genome = storage->queryByName(first, firstIndex, firstChunk.length());
             std::vector<char> left_genome = storage->queryByName(second, secondIndex, secondChunk.length());
             problemChunkMatrix[i][j].top_genome = top_genome;
@@ -249,29 +242,11 @@ void ClientActionImpl::alignmentRequest(const std::string& first, const std::str
             if(i > 0 || j > 0) {
                 problemChunkMatrix[i][j].first = &problemChunkMatrix[0][0];
             }
-            
             // Im currently including all chunks in lockedProblemChunks. Including (0, 0)
             lockedProblemChunks[problemChunkMatrix[i][j].problemID] = problemChunkMatrix[i][j];
         }
-
-    // generate problem descriptions from the given problem. Add it to problemList.
-    scheduler::Problem problem = scheduler::Problem();
-    problem.problemID = problemNumber;
-    problemNumber.increment();
-
-    std::vector<char> top_genome = storage->queryByName(first, firstStartIndex, firstLength);
-    std::vector<char> left_genome = storage->queryByName(second, secondStartIndex, secondLength);
-    
-#ifdef DEBUG
-    std::cout << "top genome = " << std::string(top_genome.begin(), top_genome.end()) << "\n";
-#endif
-
-    std::vector<int> top_numbers;
-    std::vector<int> left_numbers;
-    for(unsigned int i=0; i< top_genome.size(); i++){
-        top_numbers.push_back(0);
-    }
-    
+    }        
+        
     // Initialize all the top numbers.
     for(int j = 0; j < divisionConstant; j++)
     {
@@ -280,7 +255,7 @@ void ClientActionImpl::alignmentRequest(const std::string& first, const std::str
             problemChunkMatrix[0][j].top_numbers.push_back(0);
         }
     }
-
+    
     // Initialize all the left numbers.
     for(int i = 0; i < divisionConstant; i++)
     {
