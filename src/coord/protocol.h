@@ -5,6 +5,8 @@
 
 #include <boost/asio/ip/tcp.hpp>
 
+#include <msgpack.hpp>
+
 #include "common/problem.h"
 #include "common/protocol.h"
 #include "common/solution.h"
@@ -49,7 +51,7 @@ class ClientActions
 {
     public:
     virtual void startGenomeUpload(const std::string& name, unsigned length) = 0;
-    virtual void continueGenomeUpload(unsigned index, const std::vector<char>& data) = 0;
+    virtual void continueGenomeUpload(unsigned index, const std::vector<unsigned char>& data) = 0;
     virtual void finishGenomeUpload() = 0;
 
     virtual void listGenomes() = 0;
@@ -92,9 +94,9 @@ class WorkerHandler : public NetworkHandler
     virtual bool handleNetwork();
     
     private:
-    void handleListRequest();
-    void handleClaimRequest();
-    void handleSolutionReport();
+    void handleListRequest(msgpack::unpacker& unpack);
+    void handleClaimRequest(msgpack::unpacker& unpack);
+    void handleSolutionReport(msgpack::unpacker& unpack);
 };
 
 class ClientHandler : public NetworkHandler
@@ -112,12 +114,12 @@ class ClientHandler : public NetworkHandler
     unsigned uploadProgress;
     unsigned uploadLength;
     
-    void handleGenomeListRequest();
-    void handleGenomeStart();
+    void handleGenomeListRequest(msgpack::unpacker& unpack);
+    void handleGenomeStart(msgpack::unpacker& unpack);
     void handleGenomeFinish();
 
     bool handleGenomeContinuation();
-    void handleAlignmentStart();
+    void handleAlignmentStart(msgpack::unpacker& unpack);
 };
 
 void destroy_socket(int socket);

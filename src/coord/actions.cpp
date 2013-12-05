@@ -115,7 +115,7 @@ class ClientActionImpl : public ClientActions
     ClientActionImpl(LeaderClientProtocol * c);
     
     virtual void startGenomeUpload(const std::string& name, unsigned length);
-    virtual void continueGenomeUpload(unsigned index, const std::vector<char>& data);
+    virtual void continueGenomeUpload(unsigned index, const std::vector<unsigned char>& data);
     virtual void finishGenomeUpload();
 
     virtual void listGenomes();
@@ -139,7 +139,7 @@ void ClientActionImpl::startGenomeUpload(const std::string &name, unsigned int l
     genomes.insert(std::make_pair(name, length));
 }
 
-void ClientActionImpl::continueGenomeUpload(unsigned index, const std::vector<char>& data)
+void ClientActionImpl::continueGenomeUpload(unsigned index, const std::vector<unsigned char>& data)
 {   
     storage->insertGenomeData(storedName, index, data);
 }
@@ -148,7 +148,6 @@ void ClientActionImpl::finishGenomeUpload()
 {
     client->sendGenomeUploadResponse();
 }
-
 
 void ClientActionImpl::listGenomes()
 {
@@ -173,8 +172,8 @@ void ClientActionImpl::alignmentRequest(const std::string& first, const std::str
     problem.problemID = problemNumber;
     problemNumber.increment();
 
-    std::vector<char> top_genome = storage->queryByName(first, firstStartIndex, firstLength);
-    std::vector<char> left_genome = storage->queryByName(second, secondStartIndex, secondLength);
+    std::vector<unsigned char> top_genome = storage->queryByName(first, firstStartIndex, firstLength);
+    std::vector<unsigned char> left_genome = storage->queryByName(second, secondStartIndex, secondLength);
     
 #ifdef DEBUG
     std::cout << "top genome = " << std::string(top_genome.begin(), top_genome.end()) << "\n";

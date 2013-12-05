@@ -7,6 +7,7 @@
 #include "location.h"
 #include "pair_location_value.h"
 
+#include <msgpack.hpp>
 
 // Matrix class. Represents the matrix of a (local alignment) dynamic programming problem. It will also solve itself if you call it.
 // Data is stored in column-major order
@@ -19,7 +20,7 @@ class Matrix
     int width;
     
     public:
-	int** matrix;
+    std::vector< std::vector<int> > matrix;
 	
 	Matrix();
 	Matrix(int _length, int _width);
@@ -31,7 +32,7 @@ class Matrix
     void initialize(const std::vector<int>& topNumbers, const std::vector<int>& leftNumbers);
 
     // Performs local alignment on an initialized matrix. Returns the maximal value
-    LocationValuePair localAlignment(std::vector<char>& topGenome, std::vector<char>& leftGenome);
+    LocationValuePair localAlignment(std::vector<unsigned char>& topGenome, std::vector<unsigned char>& leftGenome);
     
     int getLength() const {
         return length;
@@ -44,6 +45,8 @@ class Matrix
     void resize(int newLength, int newWidth);
     
     Matrix& operator=(const Matrix& other);
+    
+    MSGPACK_DEFINE(length, width, matrix);
 };
 
 

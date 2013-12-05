@@ -1,11 +1,11 @@
 CXXFLAGS+=-DDEBUG
-CXXFLAGS+=-g -pedantic -Wall -Wextra -std=c++98 -I.. -DBOOST_ASIO_DISABLE_THREADS
+CXXFLAGS+=-g -Wall -Wextra -std=c++98 -I.. -DBOOST_ASIO_DISABLE_THREADS -I ../../lib/msgpack/src -Wno-long-long
 
 TARGET=mdpl
 OBJECTS=$(patsubst %.cpp,%.o,$(wildcard *.cpp)) ../common/cmd_options.o \
     ../common/listen.o ../common/protocol.o ../common/matrix.o ../common/connect.o
 
-LDFLAGS=-lboost_program_options -lboost_system
+LDFLAGS=-lboost_program_options -lboost_system -g
 
 all: $(TARGET)
 
@@ -20,7 +20,7 @@ mdpl.o: mdpl.cpp cmd_options.h protocol.h ../common/protocol.h ../common/listen.
 	$(CXX) $(CXXFLAGS) -c $*.cpp
 
 $(TARGET) : $(OBJECTS)
-	$(CXX) $^ $(LDFLAGS) -o $(TARGET)
+	$(CXX) $^ $(LDFLAGS) ../../lib/msgpack/src/.libs/libmsgpack.a -o $(TARGET)
 
 .PHONY: clean
 clean:

@@ -1,195 +1,36 @@
+#include <vector>
+
 #include <sys/socket.h>
+
+#include <msgpack.hpp>
 
 #include "common/util.h"
 
 #include "protocol.h"
 #include "problem.h"
 
-void readMatrix(int socket, Matrix& mat, const std::string& err)
+void receive_ack(std::istream&socket, message_id_t expected_code)
 {
-    int length, width;
-    readItem(socket, length, "Error reading length of " + err);
-    readItem(socket, width, "Error reading width of " + err);
-    mat.resize(length, width);
-    
-    for( int i = 0; i <= mat.getWidth(); ++i ){
-        ssize_t bytes_read = recvfrom(socket, mat.matrix[i], (mat.getLength() + 1)*sizeof(int), MSG_WAITALL, NULL, NULL);
-        if( bytes_read !=  (mat.getLength() + 1)*sizeof(int) ) {
-            throw std::runtime_error(std::string("Error reading section " + toString(i) + " of the matrix"));
-        }
-    }
+    msgpack::unpacker unpack;
+    readBuffer(socket, unpack);
+    message_id_t code;
+    read(unpack, code);
+    if( code != expected_code )
+        throw std::runtime_error(std::string("Expected ack, but got another one: ") + toString(code));
 }
-
-void sendMatrix(int socket, const Matrix& mat, const std::string& err)
+void send_ack(int sock, message_id_t ack_code)
 {
-    int length = mat.getLength();
-    int width = mat.getWidth();
-    sendItem(socket, length, "Error sending length of " + err);
-    sendItem(socket, width, "Error sending width of " + err);
-    
-    for( int i = 0; i <= mat.getWidth(); ++i ) {
-        send(socket, mat.matrix[i], (mat.getLength() + 1)*sizeof(int), 0);
-    }
+    msgpack::sbuffer sbuf;
+    message_id_t ack = ack_code;
+    msgpack::pack(&sbuf, ack);
+    sendBuffer(sock, sbuf);
 }
-
-void readMatrix(std::istream& socket, Matrix& mat, const std::string& err)
+void send_ack(std::ostream& sock, message_id_t ack_code)
 {
-    int length, width;
-    readItem(socket, length, "Error reading length of " + err);
-    readItem(socket, width, "Error reading width of " + err);
-    mat.resize(length, width);
-    
-    for( int i = 0; i <= mat.getWidth(); ++i ){
-        socket.read(reinterpret_cast<char*>(mat.matrix[i]), (mat.getLength() + 1)*sizeof(int));
-    }
-}
-
-void sendMatrix(std::ostream& socket, const Matrix& mat, const std::string& err)
-{
-    int length = mat.getLength();
-    int width = mat.getWidth();
-    writeItem(socket, length, "Error sending length of " + err);
-    writeItem(socket, width, "Error sending width of " + err);
-    
-    for( int i = 0; i <= mat.getWidth(); ++i ) {
-        socket.write(reinterpret_cast<const char*>(mat.matrix[i]), (mat.getLength() + 1)*sizeof(int));
-    }
-}
-
-void readProblemDescription(std::istream& socket, ProblemDescription& cur_prob)
-{
-    readItem(socket, cur_prob.problemID.idnum);
-    readItem(socket, cur_prob.corner);
-    readVector(socket, cur_prob.top_numbers);
-    readVector(socket, cur_prob.left_numbers);
-    readVector(socket, cur_prob.top_genome);
-    readVector(socket, cur_prob.left_genome);
-}
-
-void sendProblemDescription(std::ostream& socket, const ProblemDescription& cur_prob, const std::string&)
-{
-    // TODO use err passed in
-    sendItem(socket, cur_prob.problemID.idnum, "Error sending problem ID");
-    sendItem(socket, cur_prob.corner, "Error sending problem corner element");
-    sendVector(socket, cur_prob.top_numbers, "Error sending the top numbers of a problem");
-    sendVector(socket, cur_prob.left_numbers, "Error sending the left numbers of a problem");
-    sendVector(socket, cur_prob.top_genome, "Error sending the top genome of a problem");
-    sendVector(socket, cur_prob.left_genome, "Error sending the left genome of a problem");
-}
-
-void sendProblemDescription(int socket, const ProblemDescription& cur_prob)
-{
-    sendItem(socket, cur_prob.problemID.idnum, "Error sending problem ID");
-    sendItem(socket, cur_prob.corner, "Error sending problem corner element");
-    sendVector(socket, cur_prob.top_numbers, "Error sending the top numbers of a problem");
-    sendVector(socket, cur_prob.left_numbers, "Error sending the left numbers of a problem");
-    sendVector(socket, cur_prob.top_genome, "Error sending the top genome of a problem");
-    sendVector(socket, cur_prob.left_genome, "Error sending the left genome of a problem");
-}
-
-void readProblemDescription(int socket, ProblemDescription& cur_prob)
-{
-    readItem(socket, cur_prob.problemID.idnum, "Error reading problem id");
-    readItem(socket, cur_prob.corner, "Error reading corner element");
-    readVector(socket, cur_prob.top_numbers, "Error reading top numbers");
-    readVector(socket, cur_prob.left_numbers, "Error reading left numbers");
-    readVector(socket, cur_prob.top_genome, "Error reading top genome");
-    readVector(socket, cur_prob.left_genome, "Error reading left genome");
-}
-
-void readSolution(int sock, Solution& sol)
-{
-    readItem(sock, sol.id, "Error reading solution id");
-    readItem(sock, sol.maxValue, "Error reading the maximum value in the solution");
-    readItem(sock, sol.maxValueLocation, "Error reading the location of the max value");
-    readMatrix(sock, sol.matrix, "solution matrix");
-}
-
-void sendSolution(int sock, const Solution& sol)
-{
-    sendItem(sock, sol.id, "Error sending solution id");
-    sendItem(sock, sol.maxValue, "Error sending the maximum value in the solution");
-    sendItem(sock, sol.maxValueLocation, "Error sending the location of the max value");
-    sendMatrix(sock, sol.matrix, "solution matrix");
-}
-
-void readSolution(std::istream& sock, Solution& sol, const std::string&)
-{
-    // TODO use the err passed in
-    readItem(sock, sol.id, "Error reading solution id");
-    readItem(sock, sol.maxValue, "Error reading the maximum value in the solution");
-    readItem(sock, sol.maxValueLocation, "Error reading the location of the max value");
-    readMatrix(sock, sol.matrix, "solution matrix");
-}
-
-void sendSolution(std::ostream& sock, const Solution& sol, const std::string&)
-{
-    // TODO use the err passed in
-    sendItem(sock, sol.id, "Error sending solution id");
-    sendItem(sock, sol.maxValue, "Error sending the maximum value in the solution");
-    sendItem(sock, sol.maxValueLocation, "Error sending the location of the max value");
-    sendMatrix(sock, sol.matrix, "solution matrix");
-}
-
-void sendQueryResponse(int sock, const QueryResponse& resp)
-{
-    sendItem(sock, resp.success, "Error sending query response success");
-    if( !resp.success )
-        return;
-    
-    sendItem(sock, resp.exactMatch, "Error sending query response exact match flag");
-    sendProblemDescription(sock, resp.problemDescription);
-    sendItem(sock, resp.maxValue, "Error sending query response max value");
-    sendItem(sock, resp.location, "Error sending query response max location");
-    bool has_solution = (resp.sol != NULL);
-    sendItem(sock, has_solution, "Error sending whether query response has a solution");
-    if( resp.sol ) {
-        sendSolution(sock, *resp.sol);
-    }
-}
-void readQueryResponse(std::istream& sock, QueryResponse& resp)
-{
-    readItem(sock, resp.success, "Error reading query response success");
-    if( !resp.success )
-        return;
-    
-    readItem(sock, resp.exactMatch, "Error sending query response exact match flag");
-    readProblemDescription(sock, resp.problemDescription);
-    readItem(sock, resp.maxValue, "Error reading query response max value");
-    readItem(sock, resp.location, "Error reading query response max location");
-    bool has_solution;
-    readItem(sock, has_solution, "Error reading whether query response has a solution");
-    if( has_solution ) {
-        resp.sol = new Solution;
-        readSolution(sock, *resp.sol, "Error reading query response solution");
-    }
-    else {
-        resp.sol = NULL;
-    }
-}
-
-void readGenomeList(std::istream& sock, std::vector<std::string>& genome_names)
-{
-    unsigned name_count;
-    readItem(sock, name_count);
-    genome_names.reserve(name_count);
-    for( unsigned i = 0; i < name_count; ++i )
-    {
-        std::string buff = readString(sock);
-        genome_names.push_back(buff);
-    }
-}
-
-void readGenomeList(int sock, std::vector<std::string>& genome_names)
-{
-    unsigned name_count;
-    readItem(sock, name_count, "Error reading number of genomes in list");
-    genome_names.reserve(name_count);
-    for( unsigned i = 0; i < name_count; ++i )
-    {
-        std::string buff = readString(sock, "Error reading genome name");
-        genome_names.push_back(buff);
-    }
+    msgpack::sbuffer sbuf;
+    message_id_t ack = ack_code;
+    msgpack::pack(&sbuf, ack);
+    sendBuffer(sock, sbuf);
 }
 
 
@@ -197,52 +38,52 @@ void readGenomeList(int sock, std::vector<std::string>& genome_names)
 //length is the length of the genome
 void StorageProtocolImpl::createNewGenome(const std::string& name, unsigned length)
 {
-    sendItem(socket, static_cast<message_id_t>(STORE_NEW_GENOME_ID));
-    sendString(socket, name);
-    sendItem(socket, length);
-    socket.flush();
+    msgpack::sbuffer buff;
+    msgpack::pack(&buff, static_cast<message_id_t>(STORE_NEW_GENOME_ID));
+    msgpack::pack(&buff, name);
+    msgpack::pack(&buff, length);
+    sendBuffer(socket, buff);
     
-    message_id_t responseMessage;
-    readItem(socket, responseMessage);
-    //TODO do something with responseMessage
-    // if(responseMessage == STORE_QUERY_RESPONSE_ID) {}
+    receive_ack(socket, STORE_QUERY_RESPONSE_ID);
 }
 
-void StorageProtocolImpl::insertGenomeData(const std::string& name, unsigned& index, const std::vector<char>& data)
+void StorageProtocolImpl::insertGenomeData(const std::string& name, unsigned& index, const std::vector<unsigned char>& data)
 {
-    sendItem(socket, static_cast<message_id_t>(STORE_NEW_DATA_ID));
+    msgpack::sbuffer sbuf;
+    msgpack::pack(&sbuf, static_cast<message_id_t>(STORE_NEW_DATA_ID));
+    msgpack::pack(&sbuf, name); // TODO. Whoever is listening on the other end needs to read the name in as well.
+    msgpack::pack(&sbuf, index);
+    msgpack::pack(&sbuf, data);
+    sendBuffer(socket, sbuf);
     
-    sendString(socket, name); // TODO. Whoever is listening on the other end needs to read the name in as well.
-    sendItem(socket, index);
-    sendVector(socket, data, "Error. Was not able to send data to storage from worker.");
-    socket.flush();
-    
-    message_id_t responseMessage;
-    readItem(socket, responseMessage);
-    //TODO do something with responseMessage
-    // if(responseMessage == STORE_QUERY_RESPONSE_ID) {}
+    receive_ack(socket, STORE_QUERY_RESPONSE_ID);
 }
 
 bool StorageProtocolImpl::insertSolution(const ProblemDescription& prob, const Solution& solution)
 {
-    sendItem(socket, static_cast<message_id_t>(STORE_NEW_SOLUTION_ID));
-    sendProblemDescription(socket, prob, "Error sending problem description of a solution");
-    sendSolution(socket, solution, "Error. Could not insert solution to storage.");
+    msgpack::sbuffer sbuf;
+    msgpack::pack(&sbuf, static_cast<message_id_t>(STORE_NEW_SOLUTION_ID));
+    msgpack::pack(&sbuf, prob);
+    msgpack::pack(&sbuf, solution);
+    sendBuffer(socket, sbuf);
     
-    message_id_t responseMessage;
-    readItem(socket, responseMessage);
-    return responseMessage == STORE_QUERY_RESPONSE_ID;
+    receive_ack(socket, STORE_QUERY_RESPONSE_ID);
+    return true;
 }
 
 QueryResponse* StorageProtocolImpl::queryByProblemID(const ProblemID& problemID, bool entireSolution)
 {
-    sendItem(socket, static_cast<message_id_t>(STORE_QUERY_BY_ID_ID));
-    sendItem(socket, problemID.idnum);
-    sendItem(socket, entireSolution);
-    socket.flush();
+    msgpack::sbuffer sbuf;
+    msgpack::pack(&sbuf, static_cast<message_id_t>(STORE_QUERY_BY_ID_ID));
+    msgpack::pack(&sbuf, problemID);
+    msgpack::pack(&sbuf, entireSolution);
+    sendBuffer(socket, sbuf);
+    
+    msgpack::unpacker unpack;
+    readBuffer(socket, unpack);
     
     message_id_t responseMessage;
-    readItem(socket, responseMessage);
+    read(unpack, responseMessage);
     if(responseMessage != STORE_QUERY_RESPONSE_ID)
     {
         std::cerr << "Error. Storage did not properly respond to our query by problemID\n";
@@ -250,96 +91,156 @@ QueryResponse* StorageProtocolImpl::queryByProblemID(const ProblemID& problemID,
     }
     
     QueryResponse* response = new QueryResponse();
-    readQueryResponse(socket, *(response));
+    read(unpack, *response);
     
 	return response;
 }
 
 QueryResponse* StorageProtocolImpl::queryByInitialConditions(const ProblemDescription& problemDescription, const bool wantPartials)
 {
-    sendItem(socket, static_cast<message_id_t>(STORE_QUERY_BY_COND_ID));
-    sendProblemDescription(socket, problemDescription, "Error. Could not send a query by initial conditions");
-    sendItem(socket, wantPartials);
-    socket.flush();
+    msgpack::sbuffer sbuf;
+    msgpack::pack(&sbuf, static_cast<message_id_t>(STORE_QUERY_BY_COND_ID));
+    msgpack::pack(&sbuf, problemDescription);
+    msgpack::pack(&sbuf, wantPartials);
+    sendBuffer(socket, sbuf);
+    
+    msgpack::unpacker unpack;
+    readBuffer(socket, unpack);
     
     message_id_t responseMessage;
-    readItem(socket, responseMessage);
+    read(unpack, responseMessage);
     if(responseMessage != STORE_QUERY_RESPONSE_ID)
-    {
-        std::cerr << "Error. Storage did not properly respond to our query by initial conditians\n";
-        return NULL;
-    }
+        throw std::runtime_error("Error. Storage did not properly respond to our query by initial conditians");
     
     QueryResponse* response = new QueryResponse();
-    readQueryResponse(socket, *response);
-    
+    read(unpack, *response);
     return response;
 }
 
-std::vector<char> StorageProtocolImpl::queryByName(const std::string& name, int startIndex, int length)
+std::vector<unsigned char> StorageProtocolImpl::queryByName(const std::string& name, int startIndex, int length)
 {
-    sendItem(socket, static_cast<message_id_t>(STORE_GENOME_CONTENT_QUERY_ID));
-    sendString(socket, name);
-    sendItem(socket, startIndex);
-    sendItem(socket, length);
-    socket.flush();
-
-    std::vector<char> genome;
-
+    msgpack::sbuffer sbuf;
+    msgpack::pack(&sbuf, static_cast<message_id_t>(STORE_GENOME_CONTENT_QUERY_ID));
+    msgpack::pack(&sbuf, name);
+    msgpack::pack(&sbuf, startIndex);
+    msgpack::pack(&sbuf, length);
+    sendBuffer(socket, sbuf);
+    
+    msgpack::unpacker unpack;
+    readBuffer(socket, unpack);
+    
     message_id_t responseMessage;
-    readItem(socket, responseMessage);
+    read(unpack, responseMessage);
     if(responseMessage != STORE_GENOME_CONTENT_RESPONSE_ID)
-    {
-        std::cerr << "Error. Storage did not properly respond to our query by name\n";
-        return genome;
-    }
+        throw std::runtime_error("Error. Storage did not properly respond to our query by name");
 
     std::string responseName;
-    responseName = readString(socket);
     int responseStartIndex;
-    readItem(socket, responseStartIndex);
-    readVector(socket, genome);
+    std::vector<unsigned char> genome;
+    
+    read(unpack, responseName);
+    read(unpack, responseStartIndex);
+    read(unpack, genome);
 
     return genome;
 }
 
 ProblemID StorageProtocolImpl::getNextSolutionID()
 {
-    sendItem(socket, static_cast<message_id_t>(STORE_MAX_SOL_REQUEST_ID));
+    msgpack::sbuffer sbuf;
+    msgpack::pack(&sbuf, static_cast<message_id_t>(STORE_MAX_SOL_REQUEST_ID));
+    sendBuffer(socket, sbuf);
+    
+    msgpack::unpacker unpack;
+    readBuffer(socket, unpack);
+#ifdef DEBUG
+    printBuffer(std::cerr, unpack.buffer(), unpack.used);
+#endif
     
     message_id_t msg_id;
-    readItem(socket, msg_id);
-    if( msg_id != STORE_MAX_SOL_RESPONSE_ID )
-    {
-        std::cerr << "Error. Storage responded to max solution ID request with message type " << toString(msg_id) << "\n";
+    read(unpack, msg_id);
+    if( msg_id != STORE_MAX_SOL_RESPONSE_ID ) {
+        printBuffer(std::cerr, unpack.buffer(), unpack.used);
         throw std::runtime_error(std::string("Storage responded to max solution ID request with message type ") + toString(msg_id));
     }
+
     
     ProblemID id;
-    readItem(socket, id);
+    read(unpack, id);
     return id;
 }
 
 void StorageProtocolImpl::getGenomeList(std::map<std::string, int>& genome_list)
 {
-    sendItem(socket, static_cast<message_id_t>(GENOME_LIST_REQUEST_ID));
+    msgpack::sbuffer sbuf;
+    msgpack::pack(&sbuf, static_cast<message_id_t>(GENOME_LIST_REQUEST_ID));
+    sendBuffer(socket, sbuf);
+    
+    msgpack::unpacker unpack;
+    readBuffer(socket, unpack);
     
     message_id_t responseMessage;
-    readItem(socket, responseMessage);
+    read(unpack, responseMessage);
     if( responseMessage != GENOME_LIST_RESPONSE_ID )
-    {
-        std::cerr << "Error. Storage responded to genome list request with message type " << toString(responseMessage) << "\n";
         throw std::runtime_error(std::string("Storage responded to genome list request with message type ") + toString(responseMessage));
-    }
     
-    unsigned name_count;
-    readItem(socket, name_count);
-    //genome_list.reserve(name_count);
-    for( unsigned i = 0; i < name_count; ++i )
-    {
-        std::string buff = readString(socket);
-        int length;
-        readItem(socket, length, "Error reading genome length");
-        genome_list.insert(std::make_pair(buff, length));
-    }
+    std::map<std::string, GenomeInfo> tmp_list;
+    read(unpack, tmp_list);
+    for( std::map<std::string, GenomeInfo>::iterator iter = tmp_list.begin(); iter != tmp_list.end(); ++iter)
+        genome_list.insert(std::make_pair(iter->first, iter->second.length));
+}
+
+void readBuffer(std::istream& socket, msgpack::unpacker& unpack)
+{
+    unsigned msg_size;
+    socket.read(reinterpret_cast<char*>(&msg_size), sizeof(msg_size));
+    unpack.reserve_buffer(msg_size);
+    socket.read(unpack.buffer(), msg_size);
+    unpack.buffer_consumed(msg_size);
+}
+void readBuffer(int socket, msgpack::unpacker& unpack)
+{
+    unsigned msg_size;
+    ssize_t bytes_read = recvfrom(socket, &msg_size, sizeof(msg_size), MSG_WAITALL, NULL, NULL);
+    if( bytes_read != sizeof(msg_size) )
+        throw std::runtime_error("Error reading size of message");
+#ifdef DEBUG
+    std::cout << "Reading buffer of size " << msg_size << " bytes\n";
+#endif
+    unpack.reserve_buffer(msg_size);
+    bytes_read = recvfrom(socket, unpack.buffer(), msg_size, MSG_WAITALL, NULL, NULL);
+    if( bytes_read != msg_size )
+        throw std::runtime_error("Error reading message");
+    unpack.buffer_consumed(msg_size);
+}
+
+void sendBuffer(std::ostream& socket, const msgpack::sbuffer& buff)
+{
+#ifdef DEBUG
+    std::cerr << "Sending buffer length " << buff.size() << ": ";
+    printBuffer(std::cerr, buff.data(), buff.size());
+#endif
+    unsigned length = static_cast<unsigned>(buff.size());
+    socket.write(reinterpret_cast<const char*>(&length), sizeof(length));
+    socket.write(buff.data(), buff.size());
+}
+
+void sendBuffer(int socket, const msgpack::sbuffer& buff)
+{
+    unsigned length = static_cast<unsigned>(buff.size());
+    send(socket, &length, sizeof(length), 0);
+    send(socket, buff.data(), buff.size(), 0);
+}
+
+#include <iomanip>
+
+void printBuffer(std::ostream& out, const char * data, unsigned long length)
+{
+    out << std::hex;
+    if( length )
+        out << static_cast<int>(data[0]);
+    for( unsigned i = 1; i < length; ++i )
+        out << " " << static_cast<int>(data[i]);
+    out << "\n";
+    out << std::dec;
 }

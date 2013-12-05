@@ -6,6 +6,8 @@
 
 #include <boost/asio/ip/tcp.hpp>
 
+#include <msgpack.hpp>
+
 #include "location.h"
 #include "problem.h"
 #include "solution.h"
@@ -55,156 +57,48 @@ class ProblemDescription;
 
 typedef int message_id_t;
 
-void readMatrix(int socket, Matrix& mat, const std::string& err);
-void sendMatrix(int socket, const Matrix& mat, const std::string& err);
+void readBuffer(int socket, msgpack::unpacker& buff);
+void readBuffer(std::istream& socket, msgpack::unpacker& unpack);
+void sendBuffer(int socket, const msgpack::sbuffer& buff);
+void sendBuffer(std::ostream& socket, const msgpack::sbuffer& buff);
 
-void readProblemDescription(std::istream& socket, ProblemDescription& cur_prob);
-void readProblemDescription(int socket, ProblemDescription& cur_prob);
-void sendProblemDescription(int socket, const ProblemDescription& cur_prob);
-void sendProblemDescription(std::ostream& socket, const ProblemDescription& cur_prob, const std::string& err);
+void receive_ack(std::istream&socket, message_id_t expected_code);
+void send_ack(int sock, message_id_t ack_code);
+void send_ack(std::ostream& sock, message_id_t ack_code);
 
-void readSolution(int sock, Solution& sol);
-void sendSolution(int sock, const Solution& sol);
-void readSolution(std::istream& sock, Solution& sol, const std::string& err);
-void sendSolution(std::ostream& sock, const Solution& sol, const std::string& err);
-
-class QueryResponse;
-void sendQueryResponse(int sock, const QueryResponse& resp);
-void readQueryResponse(std::istream& sock, QueryResponse& resp);
-void readGenomeList(std::istream& sock, std::vector<std::string>& genome_names);
-//void readGenomeList(int sock, std::vector<std::string>& genome_names);
+void printBuffer(std::ostream& out, const char * data, unsigned long length);
 
 template<typename T>
-static inline void readItem(std::istream& socket, T& dest, const std::string& err = "")
+void read(msgpack::unpacker& unpack, T& out_param, const std::string& err = "Error unpacking data")
 {
-    socket.read(reinterpret_cast<char*>(&dest), sizeof(dest));
-    if( !socket )
+    msgpack::unpacked result;
+    if( !unpack.next(&result) ) {
+        printBuffer(std::cerr, unpack.buffer(), unpack.used);
         throw std::runtime_error(err);
-}
-template<typename T>
-static inline void sendItem(std::ostream& socket, const T& dest, const std::string& err = "")
-{
-    socket.write(reinterpret_cast<const char*>(&dest), sizeof(dest));
-    if( !socket )
-        throw std::runtime_error(err);
-}
-
-/* When I tried to use sendItem in sendMatrix(std::ostream&...), the compiler
- * could not resolve which template I wanted. So writeItem is here. */
-template<typename T>
-static inline void writeItem(std::ostream& socket, const T& dest, const std::string& err = "")
-{
-    socket.write(reinterpret_cast<const char*>(&dest), sizeof(dest));
-    if( !socket )
-        throw std::runtime_error(err);
-}
-
-static inline std::string readString(std::istream& sock)
-{
-    unsigned length;
-    readItem(sock, length);
-    char * buff = new char[length + 1]; // TODO leaks on exceptions
-    sock.read(buff, length);
-    buff[length] = 0;
-    std::string result(buff);
-    delete []buff;
-    return result;
-}
-
-static inline void sendString(std::ostream& sock, const std::string& str)
-{
-    unsigned length = static_cast<unsigned>(str.size()); // TODO loses precision
-    sendItem(sock, length);
-    sock.write(str.data(), str.size());
-}
-
-template<typename T>
-static inline void readVector(std::istream& sock, std::vector<T>& result)
-{
-    unsigned length;
-    readItem(sock, length);
-    result.resize(length);
-    sock.read(reinterpret_cast<char*>(result.data()), length *sizeof(T));
-}
-
-template<typename T>
-static inline void sendVector(std::ostream& sock, const std::vector<T>& vec, const std::string& err)
-{
-    unsigned length = static_cast<unsigned>(vec.size()); // TODO loses precision
-    sendItem(sock, length);
-    sock.write(reinterpret_cast<const char*>(vec.data()), vec.size() * sizeof(T));
-    if( !sock )
-        throw std::runtime_error(err);
-}
-
-#ifdef MSG_WAITALL
-
-// To use this function, include sys/socket.h before including this file
-template<typename T>
-static inline void readItem(int socket, T& item, const std::string& err_message)
-{
-    ssize_t bytes_read = recvfrom(socket, &item, sizeof(item), MSG_WAITALL, NULL, NULL);
-    if( bytes_read != sizeof(item) )
-    {
-        throw std::runtime_error(err_message);
     }
+    out_param = result.get().as<T>();
 }
 
-template<typename T>
-static inline void sendItem(int socket, T& item, const std::string& err_message)
+class GenomeInfo
 {
-    ssize_t bytes_sent = send(socket, &item, sizeof(item), 0);
-    if( bytes_sent != sizeof(item) )
-    {
-        throw std::runtime_error(err_message);
-    }
-}
-
-static inline std::string readString(int sock, const std::string& err)
-{
+public:
+    std::string name;
     unsigned length;
-    readItem(sock, length, "Error reading the length of " + err);
-    char * buff = new char[length + 1]; // TODO leaks on exceptions
-    ssize_t bytes_read = recvfrom(sock, buff, length, MSG_WAITALL, NULL, NULL);
-    if( bytes_read != length )
-        throw std::runtime_error("Error reading " + err);
-    buff[length] = 0;
-    std::string result(buff);
-    delete []buff;
-    return result;
-}
-
-static inline void sendString(int sock, const std::string& str, const std::string& err)
-{
-    unsigned length = static_cast<unsigned>(str.size()); // TODO loses precision
-    sendItem(sock, length, "Error sending the length of " + err);
-    ssize_t bytes_sent = send(sock, str.data(), str.size(), 0);
-    if( bytes_sent != length )
-        throw std::runtime_error("Error sending " + err);
-}
-
-template<typename T>
-static inline void readVector(int sock, std::vector<T>& result, const std::string& err)
-{
-    unsigned length;
-    readItem(sock, length, "Error reading the length of " + err);
-    result.resize(length);
-    ssize_t bytes_read = recvfrom(sock, result.data(), length *sizeof(T), MSG_WAITALL, NULL, NULL);
-    if( bytes_read != length * sizeof(T) )
-        throw std::runtime_error("Error reading " + err);
-}
-
-template<typename T>
-static inline void sendVector(int sock, const std::vector<T>& vec, const std::string& err)
-{
-    unsigned length = static_cast<unsigned>(vec.size()); // TODO loses precision
-    sendItem(sock, length, "Error sending the length of " + err);
-    ssize_t bytes_sent = send(sock, vec.data(), vec.size() * sizeof(T), 0);
-    if( bytes_sent != length * sizeof(T) )
-        throw std::runtime_error("Error sending " + err);
-}
-
-#endif
+    
+    GenomeInfo() // needed for msgpack
+    : name(), length()
+    { }
+    
+    GenomeInfo(std::string n, unsigned l)
+    : name(n), length(l)
+    { }
+    
+    GenomeInfo(const GenomeInfo& other)
+    : name(other.name), length(other.length)
+    { }
+    
+    MSGPACK_DEFINE(name, length);
+};
 
 class QueryResponse
 {
@@ -237,6 +131,48 @@ public:
     }
     
     // TODO figure out a way to send back solution certificates
+    
+    //MSGPACK_DEFINE(success, exactMatch, problemDescription, maxValue, location);
+    // TODO wrap solution
+    template <typename Packer>
+	void msgpack_pack(Packer& pk) const
+	{
+        if( sol == NULL )
+            pk.pack_array(6);
+        else
+            pk.pack_array(7);
+        pk.pack(success);
+        pk.pack(exactMatch);
+        pk.pack(problemDescription);
+        pk.pack(maxValue);
+        pk.pack(location);
+        pk.pack(sol != NULL);
+        if( sol != NULL )
+            pk.pack(*sol);
+	}
+	void msgpack_unpack(msgpack::object o)
+	{
+        if( o.type != msgpack::type::ARRAY )
+            throw msgpack::type_error();
+        bool hasSolution;
+        const size_t size = o.via.array.size;
+        if( size < 6 ) throw msgpack::type_error();
+        
+        o.via.array.ptr[0].convert(&success);
+        o.via.array.ptr[1].convert(&exactMatch);
+        o.via.array.ptr[2].convert(&problemDescription);
+        o.via.array.ptr[3].convert(&maxValue);
+        o.via.array.ptr[4].convert(&location);
+        o.via.array.ptr[5].convert(&hasSolution);
+        if( 6 + (hasSolution ? 1 : 0) != size )
+            throw msgpack::type_error();
+        if( hasSolution ) {
+            sol = new Solution;
+            o.via.array.ptr[6].convert(sol);
+        }
+		//msgpack::type::make_define(__VA_ARGS__).msgpack_unpack(o);
+	}
+
 };
 
 class StorageProtocol
@@ -244,14 +180,14 @@ class StorageProtocol
 public:
     virtual ~StorageProtocol() { }
     virtual void createNewGenome(const std::string& name, unsigned length) = 0;
-    virtual void insertGenomeData(const std::string& name, unsigned& index, const std::vector<char>& data) = 0;
+    virtual void insertGenomeData(const std::string& name, unsigned& index, const std::vector<unsigned char>& data) = 0;
     virtual bool insertSolution(const ProblemDescription& prob, const Solution& solution) = 0;
     // The calling function is responsible for deleting the QueryResponse
     virtual QueryResponse * queryByProblemID(const ProblemID& problemID, bool entireSolution) = 0;
     virtual QueryResponse * queryByInitialConditions(const ProblemDescription& problemDescription, bool wantPartials) = 0;
 
     // query a name, recieve the genome.
-    virtual std::vector<char> queryByName(const std::string& name, int startIndex, int length) = 0;
+    virtual std::vector<unsigned char> queryByName(const std::string& name, int startIndex, int length) = 0;
     
     virtual ProblemID getNextSolutionID() = 0;
     virtual void getGenomeList(std::map<std::string, int>& genome_list) = 0;
@@ -267,12 +203,12 @@ public:
     { }
     
     virtual void createNewGenome(const std::string& name, unsigned length);
-    virtual void insertGenomeData(const std::string& name, unsigned& index, const std::vector<char>& data);
+    virtual void insertGenomeData(const std::string& name, unsigned& index, const std::vector<unsigned char>& data);
     virtual bool insertSolution(const ProblemDescription& prob, const Solution& solution);
     virtual QueryResponse* queryByProblemID(const ProblemID& problemID, bool entireSolution);
     virtual QueryResponse* queryByInitialConditions(const ProblemDescription& problemDescription, const bool wantPartials);
     
-    virtual std::vector<char> queryByName(const std::string& name, int startIndex, int length);
+    virtual std::vector<unsigned char> queryByName(const std::string& name, int startIndex, int length);
     virtual ProblemID getNextSolutionID();
     virtual void getGenomeList(std::map<std::string, int>& genome_list);
 };
