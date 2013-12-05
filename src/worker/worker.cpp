@@ -17,7 +17,7 @@ void runWorker(WorkerLeaderProtocol& leader, StorageProtocol& storage)
         leader.requestProblemList(problemList);
         
         if(problemList.empty()){
-            sleep(1);
+            usleep(1000);
             continue;
         }
         

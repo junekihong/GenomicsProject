@@ -6,15 +6,24 @@
 #include "protocol.h"
 #include "scheduling.h"
 
-std::map<ProblemID, scheduler::Problem> problemList;
-typedef std::map<ProblemID, scheduler::Problem>::iterator ProbIter;
+// Iterator typedefs
+typedef std::map<ProblemID, scheduler::Problem>::iterator ProbMapIter;
+typedef std::vector<ProblemID>::const_iterator ProbIter;
 
-std::map<std::string, int> genomes;
+// The list of problems.
+std::map<ProblemID, scheduler::Problem> problemList;
 
 ProblemID problemNumber(0);
 
+// Names of genomes.
+std::vector<std::string> nameList;
+std::map<std::string, int> nameToGenomeLength;
+
 std::map<ProblemID, scheduler::Problem> problemsInProgress;
 std::map<ProblemID, SolutionCertificate> solvedProblems;
+
+// List of workers that are ready for a new problem.
+std::vector<LeaderWorkerProtocol *> availableWorkers;
 
 class WorkerActionImpl : public WorkerActions
 {    
@@ -38,18 +47,18 @@ WorkerActionImpl::WorkerActionImpl(LeaderWorkerProtocol * w)
 
 void WorkerActionImpl::requestProblemList()
 {
-    // Reconcile how problemList is a vector of scheduler::Problem, wheras sendProblemList expects a vector of ProblemDescriptions. What I do is populate a temp vector and send that instead.
-    
-    std::vector<ProblemDescription> tempProblemList;
-    for( ProbIter iter = problemList.begin(); iter != problemList.end(); ++iter )
+    // If our problem list is empty, we keep our worker waiting around until we can send them a populated list.
+    if(problemList.empty())
     {
-        ProblemDescription problemDescription = ProblemDescription();
-        problemDescription.problemID = iter->second.problemID;
-        problemDescription.corner = iter->second.corner;
-        problemDescription.top_numbers = iter->second.top_numbers;
-        problemDescription.left_numbers = iter->second.left_numbers;
-        problemDescription.top_genome = iter->second.top_genome;
-        problemDescription.left_genome = iter->second.left_genome;
+        availableWorkers.push_back(worker);
+        return;
+    }
+
+    // Reconcile how problemList is a vector of scheduler::Problem, wheras sendProblemList expects a vector of ProblemDescriptions. What I do is populate a temp vector and send that instead.
+    std::vector<ProblemDescription> tempProblemList;
+    for( ProbMapIter iter = problemList.begin(); iter != problemList.end(); ++iter )
+    {
+        ProblemDescription problemDescription = iter->second;
         tempProblemList.push_back(problemDescription);
     }
 
@@ -59,7 +68,7 @@ void WorkerActionImpl::requestProblemList()
 class ProblemComparator
 {
     ProblemID desired_id;
-public:
+    public:
     ProblemComparator(ProblemID _id)
     : desired_id(_id)
     { }
@@ -73,7 +82,7 @@ void WorkerActionImpl::claimProblems(const std::vector<ProblemID>& problems)
     for(unsigned int i = 0; i < problems.size(); i++)
     {
         // if problem is in problemList continue, else return false.
-        ProbIter iter = problemList.find(problems[i]);
+        ProbMapIter iter = problemList.find(problems[i]);
         if( iter == problemList.end() )
         {
             worker->respondToProblemClaim(false);
@@ -82,7 +91,7 @@ void WorkerActionImpl::claimProblems(const std::vector<ProblemID>& problems)
     }
  
     // If we make it here, then all the claimed problems appeared in our problem list. Remove them from the problem list and respond with true.
-    for( std::vector<ProblemID>::const_iterator iter = problems.begin(); iter != problems.end(); ++iter)
+    for( ProbIter iter = problems.begin(); iter != problems.end(); ++iter)
     {
         // FIXME, doing the lookup into problemList again...
         problemsInProgress.insert(std::make_pair(*iter, problemList.at(*iter)));
@@ -102,6 +111,7 @@ void WorkerActionImpl::recieveSolution(const SolutionCertificate& solution)
         throw std::runtime_error("Error getting the solution from storage");
     problem.requestor->sendLocalAlignResponse(*(resp->sol));
     delete resp;
+
     destroy_socket(problem.requestor->getSocket());
 }
 
@@ -136,7 +146,7 @@ void ClientActionImpl::startGenomeUpload(const std::string &name, unsigned int l
 {
     storedName = name;
     storage->createNewGenome(name, length);
-    genomes.insert(std::make_pair(name, length));
+    nameToGenomeLength.insert(std::make_pair(name, length));
 }
 
 void ClientActionImpl::continueGenomeUpload(unsigned index, const std::vector<char>& data)
@@ -153,8 +163,8 @@ void ClientActionImpl::finishGenomeUpload()
 void ClientActionImpl::listGenomes()
 {
     // TODO without the insane amount of copying
-    std::vector<std::string> nameList(genomes.size());
-    for( std::map<std::string, int>::iterator iter = genomes.begin(); iter != genomes.end(); ++iter )
+    std::vector<std::string> nameList(nameToGenomeLength.size());
+    for( std::map<std::string, int>::iterator iter = nameToGenomeLength.begin(); iter != nameToGenomeLength.end(); ++iter )
         nameList.push_back(iter->first);
     client->sendGenomeList(nameList);
 }
@@ -164,8 +174,8 @@ void ClientActionImpl::alignmentRequest(const std::string& first, const std::str
     int firstStartIndex = 0;
     int secondStartIndex = 0;
     
-    int firstLength = genomes[first];
-    int secondLength = genomes[second];
+    int firstLength = nameToGenomeLength[first];
+    int secondLength = nameToGenomeLength[second];
 
 
     // generate problem descriptions from the given problem. Add it to problemList.
@@ -199,5 +209,20 @@ void ClientActionImpl::alignmentRequest(const std::string& first, const std::str
 
     // The response will get sent back to the client when the solution
     // is given to us by a worker.
+
+
+    // Make a list of problems on the spot
+    std::vector<ProblemDescription> tempProblemList;
+    for( ProbMapIter iter = problemList.begin(); iter != problemList.end(); ++iter )
+    {
+        ProblemDescription problemDescription = iter->second;
+        tempProblemList.push_back(problemDescription);
+    }
+    // We actively give the problem list out to our available workers
+    for(unsigned int i = 0; i < availableWorkers.size(); i++)
+    {
+        availableWorkers[i]->sendProblemList(tempProblemList);
+    }
+    availableWorkers.clear();
 }
 

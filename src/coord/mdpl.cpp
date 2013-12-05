@@ -38,7 +38,7 @@ int main(int argc, const char* argv[])
         storage = new StorageProtocolImpl(storage_stream);
         
         problemNumber = storage->getNextSolutionID();
-        storage->getGenomeList(genomes);
+        storage->getGenomeList(nameToGenomeLength);
         
         int listen_socket = start_listening(config.myport);
         std::cout << "Listening on port " << config.myport << "\n";
