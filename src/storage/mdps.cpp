@@ -22,6 +22,8 @@ void handle_query_by_id(int sock);
 void handle_query_by_cond(int sock);
 void handle_genome_info_query(int sock);
 void handle_genome_content_query(int sock);
+void handle_max_solution(int sock);
+void handle_genome_list(int sock);
 
 int main(int argc, const char* argv[])
 {
@@ -91,8 +93,14 @@ int main(int argc, const char* argv[])
                                 case STORE_GENOME_CONTENT_QUERY_ID:
                                     handle_genome_content_query(cur_sock);
                                     break;
+                                case STORE_MAX_SOL_REQUEST_ID:
+                                    handle_max_solution(cur_sock);
+                                    break;
+                                case GENOME_LIST_REQUEST_ID:
+                                    handle_genome_list(cur_sock);
+                                    break;
                                 default:
-                                    std::cerr << "Unknown message type: " << msg_id << "\n";
+                                    std::cerr << "Unknown message type: " << msg_id << " from socket " << cur_sock << "\n";
                             }
                         }
                     }
@@ -165,7 +173,7 @@ void handle_genome_info_query(int sock)
 void handle_genome_content_query(int sock)
 {
 #ifdef DEBUG
-    std::cout << "mdps.cpp: handling genome content query.\n";
+    std::cout << "mdps.cpp: handling genome content query from socket " << sock << ".\n";
 #endif
 
 
@@ -187,13 +195,14 @@ void handle_genome_content_query(int sock)
 void handle_new_solution(int sock)
 {
 #ifdef DEBUG
-    std::cout << "mdps.cpp: handling new solution.\n";
+    std::cout << "mdps.cpp: handling new solution from socket " << sock << ".\n";
 #endif
 
     Solution sol;
     ProblemDescription desc;
     readProblemDescription(sock, desc);
     readSolution(sock, sol);
+    std::cout << "Answer dimentsions: " << sol.matrix.getLength() << " x " << sol.matrix.getWidth() << "\n";
     
     insertSolution(desc, sol);
     
@@ -240,4 +249,35 @@ void handle_query_by_cond(int sock)
     message_id_t msg_id = STORE_QUERY_RESPONSE_ID;
     sendItem(sock, msg_id, "Error sending query response id");
     sendQueryResponse(sock, resp);
+}
+
+void handle_max_solution(int sock)
+{
+#ifdef DEBUG
+    std::cout << "mdps.cpp: handling next solution id request\n";
+#endif
+    
+    message_id_t msg_id = STORE_MAX_SOL_RESPONSE_ID;
+    sendItem(sock, msg_id, "Error sending next solution message header");
+    sendItem(sock, nextSolutionID, "Error sending next solution id");
+}
+
+void handle_genome_list(int sock)
+{
+#ifdef DEBUG
+    std::cout << "mdps.cpp: handling genone list request\n";
+#endif
+    
+    message_id_t msg_id = GENOME_LIST_RESPONSE_ID;
+    sendItem(sock, msg_id, "Error sending genome list response id");
+    
+    unsigned length = static_cast<unsigned>(genomes.size());
+    sendItem(sock, length, "Error sending the number of genomes to the client");
+    for( std::map<std::string, GenomeInfo>::iterator iter = genomes.begin(); iter != genomes.end(); ++iter )
+    {
+        sendString(sock, iter->first, "Error sending genome name");
+        int length = iter->second.length;
+        sendItem(sock, length, "Error sending genome length");
+    }
+
 }

@@ -7,6 +7,7 @@
 #include "common/problem.h"
 
 class Solution;
+extern ProblemID nextSolutionID;
 
 void initializeSolutionSystem();
 void insertSolution(const ProblemDescription& prob, const Solution& sol);

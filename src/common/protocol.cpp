@@ -1,5 +1,7 @@
 #include <sys/socket.h>
 
+#include "common/util.h"
+
 #include "protocol.h"
 #include "problem.h"
 
@@ -11,7 +13,10 @@ void readMatrix(int socket, Matrix& mat, const std::string& err)
     mat.resize(length, width);
     
     for( int i = 0; i <= mat.getWidth(); ++i ){
-        recvfrom(socket, mat.matrix[i], (mat.getLength() + 1)*sizeof(int), 0, NULL, NULL);
+        ssize_t bytes_read = recvfrom(socket, mat.matrix[i], (mat.getLength() + 1)*sizeof(int), MSG_WAITALL, NULL, NULL);
+        if( bytes_read !=  (mat.getLength() + 1)*sizeof(int) ) {
+            throw std::runtime_error(std::string("Error reading section " + toString(i) + " of the matrix"));
+        }
     }
 }
 
@@ -163,6 +168,31 @@ void readQueryResponse(std::istream& sock, QueryResponse& resp)
     }
 }
 
+void readGenomeList(std::istream& sock, std::vector<std::string>& genome_names)
+{
+    unsigned name_count;
+    readItem(sock, name_count);
+    genome_names.reserve(name_count);
+    for( unsigned i = 0; i < name_count; ++i )
+    {
+        std::string buff = readString(sock);
+        genome_names.push_back(buff);
+    }
+}
+
+void readGenomeList(int sock, std::vector<std::string>& genome_names)
+{
+    unsigned name_count;
+    readItem(sock, name_count, "Error reading number of genomes in list");
+    genome_names.reserve(name_count);
+    for( unsigned i = 0; i < name_count; ++i )
+    {
+        std::string buff = readString(sock, "Error reading genome name");
+        genome_names.push_back(buff);
+    }
+}
+
+
 //name is the name of the string
 //length is the length of the genome
 void StorageProtocolImpl::createNewGenome(const std::string& name, unsigned length)
@@ -198,7 +228,6 @@ bool StorageProtocolImpl::insertSolution(const ProblemDescription& prob, const S
     sendItem(socket, static_cast<message_id_t>(STORE_NEW_SOLUTION_ID));
     sendProblemDescription(socket, prob, "Error sending problem description of a solution");
     sendSolution(socket, solution, "Error. Could not insert solution to storage.");
-    socket.flush();
     
     message_id_t responseMessage;
     readItem(socket, responseMessage);
@@ -272,4 +301,45 @@ std::vector<char> StorageProtocolImpl::queryByName(const std::string& name, int 
     readVector(socket, genome);
 
     return genome;
+}
+
+ProblemID StorageProtocolImpl::getNextSolutionID()
+{
+    sendItem(socket, static_cast<message_id_t>(STORE_MAX_SOL_REQUEST_ID));
+    
+    message_id_t msg_id;
+    readItem(socket, msg_id);
+    if( msg_id != STORE_MAX_SOL_RESPONSE_ID )
+    {
+        std::cerr << "Error. Storage responded to max solution ID request with message type " << toString(msg_id) << "\n";
+        throw std::runtime_error(std::string("Storage responded to max solution ID request with message type ") + toString(msg_id));
+    }
+    
+    ProblemID id;
+    readItem(socket, id);
+    return id;
+}
+
+void StorageProtocolImpl::getGenomeList(std::map<std::string, int>& genome_list)
+{
+    sendItem(socket, static_cast<message_id_t>(GENOME_LIST_REQUEST_ID));
+    
+    message_id_t responseMessage;
+    readItem(socket, responseMessage);
+    if( responseMessage != GENOME_LIST_RESPONSE_ID )
+    {
+        std::cerr << "Error. Storage responded to genome list request with message type " << toString(responseMessage) << "\n";
+        throw std::runtime_error(std::string("Storage responded to genome list request with message type ") + toString(responseMessage));
+    }
+    
+    unsigned name_count;
+    readItem(socket, name_count);
+    //genome_list.reserve(name_count);
+    for( unsigned i = 0; i < name_count; ++i )
+    {
+        std::string buff = readString(socket);
+        int length;
+        readItem(socket, length, "Error reading genome length");
+        genome_list.insert(std::make_pair(buff, length));
+    }
 }

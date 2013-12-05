@@ -1,7 +1,8 @@
 #ifndef __SCHEDULING_H__
 #define __SCHEDULING_H__
 
-#include <set>
+#include <map>
+#include <string>
 
 #include "common/problem.h"
 
@@ -30,7 +31,6 @@ namespace scheduler {
 
     };
 
-    
     /*class Job
     {
         std::set<Problem*> subproblems;
@@ -38,5 +38,8 @@ namespace scheduler {
     };*/
     
 }
+
+extern ProblemID problemNumber;
+extern std::map<std::string, int> nameToGenomeLength;
 
 #endif /* __SCHEDULING_H__ */
