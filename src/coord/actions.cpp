@@ -21,6 +21,9 @@ int problemNumber = 0;
 std::map<ProblemID, scheduler::Problem> problemsInProgress;
 std::map<ProblemID, SolutionCertificate> solvedProblems;
 
+// Problem parts that are not ready to be thrown into the problemList
+std::map<ProblemID, scheduler::Problem> lockedProblemChunks;
+
 // List of workers that are ready for a new problem.
 std::vector<LeaderWorkerProtocol *> availableWorkers;
 
@@ -108,6 +111,24 @@ void WorkerActionImpl::recieveSolution(const SolutionCertificate& solution)
     QueryResponse * resp = storage->queryByProblemID(solution.solutionID, true);
     if( resp->success == false || resp->exactMatch == false || resp->sol == NULL )
         throw std::runtime_error("Error getting the solution from storage");
+
+    
+    //TODO need to check the solution against our lockedProblemChunks
+    scheduler::Problem currentChunk =  lockedProblemChunks[resp->problemDescription.problemID];
+    Solution* currentSolution = resp->sol;
+    int** currentMatrix = currentSolution->matrix.matrix;
+    
+
+    currentChunk.right->left = true;
+    currentChunk.down->up = true;
+    currentChunk.right_down->left_up = true;
+    
+    
+
+
+
+
+
     problem.requestor->sendLocalAlignResponse(*(resp->sol));
     delete resp;
 
@@ -172,14 +193,20 @@ void ClientActionImpl::alignmentRequest(const std::string& first, const std::str
     int divisionConstant = 2;
     int firstLength = nameToGenomeLength.find(first)->second;
     int secondLength = nameToGenomeLength.find(second)->second;
-
-    if(firstLength <= 1 || secondLength <= 1)
-    {
+    if(firstLength <= 1 || secondLength <= 1) {
         divisionConstant = 1;
     }
 
     //We allocate a problem chunk matrix to keep track of it all.
-    scheduler::Problem problemChunkMatrix[divisionConstant][divisionConstant];    
+    std::vector<std::vector<scheduler::Problem> > problemChunkMatrix;
+    for(int i = 0; i < divisionConstant; i++) {
+        problemChunkMatrix.push_back(std::vector<scheduler::Problem>());
+        for(int j = 0; j < divisionConstant; j++){
+            problemChunkMatrix[i].push_back(scheduler::Problem());
+        }
+    }
+
+
     int firstSubLength = firstLength / divisionConstant;
     int secondSubLength = secondLength / divisionConstant;
 
@@ -192,73 +219,54 @@ void ClientActionImpl::alignmentRequest(const std::string& first, const std::str
         {
             int secondIndex = i * secondSubLength;
             std::string secondChunk = second.substr(secondIndex, secondSubLength);         
-            scheduler::Problem problem = scheduler::Problem();
-            problem.problemID = problemNumber;
+            problemChunkMatrix[i][j].problemID = problemNumber;
             problemNumber++;
 
             std::vector<char> top_genome = storage->queryByName(first, firstIndex, firstChunk.length());
             std::vector<char> left_genome = storage->queryByName(second, secondIndex, secondChunk.length());
-            problem.top_genome = top_genome;
-            problem.left_genome = left_genome;
-
-            problem.requestor = client;
-            problemChunkMatrix[i][j] = problem;
+            problemChunkMatrix[i][j].top_genome = top_genome;
+            problemChunkMatrix[i][j].left_genome = left_genome;
+            problemChunkMatrix[i][j].requestor = client;
             
-            if(i > 0){
-                problemChunkMatrix[i-1][j].down = &problem;
+            if(i > 0) {
+                problemChunkMatrix[i-1][j].down = &problemChunkMatrix[i][j];
             }
-            if(j > 0){
-                problemChunkMatrix[i][j-1].right = &problem;
+            if(j > 0) {
+                problemChunkMatrix[i][j-1].right = &problemChunkMatrix[i][j];
             }
-            if(i > 0 && j > 0){
-                problemChunkMatrix[i-1][j-1].right_down = &problem;
+            if(i > 0 && j > 0) {
+                problemChunkMatrix[i-1][j-1].right_down = &problemChunkMatrix[i][j];
             }
-            if(i > 0 || j > 0){
+            if(i > 0 || j > 0) {
                 problemChunkMatrix[i][j].first = &problemChunkMatrix[0][0];
             }
+            
+            // Im currently including all chunks in lockedProblemChunks. Including (0, 0)
+            lockedProblemChunks[problemChunkMatrix[i][j].problemID] = problemChunkMatrix[i][j];
         }
     }
+    
+    // Initialize all the top numbers.
+    for(int j = 0; j < divisionConstant; j++)
+    {
+        problemChunkMatrix[0][j].up = true;
+        for(unsigned int k=0; k< problemChunkMatrix[0][j].top_genome.size(); k++){
+            problemChunkMatrix[0][j].top_numbers.push_back(0);
+        }
+    }
+
+    // Initialize all the left numbers.
+    for(int i = 0; i < divisionConstant; i++)
+    {
+        problemChunkMatrix[i][0].left = true;
+        for(unsigned int k=0; k< problemChunkMatrix[i][0].left_genome.size(); k++){
+            problemChunkMatrix[i][0].left_numbers.push_back(0);
+        }
+    }
+
     scheduler::Problem firstProblem = problemChunkMatrix[0][0];
-    for(unsigned int k=0; k< firstProblem.top_genome.size(); k++){
-        firstProblem.top_numbers.push_back(0);
-    }
-    for(unsigned int k=0; k< firstProblem.left_genome.size(); k++){
-        firstProblem.left_numbers.push_back(0);
-    }
-    problemList.insert(std::pair<ProblemID, scheduler::Problem>(firstProblem.problemID,problem);
-    
-
-    int firstStartIndex = 0;
-    int secondStartIndex = 0;
-    
-    
-
-
-
-    // generate problem descriptions from the given problem. Add it to problemList.
-    scheduler::Problem problem = scheduler::Problem();
-    problem.problemID = problemNumber;
-    problemNumber++;
-
-    std::vector<char> top_genome = storage->queryByName(first, firstStartIndex, firstLength);
-    std::vector<char> left_genome = storage->queryByName(second, secondStartIndex, secondLength);
-    
-    problem.top_genome = top_genome;
-    problem.left_genome = left_genome;
-
-    for(unsigned int i=0; i< top_genome.size(); i++){
-        problem.top_numbers.push_back(0);
-    }
-    for(unsigned int i=0; i< left_genome.size(); i++){
-        problem.left_numbers.push_back(0);
-    }
-    problem.requestor = client;
-
-    problemList.insert(std::pair<ProblemID, scheduler::Problem>(problem.problemID, problem));
-
-    // The response will get sent back to the client when the solution
-    // is given to us by a worker.
-
+    problemList.insert(std::pair<ProblemID, scheduler::Problem>(firstProblem.problemID,firstProblem));
+                       
 
     // Make a list of problems on the spot
     std::vector<ProblemDescription> tempProblemList;
