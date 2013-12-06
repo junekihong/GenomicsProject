@@ -33,7 +33,9 @@ void Matrix::allocateMatrix()
     matrix.resize(width+1);
     for(int i = 0; i <= width; i++)
     {
-        std::cout << "Setting matrix row to length " << length + 1 << "\n";
+#ifdef DEBUG
+        std::cout << "Setting matrix row length to " << length + 1 << "\n";
+#endif
         matrix[i].resize(length + 1);
     }    
 }
