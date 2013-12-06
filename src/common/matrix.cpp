@@ -3,7 +3,7 @@
 #include <cstring>
 
 Matrix::Matrix()
-: length(0), width(0), matrix(NULL)
+: length(0), width(0), matrix()
 {
     allocateMatrix();
 }
@@ -23,7 +23,7 @@ Matrix::Matrix(const std::vector<int>& topNumbers, const std::vector<int>& leftN
 }
 
 Matrix::Matrix(const Matrix& other)
-: length(0), width(0), matrix(NULL)
+: length(0), width(0), matrix()
 {
     (*this) = other;
 }
@@ -33,6 +33,7 @@ void Matrix::allocateMatrix()
     matrix.resize(width+1);
     for(int i = 0; i <= width; i++)
     {
+        std::cout << "Setting matrix row to length " << length + 1 << "\n";
         matrix[i].resize(length + 1);
     }    
 }
