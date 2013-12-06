@@ -1,10 +1,10 @@
-CXXFLAGS+=-g -pedantic -Wall -Wextra -std=c++98 -DBOOST_ASIO_DISABLE_THREADS -I.. -Wno-c++11-long-long
+CXXFLAGS+=-g -Wall -Wextra -std=c++98 -DBOOST_ASIO_DISABLE_THREADS -I.. -Wno-c++11-long-long -I ../../lib/msgpack/src -Wno-long-long
 CXXFLAGS+=-DDEBUG
 
 TARGET=mdpw
 OBJECTS=$(patsubst %.cpp,%.o,$(wildcard *.cpp)) ../common/problem.o ../common/protocol.o \
     ../common/cmd_options.o ../common/matrix.o ../common/connect.o
-LDFLAGS+=-lboost_program_options -lboost_system
+LDFLAGS+=-lboost_program_options -lboost_system -g
 
 all: $(TARGET)
 
@@ -24,7 +24,7 @@ mdpw.o: mdpw.cpp cmd_options.h protocol.h protocol_impl.h worker.h
 
 $(TARGET) : $(OBJECTS)
 	cd ../common; make
-	$(CXX) $^ $(LDFLAGS) -o $(TARGET)
+	$(CXX) $^ $(LDFLAGS) ../../lib/msgpack/src/.libs/libmsgpack.a -o $(TARGET)
 
 .PHONY: clean
 clean:

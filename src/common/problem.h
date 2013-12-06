@@ -3,6 +3,8 @@
 
 #include <vector>
 
+#include <msgpack.hpp>
+
 class ProblemID
 {
     public:
@@ -32,6 +34,8 @@ class ProblemID
     void increment() {
         idnum++;
     }
+    
+    MSGPACK_DEFINE(idnum)
 };
 
 class ProblemDescription
@@ -43,8 +47,8 @@ class ProblemDescription
     
 	std::vector<int> top_numbers;
 	std::vector<int> left_numbers;
-	std::vector<char> top_genome;
-	std::vector<char> left_genome;
+	std::vector<unsigned char> top_genome;
+	std::vector<unsigned char> left_genome;
 
     void operator=(const ProblemDescription &x)
     {
@@ -65,6 +69,8 @@ class ProblemDescription
     {
         return problemID < other.problemID;
     }
+    
+    MSGPACK_DEFINE(problemID, corner, top_numbers, left_numbers, top_genome, left_genome)
 };
 
     

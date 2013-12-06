@@ -5,6 +5,8 @@
 
 #include <boost/asio/ip/tcp.hpp>
 
+#include <msgpack.hpp>
+
 #include "common/cmd_options.h"
 #include "common/connect.h"
 #include "common/protocol.h"
@@ -89,7 +91,7 @@ void connect_to_leader(tcp::iostream& leader)
 {
     connect_server(leader, leaderEndpoint, "leader");
     const int announce = ANNOUNCE_CLIENT;
-    sendItem(leader, announce);
+    leader.write(reinterpret_cast<const char*>(&announce), sizeof(announce));
     if( !leader ) {
         throw std::runtime_error("Error announcing to the leader");
     }
@@ -131,24 +133,20 @@ void handle_genome_upload(const std::string& filename, const std::string& name)
     std::string genome = readFastaString(dna_file);
     dna_file.close();
     
+    msgpack::sbuffer sbuf;
     message_id_t msg_id = GENOME_UPLOAD_START_ID;
-    sendItem(leader, msg_id);
+    msgpack::pack(&sbuf, msg_id);
+    msgpack::pack(&sbuf, name);
+    msgpack::pack(&sbuf, static_cast<unsigned>(genome.size())); // FIXME loses precision
+    sendBuffer(leader, sbuf);
     
-    sendString(leader, name);
-    
-    unsigned size = static_cast<unsigned>(genome.size()); // FIXME loses precision
-    sendItem(leader, size);
     for( unsigned cur_idx = 0; cur_idx < genome.size(); cur_idx += BUFF_SIZE )
     {
         unsigned cur_chunk = std::min<unsigned>(static_cast<unsigned>(genome.size()) - cur_idx, BUFF_SIZE);
         leader.write(genome.data() + cur_idx, cur_chunk);
     }
     
-    readItem(leader, msg_id);
-    if(UPLOAD_REQUEST_RECIEVED_ID == msg_id)
-    {
-        // the upload is sucessful. We have recieved an ACK back from the leader. And it matches.
-    }
+    receive_ack(leader, UPLOAD_REQUEST_RECIEVED_ID);
 }
 
 void handle_genome_list()
@@ -156,17 +154,19 @@ void handle_genome_list()
     tcp::iostream leader;
     connect_to_leader(leader);
     
-    message_id_t msg_id = GENOME_LIST_REQUEST_ID;
-    sendItem(leader, msg_id);
+    send_ack(leader, GENOME_LIST_REQUEST_ID);
     
-    readItem(leader, msg_id);
+    msgpack::unpacker unpack;
+    readBuffer(leader, unpack);
+    message_id_t msg_id;
+    read(unpack, msg_id);
     if( msg_id != GENOME_LIST_RESPONSE_ID )
     {
         throw std::runtime_error("Requested the genome list but got back message type " + toString(msg_id) + " instead");
     }
     
     std::vector<std::string> genome_names;
-    readGenomeList(leader, genome_names);
+    read(unpack, genome_names);
     
     std::cout << "There are " << genome_names.size() << " genomes.\n";
     for( unsigned i = 0; i < genome_names.size(); ++i )
@@ -188,21 +188,22 @@ void handle_local_align_args(std::vector<std::string>::iterator& arg_iter)
     tcp::iostream leader;
     connect_to_leader(leader);
     
+    msgpack::sbuffer sbuf;
     message_id_t msg_id = LOCAL_ALIGN_START_ID;
-    sendItem(leader, msg_id);
+    msgpack::pack(&sbuf, msg_id);
     
-    sendItem(leader, static_cast<unsigned>(first.size()));
-    leader.write(first.data(), first.size());
+    msgpack::pack(&sbuf, first);
+    msgpack::pack(&sbuf, second);
+    sendBuffer(leader, sbuf);
     
-    sendItem(leader, static_cast<unsigned>(second.size()));
-    leader.write(second.data(), second.size());
-    
-    readItem(leader, msg_id);
+    msgpack::unpacker unpack;
+    readBuffer(leader, unpack);
+    read(unpack, msg_id);
     if( msg_id != LOCAL_ALIGN_FINISH_ID )
         throw std::runtime_error("Started");
     
     Solution sol;
-    readSolution(leader, sol, "Error reading alignment solution");
+    read(unpack, sol);
     
     std::cout << "Maximum value " << sol.maxValue << " at location (" << sol.maxValueLocation.column << ", " << sol.maxValueLocation.row << ")\n";
     std::cout << sol.matrix << "\n";

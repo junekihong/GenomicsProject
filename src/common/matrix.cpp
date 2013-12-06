@@ -3,13 +3,13 @@
 #include <cstring>
 
 Matrix::Matrix()
-: length(0), width(0), matrix(NULL)
+: length(0), width(0), matrix()
 {
     allocateMatrix();
 }
   
 Matrix::Matrix(int _length, int _width)
-: length(_length), width(_width), matrix(NULL)
+: length(_length), width(_width), matrix()
 {
     allocateMatrix();
 }
@@ -23,27 +23,23 @@ Matrix::Matrix(const std::vector<int>& topNumbers, const std::vector<int>& leftN
 }
 
 Matrix::Matrix(const Matrix& other)
-: length(0), width(0), matrix(NULL)
+: length(0), width(0), matrix()
 {
     (*this) = other;
 }
 
 void Matrix::allocateMatrix()
 {
-    matrix = (int**)calloc(width + 1, sizeof(int*));
+    matrix.resize(width+1);
     for(int i = 0; i <= width; i++)
     {
-        matrix[i] = (int*)calloc(length + 1, sizeof(int));
+        std::cout << "Setting matrix row to length " << length + 1 << "\n";
+        matrix[i].resize(length + 1);
     }    
 }
 
 Matrix::~Matrix()
 {
-    for(int i = 0; i <= width; i++)
-    {
-        free(matrix[i]);
-    }
-    free(matrix);
 }
 
 
@@ -59,8 +55,6 @@ void Matrix::initialize(const std::vector<int>& topNumbers, const std::vector<in
 
 void Matrix::resize(int newLength, int newWidth)
 {
-    if( matrix )
-        this->~Matrix();
     length = newLength;
     width = newWidth;
     allocateMatrix();
@@ -81,7 +75,7 @@ std::ostream& operator<<(std::ostream& os, const Matrix& matrix)
 }
 
 
-LocationValuePair Matrix::localAlignment(std::vector<char>& topGenome, std::vector<char>& leftGenome)
+LocationValuePair Matrix::localAlignment(std::vector<unsigned char>& topGenome, std::vector<unsigned char>& leftGenome)
 {
     LocationValuePair pair;
     Location location;
@@ -128,10 +122,7 @@ LocationValuePair Matrix::localAlignment(std::vector<char>& topGenome, std::vect
 Matrix& Matrix::operator=(const Matrix& other)
 {
     resize(other.length, other.width);
-    for( int i = 0; i <= width; ++i )
-    {
-        memcpy(matrix[i], other.matrix[i], sizeof(int) * (length + 1));
-    }
+    matrix = other.matrix;
     return *this;
 }
 

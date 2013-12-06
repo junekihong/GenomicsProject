@@ -1,6 +1,8 @@
 #ifndef __LOCATION_H__
 #define __LOCATION_H__
 
+#include <msgpack.hpp>
+
 // Location class. Contains a row and column index.
 class Location
 {
@@ -15,6 +17,8 @@ public:
     Location(int r, int c)
         : row(r), column(c)
     { }
+    
+    MSGPACK_DEFINE(row, column);
 };
 
 
