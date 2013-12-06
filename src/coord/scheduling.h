@@ -34,6 +34,9 @@ namespace scheduler {
         // Pointer back up to the job that is keeping track of it.
         Job* job;
 
+        // The solution is stored if we get one.
+        Solution solution;
+
     };
 
     class Job
@@ -50,7 +53,7 @@ namespace scheduler {
     
     public:
         Job();
-        Job(std::vector<char> first, std::vector<char> second, LeaderClientProtocol* requestor, ProblemID problemNumber, int divisionConstant);
+        Job(std::vector<unsigned char> first, std::vector<unsigned char> second, LeaderClientProtocol* requestor, ProblemID problemNumber, int divisionConstant);
         
         std::vector<Problem> getAvailableProblems();
 
@@ -59,7 +62,6 @@ namespace scheduler {
         Solution combineChunks();
 
     };
-    
 }
 
 extern ProblemID problemNumber;

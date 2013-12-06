@@ -17,6 +17,9 @@ scheduler::Problem::Problem()
     left = false;
     up = false;
     left_up = false;
+    
+    job = NULL;
+    solution = Solution();
 }
 
 scheduler::Job::Job()
@@ -25,7 +28,7 @@ scheduler::Job::Job()
     finished = false;
 }
 
-scheduler::Job::Job(std::vector<char> genome1, std::vector<char> genome2, LeaderClientProtocol* requestor, ProblemID problemNumber, int divisionConstant)
+scheduler::Job::Job(std::vector<unsigned char> genome1, std::vector<unsigned char> genome2, LeaderClientProtocol* requestor, ProblemID problemNumber, int divisionConstant)
 {
     client = requestor;
     finished = false;
@@ -48,7 +51,7 @@ scheduler::Job::Job(std::vector<char> genome1, std::vector<char> genome2, Leader
         if(offset > genome1.size()){
             offset = genome1.size();
         }
-        std::vector<char> firstChunk = std::vector<char>(genome1.begin() + firstIndex, genome1.begin() + offset);
+        std::vector<unsigned char> firstChunk = std::vector<unsigned char>(genome1.begin() + firstIndex, genome1.begin() + offset);
         
         for(int i = 0; i < divisionConstant; i++)
         {
@@ -57,7 +60,7 @@ scheduler::Job::Job(std::vector<char> genome1, std::vector<char> genome2, Leader
             if(offset2 > genome2.size()){
                 offset2 = genome2.size();
             }
-            std::vector<char> secondChunk = std::vector<char>(genome2.begin() + secondIndex, genome2.begin() + offset2);
+            std::vector<unsigned char> secondChunk = std::vector<unsigned char>(genome2.begin() + secondIndex, genome2.begin() + offset2);
             
             subproblemMatrix[i][j].top_genome = firstChunk;
             subproblemMatrix[i][j].left_genome = secondChunk;
@@ -123,6 +126,8 @@ void scheduler::Job::update(ProblemID problemID, Solution solution)
 {
     Problem currentChunk = problemMap[problemID];
     Matrix currentMatrix = solution.matrix;
+
+    currentChunk.solution = solution;
     
     std::vector<int> lastRow;
     for(int i = 1; i <= currentMatrix.getLength(); i++)
@@ -178,6 +183,44 @@ void scheduler::Job::update(ProblemID problemID, Solution solution)
 
 Solution scheduler::Job::combineChunks()
 {
+    Solution solution;
+    Matrix matrix;
 
-    return Solution();
+    scheduler::Problem firstProblem = subproblemMatrix[0][0];
+    solution.id = firstProblem.solution.id;
+    solution.maxValue = firstProblem.solution.maxValue;
+    solution.maxValueLocation = firstProblem.solution.maxValueLocation;
+
+    int length = 0;
+    int width = 0;
+    for(unsigned int i = 0; i < subproblemMatrix.size(); i++) {
+        width += subproblemMatrix[i][0].solution.matrix.getWidth();
+    }
+    for(unsigned int j = 0; j < subproblemMatrix[0].size(); j++){
+        length += subproblemMatrix[0][j].solution.matrix.getLength();
+    }
+    matrix = Matrix(length, width);
+
+    int chunkLength = subproblemMatrix[0][0].solution.matrix.getLength();
+    int chunkWidth = subproblemMatrix[0][0].solution.matrix.getWidth();
+
+    for(unsigned int i = 0; i < subproblemMatrix.size(); i++)
+    {
+        std::vector<scheduler::Problem> row = subproblemMatrix[i];
+        for(unsigned int j = 0; j < row.size(); j++)
+        {
+            scheduler::Problem problem = subproblemMatrix[i][j];
+            matrixCopy(matrix, problem.solution.matrix, chunkLength*j, chunkWidth*i);
+            if(problem.solution.maxValue > solution.maxValue)
+            {
+                solution.maxValue = problem.solution.maxValue;
+                solution.maxValueLocation = problem.solution.maxValueLocation;
+            }
+        }
+    }
+
+    solution.matrix = matrix;
+    return solution;
 }
+
+
