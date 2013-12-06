@@ -52,5 +52,10 @@ class Matrix
 
 std::ostream& operator<<(std::ostream& os, const Matrix& matrix);
 
+
+void matrixCopy(Matrix bigger, Matrix smaller, int lengthOffset, int widthOffset);
+
+
+
 #endif //__MATRIX_H__
 

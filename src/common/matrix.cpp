@@ -126,3 +126,15 @@ Matrix& Matrix::operator=(const Matrix& other)
     return *this;
 }
 
+
+
+void matrixCopy(Matrix bigger, Matrix smaller, int lengthOffset, int widthOffset)
+{
+    for(int i = 0; i < smaller.getWidth(); i++)
+    {
+        for(int j = 0; j < smaller.getLength(); j++)
+        {
+            bigger.matrix[i+lengthOffset][j+widthOffset] = smaller.matrix[i][j];
+        }
+    }
+}
