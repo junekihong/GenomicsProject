@@ -13,6 +13,9 @@ typedef std::vector<ProblemID>::const_iterator ProbIter;
 // The list of problems.
 std::map<ProblemID, scheduler::Problem> problemList;
 
+// The list of jobs.
+std::vector<scheduler::Job> jobs;
+
 ProblemID problemNumber(0);
 
 // Names of genomes.
@@ -21,9 +24,6 @@ std::map<std::string, int> nameToGenomeLength;
 
 std::map<ProblemID, scheduler::Problem> problemsInProgress;
 std::map<ProblemID, SolutionCertificate> solvedProblems;
-
-// Problem parts that are not ready to be thrown into the problemList
-std::map<ProblemID, scheduler::Problem> lockedProblemChunks;
 
 // List of workers that are ready for a new problem.
 std::vector<LeaderWorkerProtocol *> availableWorkers;
@@ -115,21 +115,46 @@ void WorkerActionImpl::recieveSolution(const SolutionCertificate& solution)
 
     
     //TODO need to check the solution against our lockedProblemChunks
-    scheduler::Problem currentChunk =  lockedProblemChunks[resp->problemDescription.problemID];
-    Solution* currentSolution = resp->sol;
-    int** currentMatrix = currentSolution->matrix.matrix;
+    ProblemID problemID = resp->problemDescription.problemID;
+    scheduler::Job job;
+    bool foundJob = false;
+    for(unsigned int i = 0; i < jobs.size(); i++)
+    {
+        job = jobs[i];
+        if(job.problemMap.find(problemID) != job.problemMap.end())
+        {
+            foundJob = true;
+            break;
+        }
+    }
+
+    if(foundJob)
+    {
+        job.update(problemID, *(resp->sol));
+        std::vector<scheduler::Problem> newProblems = job.getAvailableProblems();
+        for(unsigned int i = 0; i < newProblems.size(); i++)
+        {
+            scheduler::Problem problem = newProblems[i];
+            problemList[problem.problemID] = problem;
+        }
+        
+        if(job.finished)
+        {
+            Solution solution = job.combineChunks();
+            
+            job.client->sendLocalAlignResponse(solution);
+            destroy_socket(job.client->getSocket());
+        }
+        
+    }
+    else 
+    {
+        problem.requestor->sendLocalAlignResponse(*(resp->sol));
+        destroy_socket(problem.requestor->getSocket());
+    } 
+    delete resp;
+
     
-
-    currentChunk.right->left = true;
-    currentChunk.down->up = true;
-    currentChunk.right_down->left_up = true;
-    
-    
-
-
-
-
-
     problem.requestor->sendLocalAlignResponse(*(resp->sol));
     delete resp;
 
@@ -200,74 +225,17 @@ void ClientActionImpl::alignmentRequest(const std::string& first, const std::str
         divisionConstant = 1;
     }
 
-    //We allocate a problem chunk matrix to keep track of it all.
-    std::vector<std::vector<scheduler::Problem> > problemChunkMatrix;
-    for(int i = 0; i < divisionConstant; i++) {
-        problemChunkMatrix.push_back(std::vector<scheduler::Problem>());
-        for(int j = 0; j < divisionConstant; j++){
-            problemChunkMatrix[i].push_back(scheduler::Problem());
-        }
-    }
+    std::vector<char> genome1 = storage->queryByName(first, 0, firstLength);
+    std::vector<char> genome2 = storage->queryByName(second, 0, secondLength);
 
-    int firstSubLength = firstLength / divisionConstant;
-    int secondSubLength = secondLength / divisionConstant;
+    scheduler::Job job = scheduler::Job(genome1, genome2, client, problemNumber, divisionConstant);
+    jobs.push_back(job);
 
-    for(int j = 0; j < divisionConstant; j++)
-    {
-        int firstIndex = j * firstSubLength;
-        std::string firstChunk = first.substr(firstIndex, firstSubLength);
-        
-        for(int i = 0; i < divisionConstant; i++)
-        {
-            int secondIndex = i * secondSubLength;
-            std::string secondChunk = second.substr(secondIndex, secondSubLength);         
-            problemChunkMatrix[i][j].problemID = problemNumber;
-            problemNumber.increment();
-            
-            std::vector<char> top_genome = storage->queryByName(first, firstIndex, firstChunk.length());
-            std::vector<char> left_genome = storage->queryByName(second, secondIndex, secondChunk.length());
-            problemChunkMatrix[i][j].top_genome = top_genome;
-            problemChunkMatrix[i][j].left_genome = left_genome;
-            problemChunkMatrix[i][j].requestor = client;
-            
-            if(i > 0) {
-                problemChunkMatrix[i-1][j].down = &problemChunkMatrix[i][j];
-            }
-            if(j > 0) {
-                problemChunkMatrix[i][j-1].right = &problemChunkMatrix[i][j];
-            }
-            if(i > 0 && j > 0) {
-                problemChunkMatrix[i-1][j-1].right_down = &problemChunkMatrix[i][j];
-            }
-            if(i > 0 || j > 0) {
-                problemChunkMatrix[i][j].first = &problemChunkMatrix[0][0];
-            }
-            // Im currently including all chunks in lockedProblemChunks. Including (0, 0)
-            lockedProblemChunks[problemChunkMatrix[i][j].problemID] = problemChunkMatrix[i][j];
-        }
-    }        
-        
-    // Initialize all the top numbers.
-    for(int j = 0; j < divisionConstant; j++)
-    {
-        problemChunkMatrix[0][j].up = true;
-        for(unsigned int k=0; k< problemChunkMatrix[0][j].top_genome.size(); k++){
-            problemChunkMatrix[0][j].top_numbers.push_back(0);
-        }
+    std::vector<scheduler::Problem> availableProblems = job.getAvailableProblems();
+    for(unsigned int i = 0; i < availableProblems.size(); i++){
+        scheduler::Problem problem = availableProblems[i];
+        problemList.insert(std::pair<ProblemID, scheduler::Problem>(problem.problemID, problem));
     }
-    
-    // Initialize all the left numbers.
-    for(int i = 0; i < divisionConstant; i++)
-    {
-        problemChunkMatrix[i][0].left = true;
-        for(unsigned int k=0; k< problemChunkMatrix[i][0].left_genome.size(); k++){
-            problemChunkMatrix[i][0].left_numbers.push_back(0);
-        }
-    }
-
-    scheduler::Problem firstProblem = problemChunkMatrix[0][0];
-    problemList.insert(std::pair<ProblemID, scheduler::Problem>(firstProblem.problemID,firstProblem));
-                       
 
     // Make a list of problems on the spot
     std::vector<ProblemDescription> tempProblemList;

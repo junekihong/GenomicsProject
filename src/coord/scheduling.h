@@ -5,10 +5,12 @@
 #include <string>
 
 #include "common/problem.h"
+#include "common/solution.h"
 
 class LeaderClientProtocol;
 
 namespace scheduler {
+    class Job;
 
     class Problem : public ProblemDescription
     {
@@ -27,15 +29,36 @@ namespace scheduler {
         bool left_up;
 
         // The first problem. We use this to start at the beginning and put together the entire matrix.
-        ProblemDescription * first;
+        Problem * first;
+
+        // Pointer back up to the job that is keeping track of it.
+        Job* job;
 
     };
 
-    /*class Job
+    class Job
     {
-        std::set<Problem*> subproblems;
-        std::set<Problem*> initialProblems;
-    };*/
+    public:
+        std::vector<std::vector<Problem> > subproblemMatrix;
+        std::vector<Problem> availableProblems;
+        std::map<ProblemID, Problem> problemMap;
+
+        int divisionConstant;
+        LeaderClientProtocol* client;
+    
+        bool finished;
+    
+    public:
+        Job();
+        Job(std::vector<char> first, std::vector<char> second, LeaderClientProtocol* requestor, ProblemID problemNumber, int divisionConstant);
+        
+        std::vector<Problem> getAvailableProblems();
+
+        void update(ProblemID problemID, Solution solution);
+        
+        Solution combineChunks();
+
+    };
     
 }
 
