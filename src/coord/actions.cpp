@@ -153,12 +153,6 @@ void WorkerActionImpl::recieveSolution(const SolutionCertificate& solution)
         destroy_socket(problem.requestor->getSocket());
     } 
     delete resp;
-
-    
-    problem.requestor->sendLocalAlignResponse(*(resp->sol));
-    delete resp;
-
-    destroy_socket(problem.requestor->getSocket());
 }
 
 
@@ -224,8 +218,9 @@ void ClientActionImpl::alignmentRequest(const std::string& first, const std::str
         divisionConstant = 1;
     }
 
-    std::vector<char> genome1 = storage->queryByName(first, 0, firstLength);
-    std::vector<char> genome2 = storage->queryByName(second, 0, secondLength);
+    std::vector<unsigned char> genome1 = storage->queryByName(first, 0, firstLength);
+    std::vector<unsigned char> genome2 = storage->queryByName(second, 0, secondLength);
+
 
     scheduler::Job job = scheduler::Job(genome1, genome2, client, problemNumber, divisionConstant);
     jobs.push_back(job);
