@@ -42,11 +42,13 @@ void initializeGenomeSystem()
         genomes.insert(std::pair<std::string, GenomeInfo>(name, GenomeInfo(name, length)));
     }
     
+#ifdef DEBUG
     std::cout << "Genome list (" << genomes.size() << ") :\n";
     for( std::map<std::string, GenomeInfo>::iterator iter = genomes.begin(); iter != genomes.end(); ++iter)
     {
         std::cout << iter->first << "\n";
     }
+#endif
 }
 
 void createGenome(const std::string& name, unsigned length)

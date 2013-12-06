@@ -31,10 +31,10 @@ int main(int argc, const char* argv[])
 {
     int myport = parse_options(argc, argv);
     
-    std::cout << "Starting genomes\n";
+    std::cout << "Reading genomes...\n";
     std::cout.flush();
     initializeGenomeSystem();
-    std::cout << "Starting solution\n";
+    std::cout << "Reading solution...\n";
     initializeSolutionSystem();
     std::cout << "Got solutions\n";
     
@@ -52,9 +52,7 @@ int main(int argc, const char* argv[])
         for(;;)
         {
             temp_mask = mask;
-            std::cout << "going in to select\n";
             int num = select(FD_SETSIZE, &temp_mask, &dummy_mask, &dummy_mask, NULL);
-            std::cout << "awoke from select!\n";
             if( num > 0 )
             {
                 if( FD_ISSET(listen_socket, &temp_mask) )
