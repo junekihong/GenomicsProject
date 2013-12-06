@@ -28,6 +28,8 @@ public:
     CompleteSolution(const ProblemDescription& d, const Solution& s)
     : desc(d), sol(s)
     { }
+    
+    MSGPACK_DEFINE(desc, sol);
 };
 
 static bool compare_top_numbers(const CompleteSolution* left, const CompleteSolution * right)
@@ -81,6 +83,7 @@ void initializeSolutionSystem()
     }
     
     // solution root exists, so find the solutions in it
+    msgpack::zone z;
     boost::filesystem::directory_iterator dir_end = boost::filesystem::directory_iterator();
     for( boost::filesystem::directory_iterator iter = boost::filesystem::directory_iterator(solutionRoot);
         iter != dir_end;
@@ -91,10 +94,14 @@ void initializeSolutionSystem()
         if( !name.size() || name[0] == '.' )
             continue;
         std::ifstream input(iter->path().generic_string<std::string>().c_str());
+        boost::uintmax_t length = file_size(iter->path());
+        msgpack::unpacker unpack(length);
+        input.read(unpack.buffer(), length);
+        input.close();
+        unpack.buffer_consumed(length);
         
         CompleteSolution * sol = new CompleteSolution;
-        readProblemDescription(input, sol->desc);
-        readSolution(input, sol->sol, "Error reading solution");
+        read(unpack, *sol);
         
         solutionById[sol->sol.id] = sol;
         topNumberIndex.insert(sol);
@@ -118,9 +125,10 @@ void insertSolution(const ProblemDescription& prob, const Solution& s)
     topGenomeIndex.insert(sol);
     leftGenomeIndex.insert(sol);
     
+    msgpack::sbuffer sbuf;
+    msgpack::pack(&sbuf, *sol);
     std::ofstream strm((solutionRoot / toString(sol->sol.id.idnum)).generic_string<std::string>().c_str());
-    sendProblemDescription(strm, prob, "Error writing problem description " + toString(prob.problemID.idnum));
-    sendSolution(strm, s, "Error writing solution " + toString(sol->sol.id.idnum));
+    strm.write(sbuf.data(), sbuf.size());
 }
 
 void queryByID(ProblemID id, bool solution_wanted, QueryResponse& resp)

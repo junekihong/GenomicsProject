@@ -6,6 +6,8 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
+#include <msgpack.hpp>
+
 #include "common/listen.h"
 #include "common/protocol.h"
 
@@ -15,22 +17,26 @@
 
 // TODO Doesn't handle sockets closing
 
-void handle_new_genome(int sock);
-void handle_new_data(int sock);
-void handle_new_solution(int sock);
-void handle_query_by_id(int sock);
-void handle_query_by_cond(int sock);
-void handle_genome_info_query(int sock);
-void handle_genome_content_query(int sock);
-void handle_max_solution(int sock);
-void handle_genome_list(int sock);
+void handle_new_genome(int sock, msgpack::unpacker& unpack);
+void handle_new_data(int sock, msgpack::unpacker& unpack);
+void handle_new_solution(int sock, msgpack::unpacker& unpack);
+void handle_query_by_id(int sock, msgpack::unpacker& unpack);
+void handle_query_by_cond(int sock, msgpack::unpacker& unpack);
+void handle_genome_info_query(int sock, msgpack::unpacker& unpack);
+void handle_genome_content_query(int sock, msgpack::unpacker& unpack);
+void handle_max_solution(int sock, msgpack::unpacker& unpack);
+void handle_genome_list(int sock, msgpack::unpacker& unpack);
 
 int main(int argc, const char* argv[])
 {
     int myport = parse_options(argc, argv);
     
+    std::cout << "Starting genomes\n";
+    std::cout.flush();
     initializeGenomeSystem();
+    std::cout << "Starting solution\n";
     initializeSolutionSystem();
+    std::cout << "Got solutions\n";
     
     try {
         int listen_socket = start_listening(myport);
@@ -46,7 +52,9 @@ int main(int argc, const char* argv[])
         for(;;)
         {
             temp_mask = mask;
+            std::cout << "going in to select\n";
             int num = select(FD_SETSIZE, &temp_mask, &dummy_mask, &dummy_mask, NULL);
+            std::cout << "awoke from select!\n";
             if( num > 0 )
             {
                 if( FD_ISSET(listen_socket, &temp_mask) )
@@ -61,47 +69,42 @@ int main(int argc, const char* argv[])
                     int cur_sock = *iter;
                     if( FD_ISSET(cur_sock, &temp_mask) )
                     {
+                        msgpack::unpacker unpack;
+                        readBuffer(cur_sock, unpack);
+                    
                         message_id_t msg_id;
-                        ssize_t bytes_read = recvfrom(cur_sock, &msg_id, sizeof(msg_id), MSG_WAITALL, NULL, NULL);
-                        if( bytes_read != sizeof(msg_id) )
+                        read(unpack, msg_id);
+                        switch( msg_id )
                         {
-                            std::cerr << "Error reading a message id\n";
-                            close(cur_sock);
-                            FD_CLR(cur_sock, &mask);
-                        }
-                        else {
-                            switch( msg_id )
-                            {
-                                case STORE_NEW_GENOME_ID:
-                                    handle_new_genome(cur_sock);
-                                    break;
-                                case STORE_NEW_DATA_ID:
-                                    handle_new_data(cur_sock);
-                                    break;
-                                case STORE_NEW_SOLUTION_ID:
-                                    handle_new_solution(cur_sock);
-                                    break;
-                                case STORE_QUERY_BY_ID_ID:
-                                    handle_query_by_id(cur_sock);
-                                    break;
-                                case STORE_QUERY_BY_COND_ID:
-                                    handle_query_by_cond(cur_sock);
-                                    break;
-                                case STORE_GENOME_INFO_QUERY_ID:
-                                    handle_genome_info_query(cur_sock);
-                                    break;
-                                case STORE_GENOME_CONTENT_QUERY_ID:
-                                    handle_genome_content_query(cur_sock);
-                                    break;
-                                case STORE_MAX_SOL_REQUEST_ID:
-                                    handle_max_solution(cur_sock);
-                                    break;
-                                case GENOME_LIST_REQUEST_ID:
-                                    handle_genome_list(cur_sock);
-                                    break;
-                                default:
-                                    std::cerr << "Unknown message type: " << msg_id << " from socket " << cur_sock << "\n";
-                            }
+                            case STORE_NEW_GENOME_ID:
+                                handle_new_genome(cur_sock, unpack);
+                                break;
+                            case STORE_NEW_DATA_ID:
+                                handle_new_data(cur_sock, unpack);
+                                break;
+                            case STORE_NEW_SOLUTION_ID:
+                                handle_new_solution(cur_sock, unpack);
+                                break;
+                            case STORE_QUERY_BY_ID_ID:
+                                handle_query_by_id(cur_sock, unpack);
+                                break;
+                            case STORE_QUERY_BY_COND_ID:
+                                handle_query_by_cond(cur_sock, unpack);
+                                break;
+                            case STORE_GENOME_INFO_QUERY_ID:
+                                handle_genome_info_query(cur_sock, unpack);
+                                break;
+                            case STORE_GENOME_CONTENT_QUERY_ID:
+                                handle_genome_content_query(cur_sock, unpack);
+                                break;
+                            case STORE_MAX_SOL_REQUEST_ID:
+                                handle_max_solution(cur_sock, unpack);
+                                break;
+                            case GENOME_LIST_REQUEST_ID:
+                                handle_genome_list(cur_sock, unpack);
+                                break;
+                            default:
+                                std::cerr << "Unknown message type: " << msg_id << " from socket " << cur_sock << "\n";
                         }
                     }
                 }
@@ -118,166 +121,167 @@ int main(int argc, const char* argv[])
     return 0;
 }
 
-void handle_new_genome(int sock)
+void handle_new_genome(int sock, msgpack::unpacker& unpack)
 {
 #ifdef DEBUG
     std::cout << "mdps.cpp: handling new genome.\n";
 #endif
-
-    std::string name = readString(sock, "the name of a new genome");
-    
+    std::string name;
     unsigned genome_length;
-    readItem(sock, genome_length, "Error reading the length of genome " + name);
+    
+    read(unpack, name);
+    read(unpack, genome_length);
     
     createGenome(name, genome_length);
 
-
-    message_id_t ack = STORE_QUERY_RESPONSE_ID;
-    sendItem(sock, ack, "Error. Could not send back an ACK to the leader for making a new genome.");
+    send_ack(sock, STORE_QUERY_RESPONSE_ID);
 }
 
-void handle_new_data(int sock)
+void handle_new_data(int sock, msgpack::unpacker& unpack)
 {
 #ifdef DEBUG
     std::cout << "mdps.cpp: handling new data.\n";
 #endif
-
-    std::string name = readString(sock, "the name of the genome currently uploading");
+    std::string name;
     unsigned startIndex;
-    readItem(sock, startIndex, "Error reading the index of the current genome chunk");
-    std::vector<char> data;
-    readVector(sock, data, "Error reading genome data");
+    std::vector<unsigned char> data;
+    
+    read(unpack, name);
+    read(unpack, startIndex);
+    read(unpack, data);
     
     addGenomeData(name, startIndex, data);
 
-
-    message_id_t ack = STORE_QUERY_RESPONSE_ID;
-    sendItem(sock, ack, "Error. Could not send back an ACK to the leader for handling new data.");
+    send_ack(sock, STORE_QUERY_RESPONSE_ID);
 }
 
-void handle_genome_info_query(int sock)
+void handle_genome_info_query(int sock, msgpack::unpacker& unpack)
 {
 #ifdef DEBUG
     std::cout << "mdps.cpp: handling genome info query.\n";
 #endif
-
-    std::string name = readString(sock, "the name of the genome in the info request");
+    std::string name;
+    read(unpack, name);
+    
     const GenomeInfo& info = getGenomeInfo(name);
     
+    
+    msgpack::sbuffer sbuf;
     message_id_t msg_id = STORE_GENOME_INFO_RESPONSE_ID;
-    sendItem(sock, msg_id, "Error sending genome info response ID");
-    sendString(sock, info.name, "the name of the genome in the info response");
-    sendItem(sock, info.length, "Error sending the length of the genome " + name + " in info response");
+    msgpack::pack(&sbuf, msg_id);
+    msgpack::pack(&sbuf, info);
+    sendBuffer(sock, sbuf);
 }
 
-void handle_genome_content_query(int sock)
+void handle_genome_content_query(int sock, msgpack::unpacker& unpack)
 {
 #ifdef DEBUG
     std::cout << "mdps.cpp: handling genome content query from socket " << sock << ".\n";
 #endif
-
-
-    std::string name = readString(sock, "genome name in content request");
+    std::string name;
     unsigned startIndex, length;
-    readItem(sock, startIndex, "Error reading start index in genome content request");
-    readItem(sock, length, "Error reading desired length in genome content request");
     
-    std::vector<char> data;
+    read(unpack, name);
+    read(unpack, startIndex);
+    read(unpack, length);
+    
+    std::vector<unsigned char> data;
     getGenomeData(name, startIndex, length, data);
     
+    msgpack::sbuffer sbuf;
     message_id_t msg_id = STORE_GENOME_CONTENT_RESPONSE_ID;
-    sendItem(sock, msg_id, "Error sending genome content response id");
-    sendString(sock, name, "the name of the genome in contest response");
-    sendItem(sock, startIndex, "Error sending the start index of content response");
-    sendVector(sock, data, "the data in the content response");
+    msgpack::pack(&sbuf, msg_id);
+    msgpack::pack(&sbuf, name);
+    msgpack::pack(&sbuf, startIndex);
+    msgpack::pack(&sbuf, data);
+    sendBuffer(sock, sbuf);
 }
 
-void handle_new_solution(int sock)
+void handle_new_solution(int sock, msgpack::unpacker& unpack)
 {
 #ifdef DEBUG
     std::cout << "mdps.cpp: handling new solution from socket " << sock << ".\n";
 #endif
-
-    Solution sol;
     ProblemDescription desc;
-    readProblemDescription(sock, desc);
-    readSolution(sock, sol);
+    Solution sol;
+    
+    read(unpack, desc);
+    read(unpack, sol);
     std::cout << "Answer dimentsions: " << sol.matrix.getLength() << " x " << sol.matrix.getWidth() << "\n";
     
     insertSolution(desc, sol);
     
     // Send an ACK
     // FIXME Paul doesn't like this ACK code, or the ACK in general, but that's another story
-    message_id_t msg_id = STORE_QUERY_RESPONSE_ID;
-    sendItem(sock, msg_id, "Error sending solution insertion ACK");
+    send_ack(sock, STORE_QUERY_RESPONSE_ID);
 }
 
-void handle_query_by_id(int sock)
+void handle_query_by_id(int sock, msgpack::unpacker& unpack)
 {
 #ifdef DEBUG
     std::cout << "mdps.cpp: handling query by id.\n";
 #endif
-
     ProblemID prob;
     bool solution_wanted;
     
-    readItem(sock, prob, "Error reading problem ID in query");
-    readItem(sock, solution_wanted, "Error reading entire solution flag in query");
+    read(unpack, prob);
+    read(unpack, solution_wanted);
     
     QueryResponse resp;
     queryByID(prob, solution_wanted, resp);
     
+    msgpack::sbuffer sbuf;
     message_id_t msg_id = STORE_QUERY_RESPONSE_ID;
-    sendItem(sock, msg_id, "Error sending query response id");
-    sendQueryResponse(sock, resp);
+    msgpack::pack(&sbuf, msg_id);
+    msgpack::pack(&sbuf, resp);
+    sendBuffer(sock, sbuf);
 }
 
-void handle_query_by_cond(int sock)
+void handle_query_by_cond(int sock, msgpack::unpacker& unpack)
 {
 #ifdef DEBUG
     std::cout << "mdps.cpp: handling query by conditions.\n";
 #endif
-
     ProblemDescription prob;
     bool partialsWanted;
-    readProblemDescription(sock, prob);
-    readItem(sock, partialsWanted, "Error reading whether partial matches should be returned");
+    
+    read(unpack, prob);
+    read(unpack, partialsWanted);
     
     QueryResponse resp;
     queryByConditions(prob, partialsWanted, resp);
     
+    msgpack::sbuffer sbuf;
     message_id_t msg_id = STORE_QUERY_RESPONSE_ID;
-    sendItem(sock, msg_id, "Error sending query response id");
-    sendQueryResponse(sock, resp);
+    msgpack::pack(&sbuf, msg_id);
+    msgpack::pack(&sbuf, resp);
+    sendBuffer(sock, sbuf);
 }
 
-void handle_max_solution(int sock)
+void handle_max_solution(int sock, msgpack::unpacker& unpack)
 {
 #ifdef DEBUG
     std::cout << "mdps.cpp: handling next solution id request\n";
 #endif
     
+    msgpack::sbuffer sbuf;
     message_id_t msg_id = STORE_MAX_SOL_RESPONSE_ID;
-    sendItem(sock, msg_id, "Error sending next solution message header");
-    sendItem(sock, nextSolutionID, "Error sending next solution id");
+    msgpack::pack(&sbuf, msg_id);
+    msgpack::pack(&sbuf, nextSolutionID);
+#ifdef DEBUG
+    printBuffer(std::cout, sbuf.data(), sbuf.size());
+#endif
+    sendBuffer(sock, sbuf);
 }
 
-void handle_genome_list(int sock)
+void handle_genome_list(int sock, msgpack::unpacker& unpack)
 {
 #ifdef DEBUG
     std::cout << "mdps.cpp: handling genone list request\n";
 #endif
-    
+    msgpack::sbuffer sbuf;
     message_id_t msg_id = GENOME_LIST_RESPONSE_ID;
-    sendItem(sock, msg_id, "Error sending genome list response id");
-    
-    unsigned length = static_cast<unsigned>(genomes.size());
-    sendItem(sock, length, "Error sending the number of genomes to the client");
-    for( std::map<std::string, GenomeInfo>::iterator iter = genomes.begin(); iter != genomes.end(); ++iter )
-    {
-        sendString(sock, iter->first, "Error sending genome name");
-        int length = iter->second.length;
-        sendItem(sock, length, "Error sending genome length");
-    }
-
+    msgpack::pack(&sbuf, msg_id);
+    msgpack::pack(&sbuf, genomes);
+    sendBuffer(sock, sbuf);
 }

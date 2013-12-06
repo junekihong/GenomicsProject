@@ -171,7 +171,7 @@ class ClientActionImpl : public ClientActions
     ClientActionImpl(LeaderClientProtocol * c);
     
     virtual void startGenomeUpload(const std::string& name, unsigned length);
-    virtual void continueGenomeUpload(unsigned index, const std::vector<char>& data);
+    virtual void continueGenomeUpload(unsigned index, const std::vector<unsigned char>& data);
     virtual void finishGenomeUpload();
 
     virtual void listGenomes();
@@ -195,7 +195,7 @@ void ClientActionImpl::startGenomeUpload(const std::string &name, unsigned int l
     nameToGenomeLength.insert(std::make_pair(name, length));
 }
 
-void ClientActionImpl::continueGenomeUpload(unsigned index, const std::vector<char>& data)
+void ClientActionImpl::continueGenomeUpload(unsigned index, const std::vector<unsigned char>& data)
 {   
     storage->insertGenomeData(storedName, index, data);
 }
@@ -204,7 +204,6 @@ void ClientActionImpl::finishGenomeUpload()
 {
     client->sendGenomeUploadResponse();
 }
-
 
 void ClientActionImpl::listGenomes()
 {

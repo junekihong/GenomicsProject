@@ -29,9 +29,10 @@ WorkerHandler::WorkerHandler(int socket)
 
 bool WorkerHandler::handleNetwork()
 {
+    msgpack::unpacker unpack;
+    readBuffer(socket, unpack);
     message_id_t msg_id;
-    
-    readItem(socket, msg_id, "Error reading message id");
+    read(unpack, msg_id, "Error reading message id");
     
     switch( msg_id )
     {
@@ -39,19 +40,19 @@ bool WorkerHandler::handleNetwork()
 #ifdef DEBUG
             std::cout << "WorkerHandler: handleListRequest()\n";
 #endif        
-            handleListRequest();
+            handleListRequest(unpack);
             break;
         case PROBLEM_CLAIM_REQUEST_ID:
 #ifdef DEBUG
             std::cout << "WorkerHandler: handleClaimRequest()\n";
 #endif
-            handleClaimRequest();
+            handleClaimRequest(unpack);
             break;
         case SOLUTION_REPORT_ID:
 #ifdef DEBUG
             std::cout << "WorkerHandler: handleSolutionReport()\n";
 #endif
-            handleSolutionReport();
+            handleSolutionReport(unpack);
             break;
         default:
             throw std::runtime_error(std::string("Unknown message type from worker: ") + toString(msg_id));
@@ -60,29 +61,23 @@ bool WorkerHandler::handleNetwork()
     return true;
 }
 
-void WorkerHandler::handleListRequest()
+void WorkerHandler::handleListRequest(msgpack::unpacker&)
 {
     actions->requestProblemList();
 }
 
-void WorkerHandler::handleClaimRequest()
+void WorkerHandler::handleClaimRequest(msgpack::unpacker& unpack)
 {
-    unsigned claim_count;
-    readItem(socket, claim_count, "Error reading problem claim count");
-    std::vector<ProblemID> problems(claim_count);
-    for( unsigned i = 0; i < claim_count; ++i )
-    {
-        readItem(socket, problems[i], "Error reading problem id number " + toString(i));
-    }
+    std::vector<ProblemID> problems;
+    read(unpack, problems);
     
     actions->claimProblems(problems);
 }
 
-void WorkerHandler::handleSolutionReport()
+void WorkerHandler::handleSolutionReport(msgpack::unpacker& unpack)
 {
     SolutionCertificate sol;
-    readItem(socket, sol.problemID, "Error reading solution problem id");
-    readItem(socket, sol.solutionID, "Error reading solution solution id");
+    read(unpack, sol);
     
     actions->recieveSolution(sol);
 }
@@ -94,21 +89,20 @@ void WorkerProtocolImpl::sendProblemList(const std::vector<ProblemDescription> &
     for( unsigned i = 0; i < problemList.size(); ++i )
         std::cout << "\t" << problemList[i].problemID.idnum << "\n";
 #endif
+    msgpack::sbuffer sbuf;
     message_id_t msg_id = PROBLEM_LIST_RESPONSE_ID;
-    sendItem(socket, msg_id, "Error sending problem list message ID");
-    unsigned problem_count = static_cast<unsigned>(problemList.size());
-    sendItem(socket, problem_count, "Error sending the number of problems");
-    for( unsigned i = 0; i < problem_count; ++i )
-    {
-        sendProblemDescription(socket, problemList[i]);
-    }
+    msgpack::pack(sbuf, msg_id);
+    msgpack::pack(sbuf, problemList);
+    sendBuffer(socket, sbuf);
 }
 
 void WorkerProtocolImpl::respondToProblemClaim(bool answer)
 {
     message_id_t msg_id = PROBLEM_CLAIM_RESPONSE_ID;
-    send(socket, &msg_id, sizeof(msg_id), 0);
-    send(socket, &answer, sizeof(answer), 0);
+    msgpack::sbuffer sbuf;
+    msgpack::pack(&sbuf, msg_id);
+    msgpack::pack(&sbuf, answer);
+    sendBuffer(socket, sbuf);
 }
 
 /* Client classes */
@@ -146,8 +140,10 @@ bool ClientHandler::handleNetwork()
         return handleGenomeContinuation();
     }
     
+    msgpack::unpacker unpack;
+    readBuffer(socket, unpack);
     message_id_t msg_id;
-    readItem(socket, msg_id, "Error reading message id from client");
+    read(unpack, msg_id, "Error reading message id from client");
     
     switch( msg_id )
     {
@@ -155,21 +151,21 @@ bool ClientHandler::handleNetwork()
 #ifdef DEBUG
             std::cout << "ClientHandler: handleGenomeStart()\n";
 #endif
-            handleGenomeStart();
+            handleGenomeStart(unpack);
             return true;
             break;
         case GENOME_LIST_REQUEST_ID:
 #ifdef DEBUG
             std::cout << "clientHandler: handleGenomeListRequest()\n";
 #endif
-            handleGenomeListRequest();
+            handleGenomeListRequest(unpack);
             return false;
             break;
         case LOCAL_ALIGN_START_ID:
 #ifdef DEBUG
             std::cout << "clientHandler: handleAlignmentStart()\n";
 #endif
-            handleAlignmentStart();
+            handleAlignmentStart(unpack);
             return true;
             break;
         default:
@@ -178,17 +174,17 @@ bool ClientHandler::handleNetwork()
     }
 }
 
-void ClientHandler::handleGenomeListRequest()
+void ClientHandler::handleGenomeListRequest(msgpack::unpacker& unpack)
 {
     actions->listGenomes();
 }
 
-void ClientHandler::handleGenomeStart()
+void ClientHandler::handleGenomeStart(msgpack::unpacker& unpack)
 {
     std::string name;
-    name = readString(socket, "Error reading the gnome name");
+    read(unpack, name);
     
-    readItem(socket, uploadLength, "Error reading genome length from client");
+    read(unpack, uploadLength, "Error reading genome length from client");
     
     uploadInProgress = true;
     uploadProgress = 0;
@@ -203,9 +199,9 @@ void ClientHandler::handleGenomeFinish()
 
 bool ClientHandler::handleGenomeContinuation()
 {
-    const unsigned buff_len = 32*1024;
+    const unsigned buff_len = BUFF_SIZE;
     unsigned cur_buf_len = std::min(buff_len, uploadLength - uploadProgress);
-    std::vector<char> buffer(cur_buf_len);
+    std::vector<unsigned char> buffer(cur_buf_len);
     ssize_t bytes_read = recvfrom(socket, buffer.data(), buffer.size(), 0, NULL, NULL);
     if( bytes_read < 0 )
     {
@@ -228,60 +224,35 @@ bool ClientHandler::handleGenomeContinuation()
     }
 }
 
-void ClientHandler::handleAlignmentStart()
+void ClientHandler::handleAlignmentStart(msgpack::unpacker& unpack)
 {
-    unsigned string_len = 0;
-    
-    readItem(socket, string_len, "Error reading local alignment genome name length");
-    char * buffer = new char[string_len + 1];
-    ssize_t bytes_read = recvfrom(socket, buffer, string_len, MSG_WAITALL, NULL, NULL);
-    if( bytes_read < 0 )
-    {
-        throw std::runtime_error("Error reading local alignment genome name");
-    }
-    buffer[string_len] = 0;
     std::string names[2];
-    names[0] = buffer;
-    delete[] buffer;
-    
-    readItem(socket, string_len, "Error reading local alignment genome name length");
-    buffer = new char[string_len + 1];
-    bytes_read = recvfrom(socket, buffer, string_len, MSG_WAITALL, NULL, NULL);
-    if( bytes_read < 0 )
-    {
-        throw std::runtime_error("Error reading local alignment genome name");
-    }
-    buffer[string_len] = 0;
-    names[1] = buffer;
-    delete[] buffer;
+    read(unpack, names[0]);
+    read(unpack, names[1]);
     
     actions->alignmentRequest(names[0], names[1]);
 }
 
 void ClientProtocolImpl::sendGenomeList(const std::vector<std::string> &nameList)
 {
+    msgpack::sbuffer sbuf;
     message_id_t msg_id = GENOME_LIST_RESPONSE_ID;
-    sendItem(socket, msg_id, "Error sending Genome List response message id");
+    msgpack::pack(&sbuf, msg_id);
     
-    unsigned length = static_cast<unsigned>(nameList.size());
-    sendItem(socket, length, "Error sending the number of genomes to the client");
-    for( unsigned i = 0; i < nameList.size(); ++i )
-    {
-        length = static_cast<unsigned>(nameList[i].size());
-        sendItem(socket, length, "Error sending the length of a genome name to the client");
-        send(socket, nameList[i].data(), nameList[i].size(), 0);
-    }
+    msgpack::pack(&sbuf, nameList);
+    sendBuffer(socket, sbuf);
 }
 
 void ClientProtocolImpl::sendLocalAlignResponse(const Solution& solution)
 {
+    msgpack::sbuffer sbuf;
     message_id_t msg_id = LOCAL_ALIGN_FINISH_ID;
-    sendItem(socket, msg_id, "Error sending local align response id");
-    sendSolution(socket, solution);
+    msgpack::pack(sbuf, msg_id);
+    msgpack::pack(sbuf, solution);
+    sendBuffer(socket, sbuf);
 }
 
 void ClientProtocolImpl::sendGenomeUploadResponse()
 {
-    message_id_t msg_id = UPLOAD_REQUEST_RECIEVED_ID;
-    sendItem(socket, msg_id, "Error sending message back to the client that the upload request was recieved");
+    send_ack(socket, UPLOAD_REQUEST_RECIEVED_ID);
 }
