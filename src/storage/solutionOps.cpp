@@ -98,6 +98,7 @@ void initializeSolutionSystem()
         msgpack::unpacker unpack(length);
         input.read(unpack.buffer(), length);
         input.close();
+        unpack.buffer_consumed(length);
         
         CompleteSolution * sol = new CompleteSolution;
         read(unpack, *sol);
