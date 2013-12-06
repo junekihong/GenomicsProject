@@ -124,12 +124,35 @@ public:
       location(), sol(NULL)
     { }
     
+	QueryResponse(const QueryResponse& other)
+    : success(other.success), exactMatch(other.exactMatch),
+	  problemDescription(other.problemDescription), maxValue(other.maxValue),
+	  location(other.location), sol(NULL)
+	{
+		if( other.sol )
+			sol = new Solution(*(other.sol));
+	}
     ~QueryResponse()
     {
         if( sol )
             delete sol;
     }
     
+	void operator=(const QueryResponse& other)
+	{
+		success = other.success;
+		exactMatch = other.exactMatch;
+		problemDescription = other.problemDescription;
+		maxValue = other.maxValue;
+		location = other.location;
+		if( sol ) {
+			delete sol;
+		}
+		if( other.sol ) {
+			sol = new Solution;
+			(*sol) = *(other.sol);
+		}
+	}
     // TODO figure out a way to send back solution certificates
     
     //MSGPACK_DEFINE(success, exactMatch, problemDescription, maxValue, location);
