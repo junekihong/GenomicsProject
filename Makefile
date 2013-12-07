@@ -16,8 +16,8 @@ mdps:
 	cd src; make mdps
 	cp src/storage/mdps .
 matrix_test:
-	cd src; make test
-	cp src/test/matrix_test .
+	cd src; make tests
+	cp src/tests/matrix_test .
 
 .PHONY: clean
 clean:

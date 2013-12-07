@@ -17,7 +17,8 @@ mdpw: common
 
 mdps: common
 	cd storage; make $*
-matrix_test: common
+
+tests: common
 	cd tests; make $*
 
 .PHONY: clean
