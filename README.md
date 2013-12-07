@@ -1,5 +1,6 @@
 Juneki Hong and Paul O'Neil
 
+The writeup and WhoDidWhat.txt are found in ``doc/``
 
 
 GenomicsProject
