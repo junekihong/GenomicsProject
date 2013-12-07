@@ -20,48 +20,64 @@ void runWorker(WorkerLeaderProtocol& leader, StorageProtocol& storage)
             usleep(1000);
             continue;
         }
+        std::cout << "list is " << problemList.size() << " long\n";
         
         // Select a problem
-        ProblemDescription problemDescription = problemList.at(0);
+        /*ProblemDescription problemDescription = problemList.at(0);
         ProblemID problemID = problemDescription.problemID;
-        problems.push_back(problemID);
+        problems.push_back(problemID);*/
+        std::vector<ProblemDescription> descs;
+        int claimCount = std::min<int>(4, problemList.size());
+        int start_index = std::max<int>(1, problemList.size() - claimCount);
+        if( start_index > 0 ) {
+            start_index = rand() % start_index;
+        }
+        for( int i = 0; i < claimCount; ++i ) {
+            descs.push_back(problemList.at(i + start_index));
+            problems.push_back(problemList.at(i + start_index).problemID);
+        }
         
         // Claim a problem
         bool claimed = leader.claimProblems(problems);
         if(!claimed){
             continue;
         }
+        std::cout << "Claimed " << problems.size() << " problems\n";
 
         // Query storage to check for a cache hit.
         bool wantPartials = false;
-        QueryResponse* queryResponse = storage.queryByInitialConditions(problemDescription, wantPartials);
+        for( int i = 0; i < claimCount; ++i ) {
+            ProblemDescription& problemDescription = descs[i];
+            QueryResponse* queryResponse = storage.queryByInitialConditions(problemDescription, wantPartials);
 
-        SolutionCertificate solutionCertificate;
-        if(queryResponse->success && queryResponse->exactMatch)
-        {
-#ifdef DEBUG
-            std::cout << "Cache hit!\n";
-#endif
-            //solutionCertificate = queryResponse->solutionCertificate;
-            solutionCertificate.problemID = problemDescription.problemID;
-            Solution* solution = queryResponse->sol;
-            solutionCertificate.solutionID = solution->id;
-        }
-        else
-        {
-            // Solve the problem manually.
-            Solution solution = solveProblem(problemDescription);
-            while(!storage.insertSolution(problemDescription, solution)){
-                usleep(1000);
+            SolutionCertificate solutionCertificate;
+            if(queryResponse->success && queryResponse->exactMatch)
+            {
+//#ifdef DEBUG
+                std::cout << "Cache hit!\n";
+//#endif
+                //solutionCertificate = queryResponse->solutionCertificate;
+                solutionCertificate.problemID = problemDescription.problemID;
+                Solution* solution = queryResponse->sol;
+                solutionCertificate.solutionID = solution->id;
             }
-            solutionCertificate.problemID = problemDescription.problemID;
-            solutionCertificate.solutionID = problemDescription.problemID;
+            else
+            {
+                // Solve the problem manually.
+                Solution solution = solveProblem(problemDescription);
+                while(!storage.insertSolution(problemDescription, solution)){
+                    //usleep(1000);
+                }
+                solutionCertificate.problemID = problemDescription.problemID;
+                solutionCertificate.solutionID = problemDescription.problemID;
+            }
+
+            delete queryResponse;
+
+            // Send solution back.
+            leader.sendSolution(solutionCertificate);
+         
         }
-
-        delete queryResponse;
-
-        // Send solution back.
-        leader.sendSolution(solutionCertificate);        
     }
 }
 

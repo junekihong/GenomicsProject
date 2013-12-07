@@ -12,6 +12,7 @@
 
 static const boost::filesystem::path genomeRoot("genomes");
 std::map<std::string, GenomeInfo> genomes;
+std::map<std::string, std::vector<unsigned char> > genomeData;
 
 void initializeGenomeSystem()
 {
@@ -40,6 +41,10 @@ void initializeGenomeSystem()
             continue;
         unsigned length = static_cast<unsigned>(boost::filesystem::file_size(*iter)); // TODO loses precision
         genomes.insert(std::pair<std::string, GenomeInfo>(name, GenomeInfo(name, length)));
+        
+        std::ifstream strm((genomeRoot / name).generic_string<std::string>().c_str());
+        genomeData[name].resize(length);
+        strm.read(reinterpret_cast<char*>(genomeData[name].data()), length);
     }
     
 #ifdef DEBUG
@@ -76,7 +81,7 @@ const GenomeInfo& getGenomeInfo(const std::string& name)
 
 void getGenomeData(const std::string& name, unsigned index, unsigned length, std::vector<unsigned char>& data)
 {
-    std::ifstream strm((genomeRoot / name).generic_string<std::string>().c_str());
+    /*std::ifstream strm((genomeRoot / name).generic_string<std::string>().c_str());
     if( !strm )
         throw std::runtime_error("Error opening the file for genome " + name);
     data.resize(length);
@@ -84,5 +89,7 @@ void getGenomeData(const std::string& name, unsigned index, unsigned length, std
     strm.read(reinterpret_cast<char*>(data.data()), length);
 #ifdef DEBUG
     std::cout << "read data from index " << index << " in file " << (genomeRoot / name).generic_string<std::string>().c_str() << ":\n" << std::string(data.begin(), data.end()) << "\n";
-#endif
+#endif*/
+    data.resize(length);
+    memcpy(data.data(), genomeData[name].data() + index, length);
 }

@@ -207,11 +207,12 @@ void handle_new_solution(int sock, msgpack::unpacker& unpack)
     read(unpack, sol);
     std::cout << "Answer dimentsions: " << sol.matrix.getLength() << " x " << sol.matrix.getWidth() << "\n";
     
-    insertSolution(desc, sol);
     
     // Send an ACK
     // FIXME Paul doesn't like this ACK code, or the ACK in general, but that's another story
     send_ack(sock, STORE_QUERY_RESPONSE_ID);
+
+    insertSolution(desc, sol);
 }
 
 void handle_query_by_id(int sock, msgpack::unpacker& unpack)

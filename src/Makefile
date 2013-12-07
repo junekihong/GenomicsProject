@@ -1,4 +1,4 @@
-TARGETS=mdpc mdpl mdpw mdps
+TARGETS=mdpc mdpl mdpw mdps matrix_test
 
 all: $(TARGETS)
 
@@ -17,6 +17,8 @@ mdpw: common
 
 mdps: common
 	cd storage; make $*
+matrix_test: common
+	cd tests; make $*
 
 .PHONY: clean
 clean:
@@ -25,3 +27,4 @@ clean:
 	cd coord; make clean
 	cd worker; make clean
 	cd storage; make clean
+	cd tests; make clean

@@ -21,6 +21,7 @@ mdpc
 mdpl
 mdps
 mdpw
+matrix_test
 
 *.pyc
 .ycm_extra_conf.*

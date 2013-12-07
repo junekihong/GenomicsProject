@@ -16,13 +16,14 @@
 
 using boost::asio::ip::tcp;
 
+typedef std::vector<std::string>::iterator ArgIter;
 void connect_to_leader(tcp::iostream& leader);
 
-void handle_genome_args(std::vector<std::string>::iterator& arg_iter);
+void handle_genome_args(ArgIter& arg_iter);
 void handle_genome_upload(const std::string& filename, const std::string& name);
 void handle_genome_list();
 
-void handle_local_align_args(std::vector<std::string>::iterator& arg_iter);
+void handle_local_align_args(ArgIter& arg_iter, const ArgIter& arg_end);
 
 ServerEndpoint leaderEndpoint;
 boost::asio::io_service io_service;
@@ -45,7 +46,7 @@ int main(int argc, const char* argv[])
         exit(-1);
     }
     
-    std::vector<std::string>::iterator arg_iter = args.begin();
+    ArgIter arg_iter = args.begin();
     
 #ifndef DEBUG
     try {
@@ -70,7 +71,7 @@ int main(int argc, const char* argv[])
         else if( *arg_iter == "local-align" )
         {
             ++arg_iter;
-            handle_local_align_args(arg_iter);
+            handle_local_align_args(arg_iter, args.end());
         }
         else {
             std::cout << "Unrecognized command: " << *arg_iter << "\n";
@@ -97,7 +98,7 @@ void connect_to_leader(tcp::iostream& leader)
     }
 }
 
-void handle_genome_args(std::vector<std::string>::iterator& arg_iter)
+void handle_genome_args(ArgIter& arg_iter)
 {
     if( *arg_iter == "upload" )
     {
@@ -175,36 +176,40 @@ void handle_genome_list()
     }
 }
 
-void handle_local_align_args(std::vector<std::string>::iterator& arg_iter)
+void handle_local_align_args(ArgIter& arg_iter, const ArgIter& end)
 {
-    const std::string& first = *arg_iter;
-    if( first.size() == 0 )
-        throw std::runtime_error("You must specify genomes to align");
-    ++arg_iter;
-    const std::string& second = *arg_iter;
-    if( second.size() == 0 )
-        throw std::runtime_error("You must specify two genomes to align");
-    
-    tcp::iostream leader;
-    connect_to_leader(leader);
-    
-    msgpack::sbuffer sbuf;
-    message_id_t msg_id = LOCAL_ALIGN_START_ID;
-    msgpack::pack(&sbuf, msg_id);
-    
-    msgpack::pack(&sbuf, first);
-    msgpack::pack(&sbuf, second);
-    sendBuffer(leader, sbuf);
-    
-    msgpack::unpacker unpack;
-    readBuffer(leader, unpack);
-    read(unpack, msg_id);
-    if( msg_id != LOCAL_ALIGN_FINISH_ID )
-        throw std::runtime_error("Started");
-    
-    Solution sol;
-    read(unpack, sol);
-    
-    std::cout << "Maximum value " << sol.maxValue << " at location (" << sol.maxValueLocation.column << ", " << sol.maxValueLocation.row << ")\n";
-    std::cout << sol.matrix << "\n";
+    while( arg_iter != end )
+    {
+        const std::string& first = *arg_iter;
+        if( first.size() == 0 )
+            throw std::runtime_error("You must specify genomes to align");
+        ++arg_iter;
+        const std::string& second = *arg_iter;
+        if( second.size() == 0 )
+            throw std::runtime_error("You must specify two genomes to align");
+        ++arg_iter;
+        
+        tcp::iostream leader;
+        connect_to_leader(leader);
+        
+        msgpack::sbuffer sbuf;
+        message_id_t msg_id = LOCAL_ALIGN_START_ID;
+        msgpack::pack(&sbuf, msg_id);
+        
+        msgpack::pack(&sbuf, first);
+        msgpack::pack(&sbuf, second);
+        sendBuffer(leader, sbuf);
+        
+        msgpack::unpacker unpack;
+        readBuffer(leader, unpack);
+        read(unpack, msg_id);
+        if( msg_id != LOCAL_ALIGN_FINISH_ID )
+            throw std::runtime_error("Started");
+        
+        Solution sol;
+        read(unpack, sol);
+        
+        std::cout << "Maximum value " << sol.maxValue << " at location (" << sol.maxValueLocation.column << ", " << sol.maxValueLocation.row << ")\n";
+        std::cout << sol.matrix << "\n";
+    }
 }

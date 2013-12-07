@@ -3,13 +3,24 @@ import subprocess
 from subprocess import Popen, call
 import time
 import os
+import argparse
 
-print('Starting storage...')
-storage = Popen('./mdps')
-time.sleep(1)
-print('Storage started.  Starting leader...')
-leader = Popen('./mdpl')
-time.sleep(1)
+parser = argparse.ArgumentParser("dynamic programming benchmarks")
+parser.add_argument('--start-servers', action='store_true')
+parser.add_argument('--stop-servers', action='store_true')
+parser.add_argument('--start-workers', action='store_true')
+parser.add_argument('--worker-count', type=int, action='store', default=1)
+parser.add_argument('--client-count', type=int, action='store', default=5)
+parser.add_argument('--upload-genomes', action='store_true')
+args = parser.parse_args()
+
+if args.start_servers:
+    print('Starting storage...')
+    storage = Popen('./mdps')
+    time.sleep(1)
+    print('Storage started.  Starting leader...')
+    leader = Popen('./mdpl')
+    time.sleep(1)
 
 
 genome_files = '''
@@ -117,43 +128,54 @@ genome_files = '''
 genome_files_list = list(map(lambda x: x.strip(), genome_files.split()))
 
 devnull = open('/dev/null', 'w')
-for x in range(len(genome_files_list)):
-    print('uploading genome')
-    call(['./mdpc','genome','upload', 'data/'+genome_files_list[x], 'genome_'+str(x)])
+if args.upload_genomes:
+    for x in range(len(genome_files_list)):
+        print('uploading genome')
+        call(['./mdpc','genome','upload', 'data/'+genome_files_list[x], 'genome_'+str(x)])
 
 time.sleep(4)
 print(' done uploading genomes?? I think...')
-alignments = set()
+alignments = []
 #for first in range(len(genome_files_list)):
 #    for second in range(len(genome_files_list)):
-for first in range(len(genome_files_list)):
-    for second in range(len(genome_files_list)):
-        alignments.add( ('genome_' + str(first), 'genome_' + str(second)) )
+#for first in range(len(genome_files_list)):
+#    for second in range(len(genome_files_list)):
+for first in range(20):
+    for second in range(10):
+        alignments.append( 'genome_' + str(first))
+        alignments.append( 'genome_' + str(second))
 
-workerCount = 1
-for w in range(workerCount):
-    print('Starting worker ' + str(w) + '...')
-    worker = Popen('./mdpw', stdout=devnull, stderr=devnull)
-    time.sleep(1)
 
 print('starting clients... Here we go!')
-start = time.clock()
-for x in range(workerCount * 3):
-    (f, s) = alignments.pop()
-    call(['./mdpc','local-align', f, s], stdout=devnull, stderr=devnull)
+startIndex = 0
+intervalSize = 20
+start = time.time()
+for x in range(args.worker_count * args.client_count):
+    cur_batch = alignments[startIndex : startIndex + intervalSize]
+    print('sending index ' + str(startIndex))
+    startIndex += intervalSize
+    Popen(['./mdpc','local-align'] + cur_batch, stdout=devnull, stderr=devnull)
 
+if args.start_workers:
+    for w in range(args.worker_count):
+        print('Starting worker ' + str(w) + '...')
+        worker = Popen('./mdpw', stdout=devnull, stderr=devnull)
+        #time.sleep(1)
 try:
-    while len(alignments) > 0:
+    while startIndex < len(alignments):
+        cur_batch = alignments[startIndex : startIndex + intervalSize]
+        startIndex += intervalSize
         os.wait()
-        call(['./mdpc','local-align', f, s], stdout=devnull, stderr=devnull)
-    for x in range(workerCount * 3):
+        print('sending index ' + str(startIndex - intervalSize))
+        Popen(['./mdpc','local-align'] + cur_batch, stdout=devnull, stderr=devnull)
+    for x in range(args.worker_count * args.client_count):
         os.wait()
-except ChildProcessError:
+except subprocess.CalledProcessError:
     pass
-finish = time.clock()
+finish = time.time()
 
 print('Took ' + str(finish - start) + ' time')
 
-leader.kill()
-storage.kill()
-
+if args.stop_servers:
+    leader.kill()
+    storage.kill()
