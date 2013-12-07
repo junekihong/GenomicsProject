@@ -187,6 +187,7 @@ void handle_local_align_args(ArgIter& arg_iter, const ArgIter& end)
         const std::string& second = *arg_iter;
         if( second.size() == 0 )
             throw std::runtime_error("You must specify two genomes to align");
+        ++arg_iter;
         
         tcp::iostream leader;
         connect_to_leader(leader);
