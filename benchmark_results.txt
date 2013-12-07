@@ -14,3 +14,37 @@ baseline:
 [2.0261590480804443, 2.013432025909424, 2.016541004180908, 2.0370638370513916, 1.953212022781372]
 average = 2.0092815876
 
+./benchmark --start-servers --start-workers --stop-servers --client-count 5
+67.923126936
+65.339925
+65.205662
+64.384956
+67.854135
+
+./benchmark.py --start-servers --start-workers --stop-servers --client-count 5 --worker-count 2
+48.048969
+47.655516
+47.913405
+47.406641
+47.866398
+
+./benchmark.py --start-servers --start-workers --stop-servers --client-count 5 --worker-count 4
+69.2973
+54.1127
+59.7719
+58.9647
+68.0434
+
+./benchmark.py --client-count 5 --worker-count 1
+58.1676
+58.1074
+58.1262
+58.0815
+59.3343
+
+./benchmark.py --client-count 5 --worker-count 2
+50.6946
+50.7415
+50.9035
+50.6764
+50.7032
