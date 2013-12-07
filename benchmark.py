@@ -6,12 +6,12 @@ import os
 import argparse
 
 parser = argparse.ArgumentParser("dynamic programming benchmarks")
-parser.add_argument('--start-servers', action='store_true')
-parser.add_argument('--stop-servers', action='store_true')
-parser.add_argument('--start-workers', action='store_true')
-parser.add_argument('--worker-count', type=int, action='store', default=1)
-parser.add_argument('--client-count', type=int, action='store', default=5)
-parser.add_argument('--upload-genomes', action='store_true')
+parser.add_argument('--start-servers', action='store_true', help='Starts the storage and leader processes before the benchmark')
+parser.add_argument('--stop-servers', action='store_true', help='Stops the storage and leader processes at the end of the benchmark')
+parser.add_argument('--start-workers', action='store_true', help='Starts the worker processes before the benchmark')
+parser.add_argument('--worker-count', type=int, action='store', help='Run the benchmark assuming that there are this many worker processes.  If --start-workers is also passed, then this number of workers will be started.  The default is 1.', default=1)
+parser.add_argument('--client-count', type=int, action='store', help='Start this many clients for each worker.  The default is 5.', default=5)
+parser.add_argument('--upload-genomes', action='store_true', help='Upload genomes before starting the benchmark')
 args = parser.parse_args()
 
 if args.start_servers:

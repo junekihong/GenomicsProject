@@ -47,10 +47,43 @@ A worker is run with
 A storage node is run with:
 
     mdps [--port <port>]
+Storage stores genomes in the directory ``genomes/``, and solutions in ``solutions/``.
+Genomes from previous runs of the storage process will be used, but solutions will not.
+
+Storage must be started before the leader.
+The leader must be started before workers and the client.
+Workers and clients may be started in any order.
+
+On serveral systems, we found that Boost sockets did not properly connect clients to the leader and so forth.
+The programs are functional on the undergraduate systems.
 
 Our benchmarks can be run with the included ``benchmark.py``.
 The options there are described by running ``benchmark.py --help``.
 The baseline program can be benchmarked with ``baseline.py``.
+
+The local benchmarks without cache were run with
+
+    ./benchmark.py --start-servers --start-workers --stop-servers --client-count 5 --worker-count 1
+    ./benchmark.py --start-servers --start-workers --stop-servers --client-count 5 --worker-count 2
+    ./benchmark.py --start-servers --start-workers --stop-servers --client-count 5 --worker-count 4
+
+The remote benchmarks were run with
+
+    ./benchmark.py --start-servers --stop-servers --client-count 5 --worker-count 1
+    ./benchmark.py --start-servers --stop-servers --client-count 5 --worker-count 2
+    ./benchmark.py --start-servers --stop-servers --client-count 5 --worker-count 4
+and the workers were started manually on other machines
+
+The solution cache was filled with
+
+    ./benchmark.py --start-servers --client-count 5 --worker-count 1
+
+and the cache benchmarks were run with
+    
+    ./benchmark.py --start-workers --client-count 5 --worker-count 1
+    ./benchmark.py --start-workers --client-count 5 --worker-count 2
+    ./benchmark.py --start-workers --client-count 5 --worker-count 4
+
 Building
 ========
 To build from git:
