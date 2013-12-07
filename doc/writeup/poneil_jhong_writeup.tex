@@ -51,15 +51,20 @@ We chose to build a server in order to receive alignment requests, store past qu
 % What did you read? What did others accomplish before you?
 
 
+
+
 \section{Methods and software}
 %What did you implement? Why? How?
 
 %TODO cite msgpack and boost.
 Our server was implemented in C++ with the help of the Msgpack library for data serialization, and the Boost library for socket IO and help parsing command line arguments. The implementation of the server is broken up into parts, described by our architecture.
 
+\subsection{Problem Specification}
+One of the main ideas behind our approach is that a local alignment problem can be described by four sequences: The two genome sequences we are trying to align, and two initial sequences of numbers representing the top row and left-most column of the matrix. This in effect uniquely ``identifies'' a problem, and every problem with these four matching sequences will have the same solution. The architecture of our project is designed around passing around and storing these problem specifications to complete the task.
+
 
 \subsection{Architecture}
-The architecture of our project divides into four logical sections: A Client, a Leader, Storage, and Workers. This allows for us to better modularize the tasks performed by a local alignment server, and it gives abstractions and interfaces for the components to call. For example, it does not matter to the Leader and Worker classes what the real backing implementation of Storage is, as long as store and query calls work. 
+Our project divides into four sections: A Client, a Leader, Storage, and Workers. This allows for us to better modularize the tasks performed by a local alignment server, and it gives abstractions and interfaces for the components to call. For example, it does not matter to the Leader and Worker classes what the real backing implementation of Storage is, as long as store and query calls work. 
 
 This architecture also allows us to have many worker nodes being managed by a Leader, increasing our problem solving capacity. 
 We could also potentially have multiple Leader nodes and Storage nodes as well, especially if our system were to scale up to handle much larger requests.
@@ -68,10 +73,10 @@ We could also potentially have multiple Leader nodes and Storage nodes as well, 
 The Client uploads genomes to the Leader, and then sends queries for local alignment problems. The Leader pass on uploaded genomes to Storage to be stored, and it will handle alignment queries, responding with solutions in the form of a completed matrix and the location of the maximum value.
 
 \subsubsection{Leader}
-The Leader handles queries from the Client as well as allocates work to Workers and manage the solutions. A Leader can allocate work to a Worker by specifying the border initialization, that is the first row and column to which it can begin filling out the rest of the matrix. A Worker can complete a solution and inform the Leader of its location in Storage. Once a solution has been indicated, a Leader can then query Storage to pick it up, to send back to the Client. 
+The Leader handles queries from the Client as well as allocates work to Workers and manage the solutions. A Leader can allocate work to a Worker by specifying the border initialization, both of the genome sequences and the first numerical row and column to fill out the rest of the matrix. A Worker can complete a solution and inform the Leader of its location in Storage. Once a solution has been indicated, a Leader can then query Storage to pick it up, to send back to the Client. 
 
 \subsubsection{Storage}
-The Storage is a database for the Leader and Worker to store and query items such as genomes, and solutions to alignment problems. 
+The Storage is a database for the Leader and Worker to store and query items such as genomes, and solutions to alignment problems. Genomes have identifications that can be matched against, and alignment problem solutions matched by their problem description. 
 A Worker will produce solutions and store them into Storage. It will also check to see if a solution already exists, which then it does not have to do any additional work.
 
 \subsubsection{Worker}
@@ -79,23 +84,35 @@ When a Worker is available, it queries the Leader asking for problems to work on
 If a solution already exists in Storage, then a Worker does not have to do additional work. In either case it will tell the Leader its location.
 
 \subsection{Improvements, Speedups}
-After a base system of this architecture was implemented, there were some several improvements that were made.  
+After a base system of this architecture was implemented, there were some several improvements that were made. When a Worker requests for a list of problems, the Leader does not immediately close the connection if there are none, but instead keeps a list of available Workers that it can broadcast to when new problems are available. This cuts down some of the network overhead when a Worker is ready for new problems. %TODO. more speedups.
 
 
 \section{Future Work}
+Most of our efforts went into building the protocols and networking of our base system from scratch, but we have ideas that constitute future work.
 
 \subsection{Problem Subdivision}
-
-A feature we wanted our Leader to have was problem subdivision.
-
-When we implemented this feature, we introduced bugs that interfered with the operation of the Leader and Storage, so we had to remove it. The Leader currently sends entire problem specifications to the Workers instead of problem chunks whose solutions are reassembled by the Leader.
+A feature we wanted the Leader to have was problem subdivision, where the Leader would break down the task of completing a matrix into subproblems of smaller matrices, and then later reassemble the full solution from the pieces. The Leader would then have to keep track of which original problems that the subproblems belonged to, when the subproblems completed the full problem, and then reassemble the solution matrices.
+  
+When we implemented this feature, we introduced bugs that interfered with the operation of the Leader and Storage, so we had to remove it. The Leader currently sends entire problem specifications to the Workers instead of problem chunks to be reassembled later. This means that the cache hits will only consist of exact matches of local alignment problems we have seen earlier. 
 
 \subsection{Dynamic Subdivision}
+As a step further from Problem Subdivision, we would like to explore dynamic subdivision, where the Leader does not break down a task into regular sized chunks, but rather dynamically take subsections as large or small as it wanted, according to how likely it felt that the chunks would be useful in the future.
+
+Some approaches to this could include training a language model for gene sequences, to find the probability of a sequence (up to a length k) in order to help us decide which subsequences are likely enough for us to see again in the future.
+
+% TODO: Paul
+%Another idea could be to preprocess the alignment problem, computing only down the diagonal and filling the other areas of the matrix with zeros, in order to see where the genomes are similar to each other.
 
 
 \subsection{Partial Solution Matching}
 
-Another feature we wanted Storage to have was partial solution matching. Given a problem specification, %TODO
+Another feature we wanted Storage to have was partial solution matching. Given a problem specification, a Worker will query into Storage checking to see if it already exists, and it might be possible for Storage to return a solution that mostly matches what the Worker was looking for. This would allow the Worker to fill in most of their matrix easily, fill in the rest manually, and then return the solution.
+
+We want to implement a type of Trie data structure, traversing down the Trie with a problem specification by alternating and matching each of the four sequences. For example, we would traverse the Trie by matching the first character of the first genome, the first number of the top row, the first %...
+
+ (two genomes, top row, first column) 
+
+both of the genomes to align at the same time.  
 
 
 \subsection{Worker-Side Cache}
