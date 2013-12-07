@@ -1,20 +1,23 @@
-TARGETS=mdpc mdpl mdpw mdps
+TARGETS=mdpc mdpl mdpw mdps matrix_test
 
 all: $(TARGETS)
-	cp src/client/mdpc .
-	cp src/coord/mdpl .
-	cp src/worker/mdpw .
-	cp src/storage/mdps .
 
 .PHONY: $(TARGETS)
 mdpc:
 	cd src; make mdpc
+	cp src/client/mdpc .
 mdpl:
 	cd src; make mdpl
+	cp src/coord/mdpl .
 mdpw:
 	cd src; make mdpw
+	cp src/worker/mdpw .
 mdps:
 	cd src; make mdps
+	cp src/storage/mdps .
+matrix_test:
+	cd src; make test
+	cp src/test/matrix_test .
 
 .PHONY: clean
 clean:

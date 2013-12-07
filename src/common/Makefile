@@ -1,5 +1,5 @@
-CXXFLAGS+=-g -Wall -Wextra -std=c++98 -DBOOST_ASIO_DISABLE_THREADS -I.. -I ../../lib/msgpack/src -Wno-long-long
-CXXFLAGS+=-DDEBUG
+CXXFLAGS+=-Wall -Wextra -std=c++98 -DBOOST_ASIO_DISABLE_THREADS -I.. -I ../../lib/msgpack/src -Wno-long-long
+#CXXFLAGS+=-g -DDEBUG
 
 OBJECTS=$(patsubst %.cpp,%.o,$(wildcard *.cpp))
 
