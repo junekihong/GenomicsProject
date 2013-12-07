@@ -17,44 +17,6 @@ def new_axes():
     ax = fig.add_subplot(1, 1, 1)
     return ax
 
-
-def plot_spectrum(data, element):
-    def plot(xvals, yvals, xlabel, filename, element, right=None, left=None):
-        ax = new_axes()
-        ax.semilogy(xvals, yvals, ',')
-        ax.set_xlabel(xlabel)
-        ax.set_ylabel('Count')
-        ax.set_title(element)
-        if right != None:
-            ax.set_xlim(right=right)
-        if left != None:
-            ax.set_xlim(left=left)
-        #pyplot.show()
-        pyplot.savefig(element + '_' + filename + '.png', dpi=160)
-    
-    plot(data.channels, data.counts, 'Channel', 'channel', element, right=1024)
-    plot(data.energies, data.counts, 'Energy (KeV)', 'energy', element, left=0)
-
-
-def plot_channel_vs_energy(channels, energies, line, curve, bounds=None, extra=''):
-    ax = new_axes()
-    p = ax.plot
-    p(channels, energies, '.')
-    every = np.arange(1, 800)
-    ploted_line = linear_fit(every, line[0], line[1])
-    plotted_curve = quadratic_fit(every, curve[0], curve[1], curve[2])
-    p(every, ploted_line, 'r-')
-    p(every, plotted_curve, 'g-')
-    ax.set_ylim(bottom=0)
-    if bounds:
-        ax.set_xlim(right = bounds[0])
-        ax.set_ylim(top = bounds[1])
-    ax.set_xlabel('Channel')
-    ax.set_ylabel('Energy (KeV)')
-    #ax.set_title('Energy vs. Channel')
-    
-    pyplot.savefig('experiment_2' + extra + '.png', dpi=160)
-   
 baseline = [2.0261590480804443, 2.013432025909424, 2.016541004180908, 2.0370638370513916, 1.953212022781372]
 no_cache = {
         1:[67.923126936, 65.339925, 65.205662, 64.384956, 67.854135],
@@ -86,8 +48,8 @@ ax.set_xlim(left=0)
 ax.set_xlim(right=5)
 #ax.set_ylim(bottom=0)
 ax.plot([1,2,4], [baseline_avg] * 3, 'o-', label='Baseline')
-ax.plot([1,2,4], no_averages, 'o-', label='No cachining, 1 machine')
-ax.plot([1,2,4], remote_averages, 'o-', label='No cachine, multiple machines')
+ax.plot([1,2,4], no_averages, 'o-', label='No caching, 1 machine')
+ax.plot([1,2,4], remote_averages, 'o-', label='No caching, multiple machines')
 ax.plot([1,2,4], cache_averages, 'o-', label='Caching, 1 machine')
 ax.set_xlabel('Number of worker processes')
 ax.set_ylabel('Time for 200 alignments (seconds)')
