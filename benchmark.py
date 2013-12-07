@@ -123,12 +123,12 @@ for x in range(len(genome_files_list)):
 
 time.sleep(4)
 print(' done uploading genomes?? I think...')
-alignments = set()
+alignments = []
 #for first in range(len(genome_files_list)):
 #    for second in range(len(genome_files_list)):
 for first in range(len(genome_files_list)):
     for second in range(len(genome_files_list)):
-        alignments.add( ('genome_' + str(first), 'genome_' + str(second)) )
+        alignments.append( ('genome_' + str(first), 'genome_' + str(second)) )
 
 workerCount = 1
 for w in range(workerCount):
@@ -137,15 +137,20 @@ for w in range(workerCount):
     time.sleep(1)
 
 print('starting clients... Here we go!')
+startIndex = 0
+intervalSize = 20
 start = time.clock()
 for x in range(workerCount * 3):
-    (f, s) = alignments.pop()
-    call(['./mdpc','local-align', f, s], stdout=devnull, stderr=devnull)
+    cur_batch = alignments[startIndex : startIndex + intervalSize]
+    startIndex += intervalSize
+    call(['./mdpc','local-align'] + cur_batch, stdout=devnull, stderr=devnull)
 
 try:
     while len(alignments) > 0:
+        cur_batch = alignments[startIndex : startIndex + intervalSize]
+        startIndex += intervalSize
         os.wait()
-        call(['./mdpc','local-align', f, s], stdout=devnull, stderr=devnull)
+        call(['./mdpc','local-align'] + cur_batch, stdout=devnull, stderr=devnull)
     for x in range(workerCount * 3):
         os.wait()
 except ChildProcessError:
