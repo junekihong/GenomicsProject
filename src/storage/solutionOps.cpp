@@ -83,8 +83,7 @@ void initializeSolutionSystem()
     }
     
     // solution root exists, so find the solutions in it
-    msgpack::zone z;
-    boost::filesystem::directory_iterator dir_end = boost::filesystem::directory_iterator();
+    /*boost::filesystem::directory_iterator dir_end = boost::filesystem::directory_iterator();
     for( boost::filesystem::directory_iterator iter = boost::filesystem::directory_iterator(solutionRoot);
         iter != dir_end;
         ++iter )
@@ -113,7 +112,7 @@ void initializeSolutionSystem()
         {
             nextSolutionID.idnum = sol->sol.id.idnum + 1;
         }
-    }
+    }*/
 }
 
 void insertSolution(const ProblemDescription& prob, const Solution& s)
