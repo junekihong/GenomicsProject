@@ -51,9 +51,9 @@ We chose to build a server in order to receive alignment requests, store past qu
 \section{Prior Work}
 % What did you read? What did others accomplish before you?
 
-Previous approaches to running Smith-Waterman faster exist in the form of SIMD parallelization \cite{Rognes:11}. These approaches solve the entire problem matrix for every problem, but arrange the problem to be better exploited by the CPU or CUDA. 
+Previous approaches to faster local alignment exist in the form of performing Smith-Waterman with SIMD parallelization \cite{Rognes:11}. This approach solves a given problem matrix in its entirety. However, they gain a large speed boost by arranging the problems to be better exploited by the CPU or CUDA. 
 
-We want to try and identify sections of the matrix that we don't have to do in the first place, and then work on solving the rest. It might be possible to do a combination of our approach with SIMD, in that when it comes time to completely solve a problem, we would want to do it quickly.
+We want to alternatively try and identify sections of the matrix that we don't have to do in the first place, and then work on solving the rest. It might be possible to do a combination of our approach with SIMD, in that when it comes time to solve a problem, we would want to do it quickly with these methods.
 
 
 
