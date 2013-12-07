@@ -14,6 +14,7 @@
 \usepackage{amsmath}
 \usepackage{multirow}
 \usepackage{url}
+\usepackage{graphicx}
 \DeclareMathOperator*{\argmax}{arg\,max}
 \setlength\titlebox{6.5cm}    % Expanding the titlebox
 
@@ -29,7 +30,7 @@
 \date{}
 
 \begin{document}
-\maketitle
+%\maketitle
 \begin{abstract}
   We built a server in order to perform multiple exact local alignment problems. This server manages a storage database and worker nodes in order to handle queries made by clients. As clients send many local alignment problem requests, we want to be able to store and cache previous solutions for use later. The client-server architecture will provide a framework for this task. 
 \end{abstract}
@@ -50,6 +51,9 @@ We chose to build a server in order to receive alignment requests, store past qu
 \section{Prior Work}
 % What did you read? What did others accomplish before you?
 
+Previous approaches to running Smith-Waterman faster exist in the form of SIMD parallelization \cite{Rognes:11}. These approaches solve the entire problem matrix for every problem, but arrange the problem to be better exploited by the CPU or CUDA. 
+
+We want to try and identify sections of the matrix that we don't have to do in the first place, and then work on solving the rest. It might be possible to do a combination of our approach with SIMD, in that when it comes time to completely solve a problem, we would want to do it quickly.
 
 
 
@@ -108,9 +112,17 @@ Some approaches to this could include training a language model for gene sequenc
 
 Another feature we wanted Storage to have was partial solution matching. Given a problem specification, a Worker will query into Storage checking to see if it already exists, and it might be possible for Storage to return a solution that mostly matches what the Worker was looking for. This would allow the Worker to fill in most of their matrix easily, fill in the rest manually, and then return the solution.
 
-We will accomplish this with a type of Trie data structure, traversing down the Trie with a problem specification by alternating and matching each of the four sequences. For example, we would traverse the Trie by matching the first character of the first genome, the first number of the top row, the first character of the second genome, the first number of the first column, then the second character of the first genome, etc. In this way, the Trie is matching the upper left corner of a problem and progressively growing out, and traversing further down the trie represents a better partial solution match.
+We will accomplish this with a type of Trie data structure, traversing down the Trie with a problem specification by alternating and matching each of the four sequences. For example, we would traverse the Trie by matching the first character of the first genome, the first number of the top row, the first character of the second genome, the first number of the first column, then the second character of the first genome, etc. 
+
+In this way, the Trie is matching the upper left corner of a problem and progressively growing out, and traversing further down the trie represents a better partial solution match. See figure 1.
 
 
+\begin{figure}[p]
+    %\centering
+    \includegraphics[width=0.5\textwidth]{trie}
+    \caption{A Trie Sequence to determine an approximate match for a problem.}
+    \label{fig:trie}
+\end{figure}
 
 \subsection{Worker-Side Cache}
 
@@ -133,7 +145,24 @@ What did you learn? What should we come away with?
 
 
 
-%\begin{thebibliography}{}
+\begin{thebibliography}{}
+
+\bibitem[\protect\citename{Boukerche}2012]{Boukerche:12}
+Azzedine Boukerche.
+\newblock 2012.
+\newblock {\em Exact Parallel Alignment of Megabase genomic Sequences with Tunable Work Distribution},
+\newblock International Journal of Foundations of Computer Science.
+\newblock World Scientific Publishing Company  
+
+
+\bibitem[\protect\citename{Rognes}2011]{Rognes:11}
+Rognes, Torbj.
+\newblock 2011.
+\newblock {\em Faster Smith-Waterman Database Searches with Inter-sequence SIMD Parallelisation}
+\newblock BMC bioinformatics.
+\newblock BioMed Central Ltd.
+
+
 
 %\bibitem[\protect\citename{Aho and Ullman}1972]{Aho:72}
 %Alfred~V. Aho and Jeffrey~D. Ullman.
@@ -165,6 +194,6 @@ What did you learn? What should we come away with?
 %\newblock {\em Algorithms on Strings, Trees and Sequences}.
 %\newblock Cambridge University Press, Cambridge, UK.
 
-%\end{thebibliography}
+\end{thebibliography}
 
 \end{document}
