@@ -38,10 +38,11 @@
 \section{Introduction}
 %Why work on this? Why your approach?
 The task of local alignment is a frequently queried task in Computational Genomics. 
-An individual local alignment problem can be solved by computing a matrix of values using Dynamic Programming, but what if parts of a problem matrix could be reused in future alignment tasks?
-When many queries for local alignment are made, there might be some similar structure across all of the tasks that could be taken advantage of. For example, when aligning gene sequences, similar sequences might reoccur because they were all taken from a single group of microorganisms, or even simply because of the limited permutations of the alphabet A,C,G,T. 
+An individual local alignment problem can be solved by computing a matrix of values using Dynamic Programming, but what if parts of a problem matrix could be reused in future alignment tasks? We want to use previous Dynamic Programming problems to help solve future problems. In other words, we want to perform Dynamic Programming across Dynamic Programming problems: Meta Dynamic Programming.
 
-We chose to build a server in order to recieve alignment requests, store past queries, and then return the result. This server can serve as a central location for previous alignment tasks, where we could try to fetch a solution from a database, or solve the problem when none were available. With this server in place, it could be possible to explore different ways we can exploit the similarities across our problems.
+When many queries for local alignment are made, there might be similar structure across tasks that could be reused. For example, when aligning gene sequences, similar subsequences reoccur because they were all taken from a similar organisms, there are repeating genes in certain sections of genomes, or even simply because of the limited permutations of the gene alphabet A,C,G,T.
+
+We chose to build a server in order to receive alignment requests, store past queries, and then return the result. This server can serve as a central location for previous alignment tasks, where we could try to fetch a solution from a database, or solve the problem when none were available. With this server in place, it could be possible to explore different ways we can exploit the similarities across our problems.
  
 
 
@@ -53,12 +54,18 @@ We chose to build a server in order to recieve alignment requests, store past qu
 \section{Methods and software}
 %What did you implement? Why? How?
 
+%TODO cite msgpack and boost.
+Our server was implemented in C++ with the help of the Msgpack library for data serialization, and the Boost library for socket IO and help parsing command line arguments. The implementation of the server is broken up into parts, described by our architecture.
+
+
 \subsection{Architecture}
-The architecture of our project divides into four logical sections: A Client, a Leader, Storage, and Workers.
-% the why. The how.
+The architecture of our project divides into four logical sections: A Client, a Leader, Storage, and Workers. This allows for us to better modularize the tasks performed by a local alignment server, and it gives abstractions and interfaces for the components to call. For example, it does not matter to the Leader and Worker classes what the real backing implementation of Storage is, as long as store and query calls work. 
+
+This architecture also allows us to have many worker nodes being managed by a Leader, increasing our problem solving capacity. 
+We could also potentially have multiple Leader nodes and Storage nodes as well, especially if our system were to scale up to handle much larger requests.
 
 \subsubsection{Client}
-The Client uploads genomes to the Leader, and then sends queries for Local Alignment problems. The Leader will handle these queries and respond with Local Alignment solutions in the form of a completed matrix and the location of the maximum value.
+The Client uploads genomes to the Leader, and then sends queries for local alignment problems. The Leader pass on uploaded genomes to Storage to be stored, and it will handle alignment queries, responding with solutions in the form of a completed matrix and the location of the maximum value.
 
 \subsubsection{Leader}
 The Leader handles queries from the Client as well as allocates work to Workers and manage the solutions. A Leader can allocate work to a Worker by specifying the border initialization, that is the first row and column to which it can begin filling out the rest of the matrix. A Worker can complete a solution and inform the Leader of its location in Storage. Once a solution has been indicated, a Leader can then query Storage to pick it up, to send back to the Client. 
@@ -68,20 +75,30 @@ The Storage is a database for the Leader and Worker to store and query items suc
 A Worker will produce solutions and store them into Storage. It will also check to see if a solution already exists, which then it does not have to do any additional work.
 
 \subsubsection{Worker}
-A Worker queries the Leader whenever it is available, asking for problems to work on. The Leader can then respond with problems that are available which the Worker can claim. A Worker claims a problem specification, of which it can begin filling out a matrix and complete a solution, storing the Solution in Storage.
-If a solution already exists in Storage, then a Worker does not have to do additional work and just tell the Leader its location.
+When a Worker is available, it queries the Leader asking for problems to work on. The Leader can then respond with problems that can be claimed. A Worker claims a problem specification, of which it begins filling out the solution, finally storing the Solution in Storage.
+If a solution already exists in Storage, then a Worker does not have to do additional work. In either case it will tell the Leader its location.
 
+\subsection{Improvements, Speedups}
+After a base system of this architecture was implemented, there were some several improvements that were made.  
+
+
+\section{Future Work}
 
 \subsection{Problem Subdivision}
 
 A feature we wanted our Leader to have was problem subdivision.
 
-When we implemented this feature, we introduced bugs that interfered with the operation of the Leader and Storage, so we had to remove it. The Leader curently sends entire problem specifications to the Workers instead of problem chunks whose solutions are reassembled by the Leader.
+When we implemented this feature, we introduced bugs that interfered with the operation of the Leader and Storage, so we had to remove it. The Leader currently sends entire problem specifications to the Workers instead of problem chunks whose solutions are reassembled by the Leader.
+
+\subsection{Dynamic Subdivision}
 
 
-\subsection{Partial solution matching}
+\subsection{Partial Solution Matching}
 
-Another feature we wanted Storage to have was partial solution matching. Given a problem specification, which...
+Another feature we wanted Storage to have was partial solution matching. Given a problem specification, %TODO
+
+
+\subsection{Worker-Side Cache}
 
 
 \section{Results}
