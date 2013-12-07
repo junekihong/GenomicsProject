@@ -53,7 +53,7 @@ We chose to build a server in order to receive alignment requests, store past qu
 
 Previous approaches to faster local alignment exist in the form of performing Smith-Waterman with SIMD parallelization \cite{Rognes:11}. This approach solves a given problem matrix in its entirety. However, they gain a large speed boost by arranging the problems to be better exploited by the CPU or CUDA. 
 
-Another approach to fast local alignment is Z-align\cite{Rognes:11}. In this scheme, local alignment problems are broken up and allocated across multiple processors, and message passing between the processors helps compute the solution.
+Another approach to fast local alignment is Z-align\cite{Boukerche:12}. In this scheme, local alignment problems are broken up and allocated across multiple processors, and message passing between the processors helps compute the solution.
 
 Z-align would be closer to our approach, where we want to break up a problem and perform message passing to find a solution. However, we want to provide a server working across a network instead of being confined to one machine.  
 
@@ -197,30 +197,33 @@ If there were more alignments to be done, another client started.
 In this way, we aimed to keep the Leader's list of available problems filled and Workers constantly busy.
 All of the clients were run on \verb!ugradx!, the same machine as the Leader.
 
+\subsection{Worker Configurations}
 In the green configuration, the workers were also run on \verb!ugradx!; this arrangement minimizes latency.
 The cache started empty and all problems are unique, so each solution was computed.
 Similarly, the red configuration also had an empty cache.
 However, the worker processes were distributed to \verb!ugrad16!, \verb!ugrad17!, \verb!ugrad18!, and \verb!ugrad19!.
 In the light blue configuration, worker processes were again all on \verb!ugradx! and all solutions were already in the cache; no solution was newly computed.
 
+\subsection{Baseline Configuration}
 The time taken by the baseline configuration represents the maximum amount of useful computation done in any of the configurations.
-Extra time taken by the more complex schemes is entirely overhead.
+The extra time taken by the more complex schemes is entirely overhead.
 While running, the computational load of each process tended to be very low, usually between 5-10\% of a core on \verb!ugradx!.
-These two points strongly suggest that the delays are caused mostly by communcation latency and race conditions between the different workers.
+These two points strongly suggest that the delays are caused mostly by communication latency and race conditions between the different workers.
 
+\subsection{Caching Configuration}
 We were somewhat surprised and disappointed to find that the caching configuration performed the worst.
 It also shows the least improvement from a single worker process to two.
-This is likely due to the increased and serialized cost of searching the set of solved problems.
-The lookup for a solved problem consists of four binary searches, one for each sequence in the problem specification.
-When the problem has already been solved, each of the searches returns at least one result, so the search cannot short-circuit.
-The lookup takes place in the storage process; even though there are two Workers, the Storage process only performs one lookup at a time.
+We believe that this is due to the increased and serialized cost of searching the set of solved problems.
+The lookup for a solved problem in Storage consists of four binary searches, one for each sequence in the problem specification.
+When the problem has already been solved, each of the searches return at least one result, so the search cannot short-circuit and instead runs exhaustively.
+The Storage is also run on a single thread; even though there are two Workers, the Storage process performs only one lookup at a time.
 In this configuration, the processing load of the Storage program did tend to be higher, supporting this explanation.
 
-We belive that the general decreases in performance from two Worker processes to four is attributable to competition between the Workers.
+\subsection{Worker Race Conditions}
+We believe that the general decreases in performance from two Worker processes to four is attributable to competition between the Workers.
 Even though there are many clients submitting requests, there did not tend to be more than ten problems in the queue simultaneously.
-This led to many Workers attempting to claim the same problems and the Leader rejecting them.
-Each attempt takes an entire round-trip from the Worker to the Leader and back.
-In contast with a scheduler like Mesos \cite{Mesos}, this is a significant cost.
+This led to many Workers attempting to claim the same problems and the Leader rejecting them, and each attempt takes an entire round-trip from the Worker to the Leader and back.
+In contrast to a scheduler like Mesos \cite{Mesos}, this is a significant cost.
 Mesos makes all scheduling decisions in a single process.
 We elected to distribute scheduling decisions in order take advantage of information local to the Worker, though we did not actually implement such functionality.
 
