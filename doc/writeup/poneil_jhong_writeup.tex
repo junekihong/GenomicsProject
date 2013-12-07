@@ -59,9 +59,12 @@ The processor does not contact a scheduler in order to obtain the assignment.
 As a processor computes a chunk, the border of that chunk is sent to the next processor.
 In the scenario shown in Figure~\ref{fig:z-align}, only the column of the matrix between two processors must be transferred.
 
-Z-align would be closer to our approach, where we want to break up a problem and perform message passing to find a solution. However, we want to provide a server working across a network instead of being confined to one machine.  
+Z-align would be closer to our approach, where we want to break up a problem and perform message passing to find a solution.
+However, we want to dynamically assign parts of the matrix to processors to combat skew.
 
-We want to additionally store previous results and try and identify sections of the matrix that we don't have to do in the first place, while working on solving the rest. It might be possible to do a combination of our approach with the above methods, in that when it comes time to completely solve a problem, we would want to do it quickly.
+We want to additionally store previous results and try and identify sections of the matrix that we don't have to do in the first place, while working on solving the rest.
+It might be possible to do a combination of our approach with the above methods, in that when it comes time to completely solve a problem, we would want to do it quickly.
+In our scheme, SIMD parallelism could compute portions of similar problems on the same processor, as described in \cite{Rognes:11}.
 
 \begin{figure}
   \centering 
@@ -76,10 +79,10 @@ We want to additionally store previous results and try and identify sections of 
 %What did you implement? Why? How?
 
 %TODO cite msgpack and boost.
-Our server was implemented in C++ with the help of the Msgpack library for data serialization, and the Boost library for socket IO and help parsing command line arguments. The implementation of the server is broken up into parts, described by our architecture.
+Our server was implemented in C++ with the help of the Msgpack library for data serialization, and the Boost library for socket and filesystem utilites and command line parsing. The implementation of the server is broken up into parts, described by our architecture.
 
 \subsection{Problem Specification}
-One of the main ideas behind our approach is that a local alignment problem can be described by four sequences and a number: The two genome sequences we are trying to align, two initial sequences of numbers representing the top row and left-most column of the matrix, and one number representing the top-left corner of the matrix (if applicable). This in effect uniquely ``identifies'' a problem, and every problem with these four matching sequences and corner will have the same solution. The architecture of our project is designed around passing around and storing these problem specifications to complete the task.
+One of the main ideas behind our approach is that a local alignment problem can be described by four sequences and a number: The two genome sequences we are trying to align, two initial sequences of numbers representing the top row and left-most column of the matrix, and one number representing the top-left corner of the matrix (if applicable). This in effect uniquely identifies a problem, and every problem with these four matching sequences and corner will have the same solution. The architecture of our project is designed around passing around and storing these problem specifications to complete the task.
 
 
 \subsection{Architecture}
@@ -240,6 +243,7 @@ The overwhelming issue for our alignment server was the network overhead within 
 
 For a complete version of our server, we would need to optimize these network calls as much as possible.
 For example, we could try and reduce or limit the amount of acknowledgment replies that are required by our protocol, as well as find ways to ``batch'' calls, commands, and requests all together.
+Reducing the number of messages needed to proceed is likely the best optimization.
 Another problem in our testing was that it was difficult to enqueue enough requests for the Worker nodes.
 The command-line interface we developed was designed for a human user; it was difficult to specify all problems at once in order to maximize the load on the system and decrease competition between workers.
 Allocating more work to each worker and allowing it to proceed during a network call would allow us to maximally utilize processing resources.
