@@ -30,9 +30,11 @@ The list of uploaded genomes can be queried with
 
 Genomes can be aligned with
 
-    mdpc [--server <server>[:<port>]] local-align <genome_1> <genome_2>
+    mdpc [--server <server>[:<port>]] local-align <genome_1> <genome_2> ...
 
-The client outputs the optimal alignment.
+The client outputs the end of the optimal alignment and the matrix.
+Many pairs of genomes may be specified and they will be requested sequentially.
+
 
 The coordinator (leader) is run with
 
@@ -46,6 +48,9 @@ A storage node is run with:
 
     mdps [--port <port>]
 
+Our benchmarks can be run with the included ``benchmark.py``.
+The options there are described by running ``benchmark.py --help``.
+The baseline program can be benchmarked with ``baseline.py``.
 Building
 ========
 To build from git:
@@ -65,7 +70,16 @@ To build from git:
 Internals
 =========
 You can generate documentation by running ``doxygen`` in the top-level directory.  You may need to create the ``build`` directory yourself in order to appease doxygen.
+These may be slightly outdated (some bits of the coordinator design aren't right)...
 
 [Protocol Description](md_doc_proto_design.html)
 
 [Coordinator Description](md_doc_coord_design.html)
+
+Libraries
+=========
+We depend on [Boost](http://www.boost.org) and assume that it is already installed.
+It is distributed under the open source (Boost License)[http://www.boost.org/users/license.html].
+
+We also use [Msgpack](http://github.com/msgpack/msgpack-c); it is a submodule in our repository.
+It is distributed under the open source (Apache License)[https://github.com/msgpack/msgpack-c/blob/master/COPYING].
