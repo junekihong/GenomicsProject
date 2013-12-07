@@ -64,28 +64,27 @@ We want to try and identify sections of the matrix that we don't have to do in t
 Our server was implemented in C++ with the help of the Msgpack library for data serialization, and the Boost library for socket IO and help parsing command line arguments. The implementation of the server is broken up into parts, described by our architecture.
 
 \subsection{Problem Specification}
-One of the main ideas behind our approach is that a local alignment problem can be described by four sequences: The two genome sequences we are trying to align, and two initial sequences of numbers representing the top row and left-most column of the matrix. This in effect uniquely ``identifies'' a problem, and every problem with these four matching sequences will have the same solution. The architecture of our project is designed around passing around and storing these problem specifications to complete the task.
+One of the main ideas behind our approach is that a local alignment problem can be described by four sequences and a number: The two genome sequences we are trying to align, two initial sequences of numbers representing the top row and left-most column of the matrix, and one number representing the top-left corner of the matrix (if applicable). This in effect uniquely ``identifies'' a problem, and every problem with these four matching sequences and corner will have the same solution. The architecture of our project is designed around passing around and storing these problem specifications to complete the task.
 
 
 \subsection{Architecture}
-Our project divides into four sections: A Client, a Leader, Storage, and Workers. This allows for us to better modularize the tasks performed by a local alignment server, and it gives abstractions and interfaces for the components to call. For example, it does not matter to the Leader and Worker classes what the real backing implementation of Storage is, as long as store and query calls work. 
+Our project divides into four sections: A Client, a Leader, Storage, and Workers. This allows for us to better modularize the tasks performed by a local alignment server, and it gives abstractions and interfaces for the components to call. For example, it does not matter to the Leader and Worker classes what the real backing implementation of Storage is, as long as the store and query calls work. This framework is what will allow us to change or upgrade components in the future. 
 
 This architecture also allows us to have many worker nodes being managed by a Leader, increasing our problem solving capacity. 
 We could also potentially have multiple Leader nodes and Storage nodes as well, especially if our system were to scale up to handle much larger requests.
 
 \subsubsection{Client}
-The Client uploads genomes to the Leader, and then sends queries for local alignment problems. The Leader pass on uploaded genomes to Storage to be stored, and it will handle alignment queries, responding with solutions in the form of a completed matrix and the location of the maximum value.
+The Client uploads genomes to the Leader, and then sends queries for local alignment problems. The Leader pass on uploaded genomes to Storage, and then handle the alignment queries by responding with solutions. The solutions returned will be a completed matrix and the location of the maximum value.
 
 \subsubsection{Leader}
 The Leader handles queries from the Client as well as allocates work to Workers and manage the solutions. A Leader can allocate work to a Worker by specifying the border initialization, both of the genome sequences and the first numerical row and column to fill out the rest of the matrix. A Worker can complete a solution and inform the Leader of its location in Storage. Once a solution has been indicated, a Leader can then query Storage to pick it up, to send back to the Client. 
 
 \subsubsection{Storage}
 The Storage is a database for the Leader and Worker to store and query items such as genomes, and solutions to alignment problems. Genomes have identifications that can be matched against, and alignment problem solutions matched by their problem description. 
-A Worker will produce solutions and store them into Storage. It will also check to see if a solution already exists, which then it does not have to do any additional work.
+A Worker will produce solutions and store them into Storage. It will also check to see if a solution already exists, and if so it does not have to do any additional work.
 
 \subsubsection{Worker}
-When a Worker is available, it queries the Leader asking for problems to work on. The Leader can then respond with problems that can be claimed. A Worker claims a problem specification, of which it begins filling out the solution, finally storing the Solution in Storage.
-If a solution already exists in Storage, then a Worker does not have to do additional work. In either case it will tell the Leader its location.
+When a Worker is ready, it queries the Leader asking for problems to work on. The Leader can then respond with problems that can be claimed. A Worker then claims a problem specification, checks storage, and if applicable, fills out the solution and sends it off to Storage. It responds to the Leader that it is finished.
 
 \subsection{Improvements, Speedups}
 After a base system of this architecture was implemented, there were some several improvements that were made. When a Worker requests for a list of problems, the Leader does not immediately close the connection if there are none, but instead keeps a list of available Workers that it can broadcast to when new problems are available. This cuts down some of the network overhead when a Worker is ready for new problems. %TODO. more speedups.
@@ -110,19 +109,24 @@ Some approaches to this could include training a language model for gene sequenc
 
 \subsection{Partial Solution Matching}
 
+\begin{figure*}
+  \centering 
+  \includegraphics[width=0.7\textwidth]{trie_corrected}
+  \caption{An example Trie Sequence for approximate matching. The four sequences and the corner number is given.}
+  \label{fig:trie}
+\end{figure*}
+
+
 Another feature we wanted Storage to have was partial solution matching. Given a problem specification, a Worker will query into Storage checking to see if it already exists, and it might be possible for Storage to return a solution that mostly matches what the Worker was looking for. This would allow the Worker to fill in most of their matrix easily, fill in the rest manually, and then return the solution.
 
-We will accomplish this with a type of Trie data structure, traversing down the Trie with a problem specification by alternating and matching each of the four sequences. For example, we would traverse the Trie by matching the first character of the first genome, the first number of the top row, the first character of the second genome, the first number of the first column, then the second character of the first genome, etc. 
+
+
+We will accomplish this with a type of Trie data structure, traversing down the Trie with a problem specification by alternating and matching each of the four sequences. For example, we would traverse the Trie by matching the corner, then the first character of the first genome, the first number of the top row, the first character of the second genome, the first number of the first column, then the second character of the first genome, etc. 
 
 In this way, the Trie is matching the upper left corner of a problem and progressively growing out, and traversing further down the trie represents a better partial solution match. See figure 1.
 
 
-\begin{figure}[p]
-    %\centering
-    \includegraphics[width=0.5\textwidth]{trie}
-    \caption{A Trie Sequence to determine an approximate match for a problem.}
-    \label{fig:trie}
-\end{figure}
+
 
 \subsection{Worker-Side Cache}
 
@@ -133,6 +137,9 @@ These approaches will help reduce network latency, and possibly help the Workers
 \section{Results}
 
 How well did your method work compared to others?
+
+We ran our experiments with genome data found in the PREFAB database \cite{Edgar:04}.
+
 
 \section{Conclusions} 
 
@@ -151,16 +158,21 @@ What did you learn? What should we come away with?
 Azzedine Boukerche.
 \newblock 2012.
 \newblock {\em Exact Parallel Alignment of Megabase genomic Sequences with Tunable Work Distribution},
-\newblock International Journal of Foundations of Computer Science.
-\newblock World Scientific Publishing Company  
-
+\newblock International Journal of Foundations of Computer Science 23(2), 407-429.
 
 \bibitem[\protect\citename{Rognes}2011]{Rognes:11}
 Rognes, Torbj.
 \newblock 2011.
 \newblock {\em Faster Smith-Waterman Database Searches with Inter-sequence SIMD Parallelisation}
-\newblock BMC bioinformatics.
-\newblock BioMed Central Ltd.
+\newblock BMC bioinformatics 12(1), 221.
+
+\bibitem[\protect\citename{Edgar}2004]{Edgar:04}
+Edgar, Robert C.
+\newblock 2004.
+\newblock {\em MUSCLE: multiple sequence alignment with high accuracy and high throughput}
+\newblock Nucleic Acids Research 32(5), 1792-97.
+
+
 
 
 
