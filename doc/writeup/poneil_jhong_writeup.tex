@@ -53,7 +53,18 @@ We chose to build a server in order to receive alignment requests, store past qu
 
 Previous approaches to faster local alignment exist in the form of performing Smith-Waterman with SIMD parallelization \cite{Rognes:11}. This approach solves a given problem matrix in its entirety. However, they gain a large speed boost by arranging the problems to be better exploited by the CPU or CUDA. 
 
-We want to alternatively try and identify sections of the matrix that we don't have to do in the first place, and then work on solving the rest. It might be possible to do a combination of our approach with SIMD, in that when it comes time to solve a problem, we would want to do it quickly with these methods.
+Another approach to fast local alignment is Z-align\cite{Rognes:11}. In this scheme, local alignment problems are broken up and allocated across multiple processors, and message passing between the processors helps compute the solution.
+
+Z-align would be closer to our approach, where we want to break up a problem and perform message passing to find a solution. However, we want to provide a server working across a network instead of being confined to one machine.  
+
+We want to additionally store previous results and try and identify sections of the matrix that we don't have to do in the first place, while working on solving the rest. It might be possible to do a combination of our approach with the above methods, in that when it comes time to completely solve a problem, we would want to do it quickly.
+
+\begin{figure}
+  \centering 
+  \includegraphics[width=0.5\textwidth]{ExistingWorkAllocationStrategies}
+  \caption{Illustration of Z-align.\cite{Rognes:11}}
+  \label{fig:z-align}
+\end{figure}
 
 
 
@@ -86,6 +97,18 @@ A Worker will produce solutions and store them into Storage. It will also check 
 \subsubsection{Worker}
 When a Worker is ready, it queries the Leader asking for problems to work on. The Leader can then respond with problems that can be claimed. A Worker then claims a problem specification, checks storage, and if applicable, fills out the solution and sends it off to Storage. It responds to the Leader that it is finished.
 
+
+
+\begin{figure}
+  \centering 
+  \includegraphics[width=0.5\textwidth]{problem2}
+  \caption{What a problem for local alignment looks like. A problem description includes two genome sequences, numerical row and column initializations, and a corner number}
+  \label{fig:problem}
+\end{figure}
+
+
+
+
 \subsection{Improvements, Speedups}
 After a base system of this architecture was implemented, there were some several improvements that were made. Some notable ones include:
 
@@ -108,12 +131,12 @@ A feature we wanted the Leader to have was problem subdivision, where the Leader
 When we implemented this feature, we introduced bugs that interfered with the operation of the Leader and Storage, so we had to remove it. The Leader currently sends entire problem specifications to the Workers instead of problem chunks to be reassembled later. This means that the cache hits will only consist of exact matches of local alignment problems we have seen earlier. 
 
 
-\begin{figure*}
+\begin{figure}
   \centering 
-  \includegraphics[width=0.7\textwidth]{trie_corrected}
-  \caption{An example Trie Sequence for approximate matching. The four sequences and the corner number is given.}
+  \includegraphics[width=0.5\textwidth]{trie_corrected}
+  \caption{An example Trie Sequence for partial or approximate matching, with the four sequences and corner number given.}
   \label{fig:trie}
-\end{figure*}
+\end{figure}
 
 
 \subsubsection{Partial Solution Matching}
@@ -122,7 +145,7 @@ Another feature we wanted Storage to have was partial solution matching. Given a
 
 We will accomplish this with a type of Trie data structure, traversing down the Trie with a problem specification by alternating and matching each of the four sequences. For example, we would traverse the Trie by matching the corner, then the first character of the first genome, the first number of the top row, the first character of the second genome, the first number of the first column, then the second character of the first genome, etc. 
 
-In this way, the Trie is matching the upper left corner of a problem and progressively growing out, and traversing further down the trie represents a better partial solution match. See figure 1.
+In this way, the Trie is matching the upper left corner of a problem and progressively growing out, and traversing further down the trie represents a better partial solution match. See figure 3.
 
 
 
@@ -134,6 +157,8 @@ In addition to building the protocols and networking of our base system, as well
 As a step further from Problem Subdivision, we would like to explore dynamic subdivision, where the Leader does not break down a task into regular sized chunks, but rather dynamically take subsections as large or small as it wanted, according to how likely it felt that the chunks would be useful in the future.
 
 Some approaches to this could include training a language model for gene sequences, to find the probability of a sequence (up to a length k) in order to help us decide which subsequences are likely enough for us to see again in the future.
+
+Another approach could be to exploit genome meta-data. If we were about to see many human sequence reads instead of E. Coli, this might influence our decision-making process.
 
 % TODO: Paul
 %Another idea could be to preprocess the alignment problem, computing only down the diagonal and filling the other areas of the matrix with zeros, in order to see where the genomes are similar to each other.
@@ -147,6 +172,10 @@ Another feature we are considering is allowing the Workers to cache some of thei
 A Worker can also use its cache to be smarter about which problems it claims. By comparing a problem list to its cache, a Worker could claim problems it already knows solutions to. If it implements its own Trie, it could do partial matching as well.
 
 These approaches will help reduce network latency, and possibly help the Workers self-specialize.
+
+
+
+
 
 
 \section{Results}
