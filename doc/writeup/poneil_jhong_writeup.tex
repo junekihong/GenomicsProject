@@ -7,7 +7,7 @@
 %% and that of ACL2010 by Jing-Shin Chang and Philipp Koehn
 
 
-\documentclass[11pt]{article}
+\documentclass[12pt]{article}
 \usepackage{poneil_jhong}
 \usepackage{times}
 \usepackage{latexsym}
@@ -179,15 +179,31 @@ These approaches will help reduce network latency, and possibly help the Workers
 
 
 \section{Results}
-
-How well did your method work compared to others?
+%How well did your method work compared to others?
 
 We ran our experiments with genome data found in the PREFAB database \cite{Edgar:04}.
 
+We loaded in X many sequences and aligned them all with each other producing X alignment requests. We ran our server with several different configurations against a baseline of a C++ program that would naively solve every alignment problem filling out the matrix. We wanted to compare the relative performance of our server with storage caching turned on and off, how increasing the number of workers would impact performance, and how all of that compared to the baseline system.
+
+\begin{figure*}
+  \centering 
+  \includegraphics[width=0.7\textwidth]{benchmarks}
+  \caption{Our benchmarks all on one plot.}
+  \label{fig:benchmarks}
+\end{figure*}
+
+
 
 \section{Conclusions} 
+%What did you learn? What should we come away with?
 
-What did you learn? What should we come away with?
+The overwhelming issue for our alignment server was the network overhead within the architecture. Even with a variety of different server configurations, the overall performance turned out to be similar because the vast majority of time was spent on network calls. 
+
+For a complete version of our server, we would need to optimize these network calls as much as possible. For example, we could try and reduce or limit the amount of acknowledgment replies that are required by our protocol, as well as find ways to ``batch'' calls, commands, and requests all together.
+
+We will also need to do further testing on different and much bigger problem sizes, to see how that fares among our trials. If the size of the problems became large enough to become comparable to the network latency, then we might be able to beat the naive baseline with the amount of parallelism we could afford among all of the Worker nodes.
+
+The baseline naive program outperformed our system by about a factor of 20.
 
 
 \section{Works Cited}
