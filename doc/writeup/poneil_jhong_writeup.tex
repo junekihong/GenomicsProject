@@ -51,9 +51,13 @@ We chose to build a server in order to receive alignment requests, store past qu
 \section{Prior Work}
 % What did you read? What did others accomplish before you?
 
-Previous approaches to faster local alignment exist in the form of performing Smith-Waterman with SIMD parallelization \cite{Rognes:11}. This approach solves a given problem matrix in its entirety. However, they gain a large speed boost by arranging the problems to be better exploited by the CPU or CUDA. 
+Previous approaches to faster local alignment exist in the form of performing Smith-Waterman with SIMD parallelization \cite{Rognes:11}. This approach solves a given problem matrix in its entirety. However, they gain a large speed boost by arranging the problems to be better exploit the CPU or GPU. 
 
 Another approach to fast local alignment is Z-align\cite{Boukerche:12}. In this scheme, local alignment problems are broken up and allocated across multiple processors, and message passing between the processors helps compute the solution.
+Each processor is deterministically assigned a large, contiguous, rectanglular portion of the matrix.
+The processor does not contact a scheduler in order to obtain the assignment.
+As a processor computes a chunk, the border of that chunk is sent to the next processor.
+In the scenario shown in Figure~\ref{fig:z-align}, only the column of the matrix between two processors must be transferred.
 
 Z-align would be closer to our approach, where we want to break up a problem and perform message passing to find a solution. However, we want to provide a server working across a network instead of being confined to one machine.  
 
@@ -234,11 +238,17 @@ We elected to distribute scheduling decisions in order take advantage of informa
 
 The overwhelming issue for our alignment server was the network overhead within the architecture. Even with a variety of different server configurations, the overall performance turned out to be similar because the vast majority of time was spent on network calls. 
 
-For a complete version of our server, we would need to optimize these network calls as much as possible. For example, we could try and reduce or limit the amount of acknowledgment replies that are required by our protocol, as well as find ways to ``batch'' calls, commands, and requests all together.
+For a complete version of our server, we would need to optimize these network calls as much as possible.
+For example, we could try and reduce or limit the amount of acknowledgment replies that are required by our protocol, as well as find ways to ``batch'' calls, commands, and requests all together.
+Another problem in our testing was that it was difficult to enqueue enough requests for the Worker nodes.
+The command-line interface we developed was designed for a human user; it was difficult to specify all problems at once in order to maximize the load on the system and decrease competition between workers.
+Allocating more work to each worker and allowing it to proceed during a network call would allow us to maximally utilize processing resources.
 
 We will also need to do further testing on different and much bigger problem sizes, to see how that fares among our trials. If the size of the problems became large enough to become comparable to the network latency, then we might be able to beat the naive baseline with the amount of parallelism we could afford among all of the Worker nodes.
+Combining larger problems with subdivision would also assist the scheduling competition.
 
 The baseline naive program outperformed our system by about a factor of 20.
+It seems our fancy system did not pay off.
 
 
 \section{Works Cited}
@@ -249,7 +259,7 @@ The baseline naive program outperformed our system by about a factor of 20.
 
 \begin{thebibliography}{9}
 
-\bibitem{Mesos}
+    \bibitem[\citename{Apache}2013]{Mesos}
     Apache Mesos. https://mesos.apache.org/
 
 \bibitem[\protect\citename{Boukerche}2012]{Boukerche:12}
