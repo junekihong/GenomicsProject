@@ -109,7 +109,7 @@ When a Worker is ready, it queries the Leader asking for problems to work on. Th
 
 
 
-\subsection{Improvements, Speedups}
+\subsection{Improvements and Speedups}
 After a base system of this architecture was implemented, there were some several improvements that were made. Some notable ones include:
 
 \subsubsection{Available Workers Put on Hold}
@@ -174,23 +174,55 @@ A Worker can also use its cache to be smarter about which problems it claims. By
 These approaches will help reduce network latency, and possibly help the Workers self-specialize.
 
 
-
-
-
-
-\section{Results}
+\section{Experiment and Results}
 %How well did your method work compared to others?
 
 We ran our experiments with genome data found in the PREFAB database \cite{Edgar:04}.
 
-We loaded in X many sequences and aligned them all with each other producing X alignment requests. We ran our server with several different configurations against a baseline of a C++ program that would naively solve every alignment problem filling out the matrix. We wanted to compare the relative performance of our server with storage caching turned on and off, how increasing the number of workers would impact performance, and how all of that compared to the baseline system.
+We loaded in 100 sequences and aligned 20 with 10 of them, producing 200 alignment requests. We ran the system in  several different configurations against a baseline of a C++ program that would naively solve every alignment problem filling out the matrix. We compared the relative performance of our system with storage caching turned on and off, how increasing the number of workers would impact performance, and how all of that compared to the baseline system.
+Our results are summarized in Figure~\ref{fig:benchmarks}.
+Though the graph shows a horizontal line for the baseline system, it was only ever run as one process.
 
 \begin{figure}
   \centering 
   \includegraphics[width=0.5\textwidth]{benchmarks}
-  \caption{Our benchmarks on a plot.}
+  \caption{The plot shows four different configurations of our system, with the number of workers varying in each.}
   \label{fig:benchmarks}
 \end{figure}
+
+For all of the configurations, the single storage process and the leader process were run on \verb!ugradx.cs.jhu.edu!.
+Local alignment problems were enqueued by running 5 clients for each worker in the configuration.
+Each client requested 10 problems before stopping.
+If there were more alignments to be done, another client started.
+In this way, we aimed to keep the Leader's list of available problems filled and Workers constantly busy.
+All of the clients were run on \verb!ugradx!, the same machine as the Leader.
+
+In the green configuration, the workers were also run on \verb!ugradx!; this arrangement minimizes latency.
+The cache started empty and all problems are unique, so each solution was computed.
+Similarly, the red configuration also had an empty cache.
+However, the worker processes were distributed to \verb!ugrad16!, \verb!ugrad17!, \verb!ugrad18!, and \verb!ugrad19!.
+In the light blue configuration, worker processes were again all on \verb!ugradx! and all solutions were already in the cache; no solution was newly computed.
+
+The time taken by the baseline configuration represents the maximum amount of useful computation done in any of the configurations.
+Extra time taken by the more complex schemes is entirely overhead.
+While running, the computational load of each process tended to be very low, usually between 5-10\% of a core on \verb!ugradx!.
+These two points strongly suggest that the delays are caused mostly by communcation latency and race conditions between the different workers.
+
+We were somewhat surprised and disappointed to find that the caching configuration performed the worst.
+It also shows the least improvement from a single worker process to two.
+This is likely due to the increased and serialized cost of searching the set of solved problems.
+The lookup for a solved problem consists of four binary searches, one for each sequence in the problem specification.
+When the problem has already been solved, each of the searches returns at least one result, so the search cannot short-circuit.
+The lookup takes place in the storage process; even though there are two Workers, the Storage process only performs one lookup at a time.
+In this configuration, the processing load of the Storage program did tend to be higher, supporting this explanation.
+
+We belive that the general decreases in performance from two Worker processes to four is attributable to competition between the Workers.
+Even though there are many clients submitting requests, there did not tend to be more than ten problems in the queue simultaneously.
+This led to many Workers attempting to claim the same problems and the Leader rejecting them.
+Each attempt takes an entire round-trip from the Worker to the Leader and back.
+In contast with a scheduler like Mesos \cite{Mesos}, this is a significant cost.
+Mesos makes all scheduling decisions in a single process.
+We elected to distribute scheduling decisions in order take advantage of information local to the Worker, though we did not actually implement such functionality.
 
 
 
@@ -212,7 +244,10 @@ The baseline naive program outperformed our system by about a factor of 20.
 
 
 
-\begin{thebibliography}{}
+\begin{thebibliography}{9}
+
+\bibitem{Mesos}
+    Apache Mesos. https://mesos.apache.org/
 
 \bibitem[\protect\citename{Boukerche}2012]{Boukerche:12}
 Azzedine Boukerche.
@@ -220,20 +255,17 @@ Azzedine Boukerche.
 \newblock {\em Exact Parallel Alignment of Megabase genomic Sequences with Tunable Work Distribution},
 \newblock International Journal of Foundations of Computer Science 23(2), 407-429.
 
-\bibitem[\protect\citename{Rognes}2011]{Rognes:11}
-Rognes, Torbj.
-\newblock 2011.
-\newblock {\em Faster Smith-Waterman Database Searches with Inter-sequence SIMD Parallelisation}
-\newblock BMC bioinformatics 12(1), 221.
-
 \bibitem[\protect\citename{Edgar}2004]{Edgar:04}
 Edgar, Robert C.
 \newblock 2004.
 \newblock {\em MUSCLE: multiple sequence alignment with high accuracy and high throughput}
 \newblock Nucleic Acids Research 32(5), 1792-97.
 
-
-
+\bibitem[\protect\citename{Rognes}2011]{Rognes:11}
+Rognes, Torbj.
+\newblock 2011.
+\newblock {\em Faster Smith-Waterman Database Searches with Inter-sequence SIMD Parallelisation}
+\newblock BMC bioinformatics 12(1), 221.
 
 
 %\bibitem[\protect\citename{Aho and Ullman}1972]{Aho:72}
