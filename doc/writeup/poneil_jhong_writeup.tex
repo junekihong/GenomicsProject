@@ -30,9 +30,9 @@
 \date{}
 
 \begin{document}
-%\maketitle
+\maketitle
 \begin{abstract}
-  We built a server in order to perform multiple exact local alignment problems. This server manages a storage database and worker nodes in order to handle queries made by clients. As clients send many local alignment problem requests, we want to be able to store and cache previous solutions for use later. The client-server architecture will provide a framework for this task. 
+  We built a server in order to perform multiple exact local alignment problems. This server manages a storage database and worker nodes in order to handle queries made by clients. As clients send many local alignment problem requests, we want to be able to store and cache previous solutions for use later. The client-server architecture will provide a framework for this task. We discover that the biggest issues that our approach faces is network latency and the overhead of our message passing protocols. 
 \end{abstract}
 
 
@@ -41,7 +41,7 @@
 The task of local alignment is a frequently queried task in Computational Genomics. 
 An individual local alignment problem can be solved by computing a matrix of values using Dynamic Programming, but what if parts of a problem matrix could be reused in future alignment tasks? We want to use previous Dynamic Programming problems to help solve future problems. In other words, we want to perform Dynamic Programming across Dynamic Programming problems: Meta Dynamic Programming.
 
-When many queries for local alignment are made, there might be similar structure across tasks that could be reused. For example, when aligning gene sequences, similar subsequences reoccur because they were all taken from a similar organisms, there are repeating genes in certain sections of genomes, or even simply because of the limited permutations of the gene alphabet A,C,G,T.
+When many queries for local alignment are made, there might be similar structure across tasks that could be reused. For example, when aligning gene sequences, similar subsequences could reappear because they were all taken from similar organisms, there were repeating genes in certain sections of genomes, or even simply by chance because of the limited permutations of the gene alphabet A,C,G,T.
 
 We chose to build a server in order to receive alignment requests, store past queries, and then return the result. This server can serve as a central location for previous alignment tasks, where we could try to fetch a solution from a database, or solve the problem when none were available. With this server in place, it could be possible to explore different ways we can exploit the similarities across our problems.
  
@@ -87,27 +87,26 @@ A Worker will produce solutions and store them into Storage. It will also check 
 When a Worker is ready, it queries the Leader asking for problems to work on. The Leader can then respond with problems that can be claimed. A Worker then claims a problem specification, checks storage, and if applicable, fills out the solution and sends it off to Storage. It responds to the Leader that it is finished.
 
 \subsection{Improvements, Speedups}
-After a base system of this architecture was implemented, there were some several improvements that were made. When a Worker requests for a list of problems, the Leader does not immediately close the connection if there are none, but instead keeps a list of available Workers that it can broadcast to when new problems are available. This cuts down some of the network overhead when a Worker is ready for new problems. %TODO. more speedups.
+After a base system of this architecture was implemented, there were some several improvements that were made. Some notable ones include:
+
+\subsubsection{Available Workers Put on Hold}
+When a Worker requests for a list of problems, the Leader does not immediately close the connection if there are none, but instead keeps a list of available Workers that it can broadcast to when new problems are available. This cuts down some of the network overhead when a Worker is ready for new problems. 
+
+\subsubsection{Workers Randomly Select Problems}
+The Worker also now select randomly from the list of problems instead of just the first one. If multiple Workers were contacting the Leader, they would have both tried to claim the same problems, and so this behavior has been alleviated to a degree. In order to cut down on the network overhead even further, the Worker also tries to claim multiple problems at once, and then solves them returning the results one at a time.
+
+\subsubsection{Storage send out ACKs Immediately}
+Finally, when uploads to Storage are being made, we changed the protocol such that Storage would send the acknowledgement first before it had finished serializing the received data. Although this might be vulnerable from an systems perspective, where the storage could fail while it is receiving data, we wanted to diminish the amount of time the Worker and Leader has to wait for a response while Storage receives data.
 
 
-\section{Future Work}
-Most of our efforts went into building the protocols and networking of our base system from scratch, but we have ideas that constitute future work.
+\subsection{Features Not Completed}
+There were some features that we attempted or wanted to put into the system that did not work out because of its complexity or because of implementation issues. Some notable ones include:
 
-\subsection{Problem Subdivision}
+\subsubsection{Problem Subdivision}
 A feature we wanted the Leader to have was problem subdivision, where the Leader would break down the task of completing a matrix into subproblems of smaller matrices, and then later reassemble the full solution from the pieces. The Leader would then have to keep track of which original problems that the subproblems belonged to, when the subproblems completed the full problem, and then reassemble the solution matrices.
   
 When we implemented this feature, we introduced bugs that interfered with the operation of the Leader and Storage, so we had to remove it. The Leader currently sends entire problem specifications to the Workers instead of problem chunks to be reassembled later. This means that the cache hits will only consist of exact matches of local alignment problems we have seen earlier. 
 
-\subsection{Dynamic Subdivision}
-As a step further from Problem Subdivision, we would like to explore dynamic subdivision, where the Leader does not break down a task into regular sized chunks, but rather dynamically take subsections as large or small as it wanted, according to how likely it felt that the chunks would be useful in the future.
-
-Some approaches to this could include training a language model for gene sequences, to find the probability of a sequence (up to a length k) in order to help us decide which subsequences are likely enough for us to see again in the future.
-
-% TODO: Paul
-%Another idea could be to preprocess the alignment problem, computing only down the diagonal and filling the other areas of the matrix with zeros, in order to see where the genomes are similar to each other.
-
-
-\subsection{Partial Solution Matching}
 
 \begin{figure*}
   \centering 
@@ -117,9 +116,9 @@ Some approaches to this could include training a language model for gene sequenc
 \end{figure*}
 
 
+\subsubsection{Partial Solution Matching}
+
 Another feature we wanted Storage to have was partial solution matching. Given a problem specification, a Worker will query into Storage checking to see if it already exists, and it might be possible for Storage to return a solution that mostly matches what the Worker was looking for. This would allow the Worker to fill in most of their matrix easily, fill in the rest manually, and then return the solution.
-
-
 
 We will accomplish this with a type of Trie data structure, traversing down the Trie with a problem specification by alternating and matching each of the four sequences. For example, we would traverse the Trie by matching the corner, then the first character of the first genome, the first number of the top row, the first character of the second genome, the first number of the first column, then the second character of the first genome, etc. 
 
@@ -128,9 +127,25 @@ In this way, the Trie is matching the upper left corner of a problem and progres
 
 
 
-\subsection{Worker-Side Cache}
+\subsection{Future Work}
+In addition to building the protocols and networking of our base system, as well as trying to implement the above features, we also have additional ideas that constitute future work.
 
-One last feature we are considering is allowing the Workers to cache some of their own solutions. When a Worker claims a problem to work on, it can first check its own cache to look for an exact or partial match, instead of just going to Storage. It can then fill out the solution quickly and respond back to the Leader without ever having gone to Storage. A Worker can also use its cache to be smarter about which problems it claims. By comparing a problem list to its cache, a Worker could claim problems it already knows solutions to. If it implements its own Trie, it could do partial matching as well.
+\subsubsection{Dynamic Problem Subdivision}
+As a step further from Problem Subdivision, we would like to explore dynamic subdivision, where the Leader does not break down a task into regular sized chunks, but rather dynamically take subsections as large or small as it wanted, according to how likely it felt that the chunks would be useful in the future.
+
+Some approaches to this could include training a language model for gene sequences, to find the probability of a sequence (up to a length k) in order to help us decide which subsequences are likely enough for us to see again in the future.
+
+% TODO: Paul
+%Another idea could be to preprocess the alignment problem, computing only down the diagonal and filling the other areas of the matrix with zeros, in order to see where the genomes are similar to each other.
+
+
+
+\subsubsection{Worker-Side Cache}
+
+Another feature we are considering is allowing the Workers to cache some of their own solutions. When a Worker claims a problem to work on, it can first check its own cache to look for an exact or partial match, instead of just going to Storage. It can then fill out the solution quickly and respond back to the Leader without ever having gone to Storage. 
+
+A Worker can also use its cache to be smarter about which problems it claims. By comparing a problem list to its cache, a Worker could claim problems it already knows solutions to. If it implements its own Trie, it could do partial matching as well.
+
 These approaches will help reduce network latency, and possibly help the Workers self-specialize.
 
 
