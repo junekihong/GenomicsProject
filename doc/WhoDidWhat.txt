@@ -1,0 +1,22 @@
+
+Both
+-Discussed and came up with the original project idea. As well as the architecture of how it should all be structured.
+-Worked over Thanksgiving break. Keeping in touch online.
+-Wrote the Presentation. Gave the Presentation.
+
+Paul
+-Built most of the C++ skeleton and the design and layout of the code.
+-Wrote the Makefiles. Most of the README.
+-Wrote most of the networking/socket code, the boost library call code, and the serialization library call code.
+-Wrote most of the Storage code.
+-Wrote most of the Client code.
+-Designed and ran benchmarks. Produced the chart of our results. Wrote the Results and Conclusions section in the writeup.
+
+Juneki
+-Filled in a lot of methods within Paul's code skeleton. Especially in actions.cpp.
+-Filled in the interactions of the Coordinator with Worker, Storage, and Client.
+-Wrote most of the Worker code.
+-Wrote some of the Coordinator code. 
+-Tried to implement subdividing problems, but it was left out in the final submission.
+-Wrote helper classes such as matrix.h, problem.h, solution.h
+-Wrote the the first half of the writeup.
