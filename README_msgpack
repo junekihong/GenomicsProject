@@ -1,0 +1,8 @@
+In this directory, the following files should be marked executable
+
+bootstrap
+config.status
+configure
+libtool
+preprocess
+
