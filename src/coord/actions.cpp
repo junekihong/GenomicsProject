@@ -162,7 +162,8 @@ void ClientActionImpl::finishGenomeUpload()
 void ClientActionImpl::listGenomes()
 {
     // TODO without the insane amount of copying
-    std::vector<std::string> nameList(nameToGenomeLength.size());
+    std::vector<std::string> nameList;
+    nameList.reserve(nameToGenomeLength.size());
     for( std::map<std::string, int>::iterator iter = nameToGenomeLength.begin(); iter != nameToGenomeLength.end(); ++iter )
         nameList.push_back(iter->first);
     client->sendGenomeList(nameList);
