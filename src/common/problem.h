@@ -50,6 +50,10 @@ class ProblemDescription
 	std::vector<unsigned char> top_genome;
 	std::vector<unsigned char> left_genome;
 
+    ProblemDescription()
+    {
+        corner = 0;
+    }
     void operator=(const ProblemDescription &x)
     {
         problemID = x.problemID;
