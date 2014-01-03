@@ -242,9 +242,18 @@ void printBuffer(std::ostream& out, const char * data, unsigned long length)
 {
     out << std::hex;
     if( length )
-        out << static_cast<int>(data[0]);
+    {
+        if( (static_cast<unsigned>(data[0]) & 0xFF) < 0x10 )
+            out << '0';
+        out << (static_cast<unsigned>(data[0]) & 0xFF);
+    }
     for( unsigned i = 1; i < length; ++i )
-        out << " " << static_cast<int>(data[i]);
+    {
+        out << " ";
+        if( (static_cast<unsigned>(data[i]) & 0xFF) < 0x10 )
+            out << '0';
+        out << (static_cast<unsigned>(data[i]) & 0xFF);
+    }
     out << "\n";
     out << std::dec;
 }
