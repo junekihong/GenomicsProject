@@ -17,6 +17,10 @@ build
 *~
 .*.sw[po]
 
+mdp_mdpc
+mdp_mdpl
+mdp_mdps
+mdp_mdpw
 mdpc
 mdpl
 mdps
@@ -30,3 +34,5 @@ data
 solutions
 genomes
 .libs
+.dub
+*.dSYM

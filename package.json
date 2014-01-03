@@ -1,0 +1,37 @@
+{
+	"name": "mdp",
+	"description": "Meta-Dynamic Programming, a \"web service\" to efficiently solve local alignment problems",
+	"homepage": "http://github.com/junks/GenomicsProject",
+	"copyright": "Copyright © 2014, Juneki Hong & Paul O'Neil",
+	"authors": [
+        "Juneki Hong",
+        "Paul O'Neil",
+	],
+    "targetType": "none",
+
+    "subPackages": [
+        {
+            "name":         "mdpc",
+            "targetType":   "executable",
+            "sourcePaths":  ["src/common","src/client"],
+            "dependencies": {
+                "msgpack-d":    "~master",
+                "vibe-d":       "0.7.18",
+            },
+            "versions": ["VibeCustomMain"],
+        },
+        {
+            "name":         "mdpw",
+            "targetType":   "executable",
+            "sourcePaths":  ["src/common","src/worker"],
+            "dependencies": {
+                "msgpack-d":    "~master",
+                "vibe-d":       "0.7.18",
+            },
+            "versions": ["VibeCustomMain"],
+        }
+    ],
+    "dependencies": {
+        "mdp:mdpc":"~master",
+    },
+}
