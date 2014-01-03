@@ -38,7 +38,9 @@ int main(int argc, const char* argv[])
     initializeSolutionSystem();
     std::cout << "Got solutions\n";
     
+#ifndef DEBUG
     try {
+#endif
         int listen_socket = start_listening(myport);
         
         fd_set mask, dummy_mask, temp_mask;
@@ -109,12 +111,14 @@ int main(int argc, const char* argv[])
             }
         }
         
+#ifndef DEBUG
     }
     catch( const std::exception& err )
     {
         std::cerr << err.what() << "\n";
         exit(-1);
     }
+#endif
     
     return 0;
 }

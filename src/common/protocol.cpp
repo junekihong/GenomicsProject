@@ -227,6 +227,10 @@ void sendBuffer(std::ostream& socket, const msgpack::sbuffer& buff)
 
 void sendBuffer(int socket, const msgpack::sbuffer& buff)
 {
+#ifdef DEBUG
+    std::cerr << "Sending buffer length " << buff.size() << ": ";
+    printBuffer(std::cerr, buff.data(), buff.size());
+#endif
     unsigned length = static_cast<unsigned>(buff.size());
     send(socket, &length, sizeof(length), 0);
     send(socket, buff.data(), buff.size(), 0);

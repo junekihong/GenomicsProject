@@ -23,6 +23,9 @@ void WorkerProtocolImpl::requestProblemList(std::vector<ProblemDescription>& pro
 	}
 	
     read(unpack, problemList);
+#ifdef DEBUG
+    std::cout << "First problem corner = " << problemList[0].corner << "\n";
+#endif
 }
 
 bool WorkerProtocolImpl::claimProblems(const std::vector<ProblemID>& problems)
