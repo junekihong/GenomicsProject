@@ -1,7 +1,5 @@
 Juneki Hong and Paul O'Neil
 
-The writeup and WhoDidWhat.txt are found in ``doc/``
-
 
 GenomicsProject
 ===============
@@ -11,11 +9,11 @@ Meta Dynamic Programming. Dynamic Programming over all of our Dynamic Programmin
 Usage
 =====
 
-The user interacts with the system via a command-line client, named ``mdpc``.
+The user interacts with the system via a command-line client, named ``mdp_mdpc``.
 
 A genome can uploaded to the system by running:
 
-    mdpc [--server <server>[:<port>]] genome upload <filename> <name>
+    mdp_mdpc [--server <server>[:<port>]] genome upload <filename> <name>
 
 The client reads the DNA sequence in the file given by ``filename`` and uploads it to the coordinator.
 Later, the genome can be referenced by the the name given, and the file can be deleted.
@@ -26,12 +24,12 @@ The target server is optionally specified with ``--server``; the default server 
 
 The list of uploaded genomes can be queried with
 
-    mdpc [--server <server>[:<port>]] genome list
+    mdp_mdpc [--server <server>[:<port>]] genome list
 
 
 Genomes can be aligned with
 
-    mdpc [--server <server>[:<port>]] local-align <genome_1> <genome_2> ...
+    mdp_mdpc [--server <server>[:<port>]] local-align <genome_1> <genome_2> ...
 
 The client outputs the end of the optimal alignment and the matrix.
 Many pairs of genomes may be specified and they will be requested sequentially.
@@ -43,7 +41,7 @@ The coordinator (leader) is run with
 
 A worker is run with
 
-    mdpw [--server <server>[:<port>]] [--storage <server>[:<port>]]
+    mdp_mdpw [--server <server>[:<port>]] [--storage <server>[:<port>]]
 
 A storage node is run with:
 
@@ -62,28 +60,6 @@ Our benchmarks can be run with the included ``benchmark.py``.
 The options there are described by running ``benchmark.py --help``.
 The baseline program can be benchmarked with ``baseline.py``.
 
-The local benchmarks without cache were run with
-
-    ./benchmark.py --start-servers --start-workers --stop-servers --client-count 5 --worker-count 1
-    ./benchmark.py --start-servers --start-workers --stop-servers --client-count 5 --worker-count 2
-    ./benchmark.py --start-servers --start-workers --stop-servers --client-count 5 --worker-count 4
-
-The remote benchmarks were run with
-
-    ./benchmark.py --start-servers --stop-servers --client-count 5 --worker-count 1
-    ./benchmark.py --start-servers --stop-servers --client-count 5 --worker-count 2
-    ./benchmark.py --start-servers --stop-servers --client-count 5 --worker-count 4
-and the workers were started manually on other machines
-
-The solution cache was filled with
-
-    ./benchmark.py --start-servers --client-count 5 --worker-count 1
-
-and the cache benchmarks were run with
-    
-    ./benchmark.py --start-workers --client-count 5 --worker-count 1
-    ./benchmark.py --start-workers --client-count 5 --worker-count 2
-    ./benchmark.py --start-workers --client-count 5 --worker-count 4
 
 Building
 ========
@@ -99,6 +75,15 @@ To build from git:
     
     cd ../..
     make
+
+The client and worker have been rewritten in the [D programming language](http://dlang.org).
+Then can be built with [dub](http://code.dlang.org/about):
+    
+    dub build mdp:mdpc
+    dub build mdp:mdpw
+
+The programs have been developed with dmd version 2.064.
+
 
 
 Internals
@@ -117,3 +102,6 @@ It is distributed under the open source (Boost License)[http://www.boost.org/use
 
 We also use [Msgpack](http://github.com/msgpack/msgpack-c); it is a submodule in our repository.
 It is distributed under the open source (Apache License)[https://github.com/msgpack/msgpack-c/blob/master/COPYING].
+
+We use [vibe.d](http://vibed.org) and [msgpack-d](https://github.com/msgpack/msgpack-d) in the D implementations.
+Both of these will be automatically downloaded by dub.
