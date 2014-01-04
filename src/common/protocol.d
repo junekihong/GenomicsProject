@@ -200,18 +200,70 @@ class QueryResponse
     }
 }
 
+// TODO move into storage submodule?
+struct CreateNewGenome
+{
+    static enum id = MessageID.StoreNewGenome;
+    string name;
+    uint length;
+}
+
+struct InsertGenomeData
+{
+    static enum id = MessageID.StoreNewData;
+    string name;
+    uint index; // TODO move this after data
+    string data;
+}
+
+struct InsertSolution
+{
+    static enum id = MessageID.StoreNewSolution;
+    ProblemDescription prob;
+    Solution solution;
+}
+
+struct QueryByProblemID
+{
+    static enum id = MessageID.StoreQueryByID;
+    ProblemID prob;
+    bool entireSolution;
+}
+
+struct QueryByInitialConditions
+{
+    static enum id = MessageID.StoreQueryByCond;
+    ProblemDescription problemDescription;
+    bool wantPartials;
+}
+
+struct QueryByName
+{
+    static enum id = MessageID.StoreGenomeContentQuery;
+    string name;
+    int startIndex;
+    int length;
+}
+
+// TODO add constraints to the MessageType
+void sendMessage(Packer, MessageType)(ref Packer packer, in MessageType message)
+{
+    packer.pack(MessageType.id);
+    foreach(elem; message.tupleof)
+        packer.pack(elem);
+}
 
 interface StorageProtocol
 {
     public:
 
-    void createNewGenome(string name, uint length);
-    void insertGenomeData(string name, out uint index, string data);
-    bool insertSolution(ProblemDescription prob, in Solution solution);
-    QueryResponse queryByProblemID(in ProblemID prob, bool entireSolution);
-    QueryResponse queryByInitialConditions(in ProblemDescription problemDescription, bool wantPartials);
+    void createNewGenome(in CreateNewGenome msg);
+    void insertGenomeData(in InsertGenomeData msg);
+    bool insertSolution(in InsertSolution msg);
+    QueryResponse queryByProblemID(in QueryByProblemID msg);
+    QueryResponse queryByInitialConditions(in QueryByInitialConditions msg);
 
-    string queryByName(string name, int startIndex, int length);
+    string queryByName(in QueryByName msg);
 
     ProblemID getNextSolutionID();
     void getGenomeList(ref int[string] genome_list);
@@ -225,60 +277,42 @@ class StorageProtocolImpl : StorageProtocol
     TCPConnection socket;
 
 
+    final void netSend(MessageType)(in MessageType msg)
+    {
+        Packer!(Appender!(ubyte[])) pack = packer(appender!(ubyte[])());
+        sendMessage(pack, msg);
+        sendBuffer(socket, pack.stream().data);
+        socket.flush();
+    }
     public:
     this(TCPConnection con)
     {
         socket = con;
     }
 
-    override void createNewGenome(string name, uint length)
+    override void createNewGenome(in CreateNewGenome msg)
     {
-        Packer!(Appender!(ubyte[])) pack = packer(appender!(ubyte[])());
-        pack.pack(MessageID.StoreNewGenome);
-        pack.pack(name);
-        pack.pack(length);
-        sendBuffer(socket, pack.stream().data);
-        socket.flush();
-
+        netSend(msg);
         receive_ack(socket, MessageID.StoreQueryResponse);
     }
 
-    override void insertGenomeData(string name, out uint index, string data)
+    override void insertGenomeData(in InsertGenomeData msg)
     {
-        Packer!(Appender!(ubyte[])) pack = packer(appender!(ubyte[])());
-        pack.pack(MessageID.StoreNewData);
-        pack.pack(name);
-        pack.pack(index);
-        pack.pack(data);
-        sendBuffer(socket, pack.stream().data);
-        socket.flush();
-
+        netSend(msg);
         receive_ack(socket, MessageID.StoreQueryResponse);
     }
 
     // TODO should this really return bool?
-    override bool insertSolution(ProblemDescription prob, in Solution solution)
+    override bool insertSolution(in InsertSolution msg)
     {
-        Packer!(Appender!(ubyte[])) pack = packer(appender!(ubyte[])());
-        pack.pack(MessageID.StoreNewSolution);
-        //pack.pack(prob);
-        prob.toMsgpack(pack);
-        pack.pack(solution);
-        sendBuffer(socket, pack.stream().data);
-        socket.flush();
-
+        netSend(msg);
         receive_ack(socket, MessageID.StoreQueryResponse);
         return true;
     }
 
-    override QueryResponse queryByProblemID(in ProblemID prob, bool entireSolution)
+    override QueryResponse queryByProblemID(in QueryByProblemID msg)
     {
-        Packer!(Appender!(ubyte[])) pack = packer(appender!(ubyte[])());
-        pack.pack(MessageID.StoreQueryByID);
-        pack.pack(prob);
-        pack.pack(entireSolution);
-        sendBuffer(socket, pack.stream().data);
-        socket.flush();
+        netSend(msg);
 
         Unpacker unpack = readBuffer(socket);
         MessageID response_msg_id;
@@ -291,14 +325,9 @@ class StorageProtocolImpl : StorageProtocol
         return response;
     }
 
-    override QueryResponse queryByInitialConditions(in ProblemDescription problemDescription, bool wantPartials)
+    override QueryResponse queryByInitialConditions(in QueryByInitialConditions msg)
     {
-        Packer!(Appender!(ubyte[])) pack = packer(appender!(ubyte[])());
-        pack.pack(MessageID.StoreQueryByCond);
-        pack.pack(problemDescription);
-        pack.pack(wantPartials);
-        sendBuffer(socket, pack.stream().data);
-        socket.flush();
+        netSend(msg);
 
         Unpacker unpack = readBuffer(socket);
         MessageID response_msg_id;
@@ -311,15 +340,9 @@ class StorageProtocolImpl : StorageProtocol
         return response;
     }
 
-    override string queryByName(string name, int startIndex, int length)
+    override string queryByName(in QueryByName msg)
     {
-        Packer!(Appender!(ubyte[])) pack = packer(appender!(ubyte[])());
-        pack.pack(MessageID.StoreQueryByCond);
-        pack.pack(name);
-        pack.pack(startIndex);
-        pack.pack(length);
-        sendBuffer(socket, pack.stream().data);
-        socket.flush();
+        netSend(msg);
 
         Unpacker unpack = readBuffer(socket);
         MessageID response_msg_id;
@@ -340,9 +363,8 @@ class StorageProtocolImpl : StorageProtocol
 
     override ProblemID getNextSolutionID()
     {
-        Packer!(Appender!(ubyte[])) pack = packer(appender!(ubyte[])());
-        pack.pack(MessageID.StoreMaxSolutionRequest);
-        sendBuffer(socket, pack.stream().data);
+        // TODO rename send_ack
+        send_ack(socket, MessageID.StoreMaxSolutionRequest);
         socket.flush();
 
         Unpacker unpack = readBuffer(socket);
@@ -361,9 +383,7 @@ class StorageProtocolImpl : StorageProtocol
 
     override void getGenomeList(ref int[string] genome_list)
     {
-        Packer!(Appender!(ubyte[])) pack = packer(appender!(ubyte[])());
-        pack.pack(MessageID.GenomeListRequest);
-        sendBuffer(socket, pack.stream().data);
+        send_ack(socket, MessageID.GenomeListRequest);
         socket.flush();
 
         Unpacker unpack = readBuffer(socket);

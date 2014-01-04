@@ -50,20 +50,28 @@ void runWorker(WorkerLeaderProtocol leader, StorageProtocol storage)
         foreach( ProblemDescription problemDescription; descs )
         {
             // Only query for exact matches
-            QueryResponse queryResponse = storage.queryByInitialConditions(problemDescription, false);
+            // TODO eliminate copying the problemDescription,
+            // though it *might* be a shallow copy
+            QueryByInitialConditions msg = { problemDescription, false};
+            QueryResponse queryResponse = storage.queryByInitialConditions(msg);
 
             SolutionCertificate solutionCertificate;
             solutionCertificate.problemID = problemDescription.problemID;
 
             if( queryResponse.success && queryResponse.exactMatch )
             {
-                writeln("Cache hit!");
+                debug(1) {
+                    writeln("Cache hit!");
+                }
                 solutionCertificate.solutionID = queryResponse.sol.id;
             }
             else
             {
                 Solution sol = solveProblem(problemDescription);
-                storage.insertSolution(problemDescription, sol);
+
+                // TODO eliminate copies, see queryByInitialConditions above
+                InsertSolution sol_msg = {problemDescription, sol};
+                storage.insertSolution(sol_msg);
                 solutionCertificate.solutionID = problemDescription.problemID;
             }
 
