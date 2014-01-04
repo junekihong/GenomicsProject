@@ -8,16 +8,6 @@ private import std.conv : to;
 private import msgpack;
 private import mdp.common.protocol;
 
-interface WorkerLeaderProtocol
-{
-    public:
-    ProblemDescription[] requestProblemList();
-
-    bool claimProblems(in ProblemID[] problems);
-
-    void sendSolution(in SolutionCertificate solution);
-}
-
 class WorkerProtocolImpl : WorkerLeaderProtocol
 {
     private:
@@ -33,7 +23,10 @@ class WorkerProtocolImpl : WorkerLeaderProtocol
 
     override ProblemDescription[] requestProblemList()
     {
-        // writeln("Requesting problem list");
+        debug(1) {
+            import std.stdio : writeln;
+            writeln("Requesting problem list");
+        }
         send_ack(socket, MessageID.ProblemListRequest);
         socket.flush();
 
@@ -48,7 +41,7 @@ class WorkerProtocolImpl : WorkerLeaderProtocol
         return problemList;
     }
 
-    override bool claimProblems(in ProblemID[] problems)
+    override bool claimProblems(in ClaimProblems msg)
     {
         /*
          * writeln("Claiming ", problems.length, " problems");
@@ -56,11 +49,7 @@ class WorkerProtocolImpl : WorkerLeaderProtocol
          * foreach( ProblemID id; problems )
          *     writeln("\t", id);
          */
-        Packer!(Appender!(ubyte[])) pack = packer(appender!(ubyte[]));
-        pack.pack(MessageID.ProblemClaimRequest);
-        pack.pack(problems);
-        sendBuffer(socket, pack.stream().data);
-        socket.flush();
+        netSend(socket, msg);
 
         Unpacker unpack = readBuffer(socket);
         MessageID response_msg_id;
@@ -73,12 +62,8 @@ class WorkerProtocolImpl : WorkerLeaderProtocol
         return result;
     }
 
-    override void sendSolution(in SolutionCertificate solution)
+    override void sendSolution(in SendSolutionReport msg)
     {
-        Packer!(Appender!(ubyte[])) pack = packer(appender!(ubyte[]));
-        pack.pack(MessageID.SolutionReport);
-        pack.pack(solution);
-        sendBuffer(socket, pack.stream().data);
-        socket.flush();
+        netSend(socket, msg);
     }
 }

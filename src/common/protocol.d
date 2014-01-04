@@ -6,6 +6,7 @@ import std.string;
 
 import msgpack;
 
+import vibe.core.net;
 import vibe.core.stream;
 
 import mdp.common.location;
@@ -200,6 +201,43 @@ class QueryResponse
     }
 }
 
+struct GenomeUploadStart
+{
+    static enum id = MessageID.GenomeUploadStart;
+    string name;
+    uint length;
+}
+
+struct LocalAlignStart
+{
+    static enum id = MessageID.LocalAlignStart;
+    string genome_1;
+    string genome_2;
+}
+
+// Move into leader submodule?
+struct ClaimProblems
+{
+    static enum id = MessageID.ProblemClaimRequest;
+    ProblemID[] problems;
+}
+
+struct SendSolutionReport
+{
+    static enum id = MessageID.SolutionReport;
+    SolutionCertificate solution;
+}
+
+interface WorkerLeaderProtocol
+{
+    public:
+    ProblemDescription[] requestProblemList();
+
+    bool claimProblems(in ClaimProblems msg);
+
+    void sendSolution(in SendSolutionReport msg);
+}
+
 // TODO move into storage submodule?
 struct CreateNewGenome
 {
@@ -253,6 +291,14 @@ void sendMessage(Packer, MessageType)(ref Packer packer, in MessageType message)
         packer.pack(elem);
 }
 
+final void netSend(MessageType)(TCPConnection socket, in MessageType msg)
+{
+    Packer!(Appender!(ubyte[])) pack = packer(appender!(ubyte[])());
+    sendMessage(pack, msg);
+    sendBuffer(socket, pack.stream().data);
+    socket.flush();
+}
+
 interface StorageProtocol
 {
     public:
@@ -272,18 +318,9 @@ interface StorageProtocol
 class StorageProtocolImpl : StorageProtocol
 {
     private:
-    import vibe.core.net;
-    
     TCPConnection socket;
 
 
-    final void netSend(MessageType)(in MessageType msg)
-    {
-        Packer!(Appender!(ubyte[])) pack = packer(appender!(ubyte[])());
-        sendMessage(pack, msg);
-        sendBuffer(socket, pack.stream().data);
-        socket.flush();
-    }
     public:
     this(TCPConnection con)
     {
@@ -292,27 +329,27 @@ class StorageProtocolImpl : StorageProtocol
 
     override void createNewGenome(in CreateNewGenome msg)
     {
-        netSend(msg);
+        netSend(socket, msg);
         receive_ack(socket, MessageID.StoreQueryResponse);
     }
 
     override void insertGenomeData(in InsertGenomeData msg)
     {
-        netSend(msg);
+        netSend(socket, msg);
         receive_ack(socket, MessageID.StoreQueryResponse);
     }
 
     // TODO should this really return bool?
     override bool insertSolution(in InsertSolution msg)
     {
-        netSend(msg);
+        netSend(socket, msg);
         receive_ack(socket, MessageID.StoreQueryResponse);
         return true;
     }
 
     override QueryResponse queryByProblemID(in QueryByProblemID msg)
     {
-        netSend(msg);
+        netSend(socket, msg);
 
         Unpacker unpack = readBuffer(socket);
         MessageID response_msg_id;
@@ -327,7 +364,7 @@ class StorageProtocolImpl : StorageProtocol
 
     override QueryResponse queryByInitialConditions(in QueryByInitialConditions msg)
     {
-        netSend(msg);
+        netSend(socket, msg);
 
         Unpacker unpack = readBuffer(socket);
         MessageID response_msg_id;
@@ -342,7 +379,7 @@ class StorageProtocolImpl : StorageProtocol
 
     override string queryByName(in QueryByName msg)
     {
-        netSend(msg);
+        netSend(socket, msg);
 
         Unpacker unpack = readBuffer(socket);
         MessageID response_msg_id;

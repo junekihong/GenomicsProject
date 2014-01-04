@@ -102,11 +102,10 @@ void handle_genome_upload(string filename, string name)
     const(ubyte)[] genome = readFastaString(dna_file);
     dna_file.close();
 
-    Packer!(Appender!(ubyte[])) packer = packer(appender!(ubyte[]));
-    packer.pack(MessageID.GenomeUploadStart);
-    packer.pack(name);
-    packer.pack(cast(uint)genome.length); // FIXME loses precision
-    sendBuffer(leader, packer.stream().data);
+    // FIXME casting length -> uint loses precision (from ulong)
+    GenomeUploadStart msg = { name, cast(uint) genome.length };
+    netSend(leader, msg);
+    // FIXME this flushes the stream, but that's not what we want, since we're sending more data
 
     leader.write(genome);
     leader.flush();
@@ -150,12 +149,8 @@ void handle_local_align_args(string[] args)
 
         TCPConnection leader = connect_to_leader();
 
-        Packer!(Appender!(ubyte[])) pack = packer(appender!(ubyte[]));
-        pack.pack(MessageID.LocalAlignStart);
-        pack.pack(args[0]);
-        pack.pack(args[1]);
-        sendBuffer(leader, pack.stream().data);
-        leader.flush();
+        LocalAlignStart msg = {args[0], args[1]};
+        netSend(leader, msg);
 
         Unpacker unpack = readBuffer(leader);
         MessageID msg_id;

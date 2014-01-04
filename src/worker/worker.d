@@ -41,7 +41,7 @@ void runWorker(WorkerLeaderProtocol leader, StorageProtocol storage)
         }
 
         // Try to claim the problems
-        bool claimed = leader.claimProblems(problems);
+        bool claimed = leader.claimProblems(ClaimProblems(problems));
         if( !claimed )
             continue; // TODO put this entire process into its own do-while or something
         writeln("Claimed ", problems.length, " problems");
@@ -75,7 +75,7 @@ void runWorker(WorkerLeaderProtocol leader, StorageProtocol storage)
                 solutionCertificate.solutionID = problemDescription.problemID;
             }
 
-            leader.sendSolution(solutionCertificate);
+            leader.sendSolution(SendSolutionReport(solutionCertificate));
         }
     }
 }
