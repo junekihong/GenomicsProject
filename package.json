@@ -29,6 +29,16 @@
                 "vibe-d":       "0.7.18",
             },
             "versions": ["VibeCustomMain"],
+        },
+        {
+            "name":         "mdps",
+            "targetType":   "executable",
+            "sourcePaths":  ["src/common","src/storage"],
+            "dependencies": {
+                "msgpack-d":    "~master",
+                "vibe-d":       "0.7.18",
+            },
+            "versions": ["VibeCustomMain"],
         }
     ],
     "dependencies": {
