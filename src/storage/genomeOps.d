@@ -5,13 +5,18 @@ import std.stdio;
 
 import vibe.core.file;
 
-import mdp.common.protocol : GenomeInfo;
+import mdp.common.protocol;
 
 private {
     immutable genomePathEntry = PathEntry("genomes");
     immutable genomeRoot = Path(genomePathEntry);
     GenomeInfo[string] genomes;
     ubyte[][string] genomeData;
+}
+
+const GenomeInfo[string] getGenomes()
+{
+    return genomes;
 }
 
 void initializeGenomeSystem()
@@ -26,7 +31,7 @@ void initializeGenomeSystem()
     if( ! getFileInfo(genomeRoot).isDirectory )
     {
         throw new Exception("file \"" ~ to!string(genomeRoot) ~ "\" exists but cannot"
-                " be used as the genome roote because it is not a directory");
+                " be used as the genome root because it is not a directory");
     }
 
 
@@ -56,18 +61,18 @@ void addGenomeFromFile(FileInfo info)
     input.close();
 }
 
-void createGenome(string name, uint length)
+void createGenome(in CreateNewGenome msg)
 {
-    genomes[name] = GenomeInfo(name, length);
-    FileStream strm = openFile(genomeRoot ~ name, FileMode.createTrunc);
+    genomes[msg.name] = GenomeInfo(msg.name, msg.length);
+    FileStream strm = openFile(genomeRoot ~ msg.name, FileMode.createTrunc);
     strm.close();
 }
 
-void addGenomeData(string genome, uint startIndex, ubyte[] data)
+void addGenomeData(in InsertGenomeData args)
 {
-    FileStream strm = openFile(genomeRoot ~ genome, FileMode.readWrite);
-    strm.seek(startIndex);
-    strm.write(data);
+    FileStream strm = openFile(genomeRoot ~ args.name, FileMode.readWrite);
+    strm.seek(args.index);
+    strm.write(args.data);
     strm.close();
 }
 
@@ -81,7 +86,7 @@ const ref GenomeInfo getGenomeInfo(string name)
     return genomes[name];
 }
 
-ubyte[] getGenomeData(string name, uint index, uint length)
+shared(ubyte)[] getGenomeData(in QueryByName msg)
 {
     /*std::ifstream strm((genomeRoot / name).generic_string<std::string>().c_str());
     if( !strm )
@@ -92,5 +97,8 @@ ubyte[] getGenomeData(string name, uint index, uint length)
 #ifdef DEBUG
     std::cout << "read data from index " << index << " in file " << (genomeRoot / name).generic_string<std::string>().c_str() << ":\n" << std::string(data.begin(), data.end()) << "\n";
 #endif*/
-    return genomeData[name][index .. (index + length)];
+    // Copy into shared memory
+    shared(ubyte)[] result = new shared(ubyte)[msg.length];
+    result[] = genomeData[msg.name][msg.startIndex .. (msg.startIndex + msg.length)][];
+    return result;
 }
