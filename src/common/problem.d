@@ -37,8 +37,17 @@ struct ProblemDescription
     {
         this = other;
     }
+    this(ProblemID id, int c, immutable(int)[] tn, immutable(int)[] ln, immutable(ubyte)[] tg, immutable(ubyte)[] lg) immutable
+    {
+		problemID = id;
+		corner = c;
+		top_numbers = tn;
+		left_numbers = ln;
+		top_genome = tg;
+		left_genome = lg;
+    }
 
-    void opAssign(ProblemDescription x)
+    void opAssign(ProblemDescription x) pure
     {
         problemID = x.problemID;
         corner = x.corner;
@@ -46,10 +55,22 @@ struct ProblemDescription
         left_numbers = x.left_numbers.dup;
         top_genome = x.top_genome.dup;
         left_genome = x.left_genome.dup;
-        //return this;
+    }
+    void opAssign(ProblemDescription x) shared pure
+    {
+        problemID = x.problemID;
+        corner = x.corner;
+        top_numbers.length = x.top_numbers.length;
+        top_numbers[] = x.top_numbers[];
+        left_numbers.length = x.left_numbers.length;
+        left_numbers[] = x.left_numbers[];
+        top_genome.length = x.top_genome.length;
+        top_genome[] = x.top_genome[];
+        left_genome.length = x.left_genome.length;
+        left_genome[] = x.left_genome[];
     }
 
-    @property ProblemDescription dup()
+    @property ProblemDescription dup() inout
     {
         ProblemDescription result;
         result.problemID = problemID;
@@ -60,6 +81,17 @@ struct ProblemDescription
         result.left_genome = left_genome.dup;
         return result;
     }
+
+    @property immutable(ProblemDescription) idup()
+    {
+        return immutable ProblemDescription(
+                problemID, corner,
+                top_numbers.idup,
+                left_numbers.idup,
+                top_genome.idup,
+                left_genome.idup
+                );
+	}
 
     bool compareID(string op)(ProblemDescription x) inout
     {
@@ -99,6 +131,26 @@ struct ProblemDescription
     }
 
     void fromMsgpack(ref Unpacker unpacker)
+    {
+        auto length = unpacker.beginArray();
+        if( length != 6 )
+            throw new MessagePackException("The size of the array is mismatched");
+        import std.stdio : writeln;
+        unpacker.unpack(problemID);
+        unpacker.unpack(corner);
+        unpacker.unpack(top_numbers);
+        unpacker.unpack(left_numbers);
+        // the C++ implementation doesn't use a binary array like the D one does,
+        // so we need to do it ourselves.
+        // TODO when the project is all in D, then we can get rid of this whole method
+        top_genome.length = unpacker.beginArray();
+        foreach( ref b; top_genome)
+            unpacker.unpack(b);
+        left_genome.length = unpacker.beginArray();
+        foreach(ref b; left_genome)
+            unpacker.unpack(b);
+    }
+    void fromMsgpack(ref Unpacker unpacker) shared
     {
         auto length = unpacker.beginArray();
         if( length != 6 )
