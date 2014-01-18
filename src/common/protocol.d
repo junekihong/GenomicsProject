@@ -120,6 +120,7 @@ struct GenomeInfo
 class QueryResponse
 {
     public:
+    static enum id = MessageID.StoreQueryResponse;
     // True if a match was found
     bool success;
     // True if an exact match was found
@@ -136,7 +137,7 @@ class QueryResponse
     // This may be omitted.
     Solution * sol;
 
-    this()
+    this() pure
     {
         success = false;
         exactMatch = false;
