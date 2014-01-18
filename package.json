@@ -38,8 +38,8 @@
                 "msgpack-d":    "~master",
                 "vibe-d":       "0.7.18",
             },
-            "versions": ["VibeCustomMain"],
-        }
+            "versions": ["VibeDefaultMain"],
+        },
     ],
     "dependencies": {
         "mdp:mdpc":"~master",
