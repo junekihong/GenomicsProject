@@ -2,6 +2,7 @@ module mdp.common.matrix;
 
 import std.algorithm : max;
 import std.conv;
+import std.exception : assumeUnique;
 import std.format;
 
 import mdp.common.location;
@@ -33,6 +34,13 @@ struct Matrix
     this(in Matrix matrix)
     {
         this = matrix;
+    }
+
+    private immutable this(int _l, int _w, immutable int[][] data)
+    {
+        _length = _l;
+        _width = _w;
+        matrix = data;
     }
 
     private void allocateMatrix()
@@ -75,6 +83,28 @@ struct Matrix
         matrix.length = _width + 1;
         foreach( ulong idx; 0 .. matrix.length )
             matrix[idx] = other.matrix[idx].dup;
+    }
+
+    void opAssign(in Matrix other) shared
+    {
+        _width = other._width;
+        _length = other._length;
+        matrix.length = _width + 1;
+        foreach( ulong idx; 0 .. matrix.length )
+        {
+            matrix[idx].length = _length + 1;
+            matrix[idx][] = other.matrix[idx][];
+        }
+    }
+
+    @property immutable(Matrix) idup() inout
+    {
+        immutable(int)[][] idata;
+        idata.length = _width + 1;
+        foreach(ulong idx; 0 .. idata.length )
+            idata[idx] = matrix[idx].idup;
+
+        return immutable Matrix(_length, _width, assumeUnique(idata));
     }
 
     void toString(scope void delegate(const(char)[]) sink, FormatSpec!char fmt) const
