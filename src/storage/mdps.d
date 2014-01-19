@@ -85,44 +85,53 @@ shared static this()
 
 void connection_handler(TCPConnection connection)
 {
-    Unpacker unpack = readBuffer(connection);
-    MessageID msg_id;
-    unpack.unpack(msg_id);
+    try {
+    while( true ) {
+        Unpacker unpack = readBuffer(connection);
+        MessageID msg_id;
+        unpack.unpack(msg_id);
 
-    switch( msg_id )
-    {
-        case MessageID.StoreNewGenome:
-            handle_new_genome(connection, unpack);
-            break;
-        case MessageID.StoreNewData:
-            handle_new_data(connection, unpack);
-            break;
-        case MessageID.StoreNewSolution:
-            handle_new_solution(connection, unpack);
-            break;
-        case MessageID.StoreQueryByID:
-            handle_query_by_id(connection, unpack);
-            break;
-        case MessageID.StoreQueryByCond:
-            handle_query_by_cond(connection, unpack);
-            break;
-        case MessageID.StoreGenomeInfoQuery:
-            handle_genome_info_query(connection, unpack);
-            break;
-        case MessageID.StoreGenomeContentQuery:
-            handle_genome_content_query(connection, unpack);
-            break;
-        case MessageID.StoreMaxSolutionRequest:
-            handle_max_solution(connection, unpack);
-            break;
-        case MessageID.GenomeListRequest:
-            handle_genome_list(connection, unpack);
-            break;
-        default:
-            writeln("Unknown message type: ", msg_id.stringof, " from socket ", connection);
+        switch( msg_id )
+        {
+            case MessageID.StoreNewGenome:
+                handle_new_genome(connection, unpack);
+                break;
+            case MessageID.StoreNewData:
+                handle_new_data(connection, unpack);
+                break;
+            case MessageID.StoreNewSolution:
+                handle_new_solution(connection, unpack);
+                break;
+            case MessageID.StoreQueryByID:
+                handle_query_by_id(connection, unpack);
+                break;
+            case MessageID.StoreQueryByCond:
+                handle_query_by_cond(connection, unpack);
+                break;
+            case MessageID.StoreGenomeInfoQuery:
+                handle_genome_info_query(connection, unpack);
+                break;
+            case MessageID.StoreGenomeContentQuery:
+                handle_genome_content_query(connection, unpack);
+                break;
+            case MessageID.StoreMaxSolutionRequest:
+                handle_max_solution(connection, unpack);
+                break;
+            case MessageID.GenomeListRequest:
+                handle_genome_list(connection, unpack);
+                break;
+            default:
+                writeln("Unknown message type: ", msg_id.stringof, " from socket ", connection);
+                assert(0);
+        }
     }
-
-    assert(0);
+    }
+    catch(Exception e)
+    {
+        writeln("The connection probably closed, and so this Task should go away.\n"
+                "But something else may have happened while I wasn't paying attention.\n"
+                "TODO fix this lack of exception handling.");
+    }
 }
 
 void sendToGenome(T)(ref T msg)
@@ -271,7 +280,6 @@ void simple_messages(Task tid, MessageID incomingID)
     switch( incomingID )
     {
         case MessageID.StoreMaxSolutionRequest:
-            writeln("sending max solution id.");
             shared to_send = nextSolutionID;
             send(tid, to_send);
             break;
